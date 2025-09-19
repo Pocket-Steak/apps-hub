@@ -90,28 +90,6 @@
 
     footer{ margin-top:24px; text-align:center; font-weight:600; color: rgba(255,255,255,.9); }
 
-    /* Under construction styles */
-    .wip{
-      display:inline-block;
-      margin-left:8px;
-      padding:4px 8px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.92);
-      color:#222;
-      font-size: 12px;
-      font-weight: 900;
-      letter-spacing:.2px;
-      border:1px solid rgba(0,0,0,.1);
-    }
-    .btn.disabled{
-      opacity:.65;
-      cursor:not-allowed;
-      border-style:dashed;
-    }
-    .wip-tile{
-      filter: saturate(0.96) brightness(0.98);
-    }
-
     @media (prefers-reduced-motion: reduce){ .tile, .btn { transition: none } .tile:hover { transform:none } .tile::after{ display:none } }
   </style>
 </head>
@@ -141,8 +119,8 @@
     // ---- Data ----
     const APPS = [
       { emoji:"🗳️", name:"The Secret Vote", desc:"Anonymous room-based ranking magic.", url:"https://pocket-steak.github.io/Voting-Repository/" },
-      { emoji:"🚧", name:"MTG Stats", desc:"Track & compare your game nights — Under construction.", url:"https://pocket-steak.github.io/mtg-stats/", underConstruction: true },
-      { emoji:"🚧", name:"The Randomizer", desc:"Instant decisions. Zero debates — Under construction.", url:"https://pocket-steak.github.io/randomizer/", underConstruction: true }
+      { emoji:"📊", name:"MTG Stats", desc:"Track & compare your game nights.", url:"https://pocket-steak.github.io/mtg-stats/" },
+      { emoji:"🎲", name:"The Randomizer", desc:"Instant decisions. Zero debates.", url:"https://pocket-steak.github.io/randomizer/" }
     ];
 
     // ---- Render ----
@@ -150,20 +128,15 @@
 
     function tileTemplate(a, idx){
       const v = ['v1','v2','v3','v4'][idx % 4];
-      const wip = !!a.underConstruction;
-      const button = wip
-        ? `<span class="btn disabled" aria-disabled="true" title="Coming soon">Coming Soon</span>`
-        : `<a class="btn" href="${a.url}" target="_blank" rel="noopener noreferrer">Open ↗</a>`;
-      const badge = wip ? `<span class="wip">🚧 Under construction</span>` : '';
       return `
-        <article class="tile ${v}${wip ? ' wip-tile' : ''}">
+        <article class="tile ${v}">
           <div class="mark">${a.emoji}</div>
           <div class="textblock">
             <div class="name">${a.name}</div>
-            <div class="desc">${a.desc} ${badge}</div>
+            <div class="desc">${a.desc}</div>
           </div>
           <div class="actions">
-            ${button}
+            <a class="btn" href="${a.url}" target="_blank" rel="noopener noreferrer">Open ↗</a>
           </div>
         </article>`;
     }
@@ -203,12 +176,8 @@
           t(tile.querySelector('.name').textContent === APPS[i].name, 'name matches data');
           t(!!tile.querySelector('.desc'), 'tile has desc');
         });
-        // Under-construction tests
-        const wips = APPS.filter(a=>a.underConstruction);
-        if(wips.length){
-          const disabledBtns = [...document.querySelectorAll('.btn.disabled')];
-          t(disabledBtns.length === wips.length, 'disabled buttons match under-construction count');
-        }
+        const s = tileTemplate({emoji:'✅', name:'Test', desc:'Demo', url:'#'}, 0);
+        t(/<article[\s\S]*class=\"tile/.test(s), 'tileTemplate returns HTML string');
         console.log('✅ UI smoke tests passed');
       } catch(err){ console.error('❌ UI tests failed:', err.message); }
     })();
