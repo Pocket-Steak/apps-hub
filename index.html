@@ -1,196 +1,502 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PocketSteak's Apps</title>
-  <meta name="description" content="A bold, fun hub for PocketSteak's projects and apps." />
+// src/pages/Results.jsx
+import { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { supabase } from "../lib/supabase";
 
-  <style>
-    :root{
-      --ink: #0a0a0a;
-      --ink-invert: #ffffff;
-      --shadow-1: 0 20px 60px rgba(0,0,0,.35);
-      --radius-xxl: 28px;
-      --grid-max: 1120px;
+const ORANGE = "#ff8c00";
+
+// minutes-only time
+function fmtHM(ms) {
+  if (ms <= 0) return "0h 0m";
+  const mTotal = Math.floor(ms / 60000);
+  const h = Math.floor(mTotal / 60);
+  const m = mTotal % 60;
+  return `${h}h ${m}m`;
+}
+
+export default function Results() {
+  const nav = useNavigate();
+  const { state } = useLocation();
+  const { code: raw } = useParams();
+  const code = (raw || "").toUpperCase();
+
+  // ---- state ----
+  const [poll, setPoll] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [now, setNow] = useState(Date.now());
+  const [rows, setRows] = useState([]); // poll_results rows: { poll_id, option, points }
+
+  // fetch poll by code
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("polls")
+        .select("*")
+        .eq("code", code)
+        .maybeSingle();
+      if (!cancelled) {
+        if (error) {
+          console.error(error);
+          setPoll(null);
+        } else {
+          setPoll(data);
+        }
+        setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [code]);
+
+  // tick clock every 15s
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 15000);
+    return () => clearInterval(t);
+  }, []);
+
+  // refresh results every 2s
+  useEffect(() => {
+    if (!poll?.id) return;
+    let cancelled = false;
+
+    const read = async () => {
+      const { data, error } = await supabase
+        .from("poll_results")
+        .select("*")
+        .eq("poll_id", poll.id);
+      if (!cancelled) {
+        if (error) {
+          console.error(error);
+          setRows([]);
+        } else {
+          setRows(Array.isArray(data) ? data : []);
+        }
+      }
+    };
+
+    read();
+    const t = setInterval(read, 2000);
+    return () => {
+      cancelled = true;
+      clearInterval(t);
+    };
+  }, [poll?.id]);
+
+  // status
+  const status = useMemo(() => {
+    if (!poll) return "missing";
+    const closesAt = new Date(poll.closes_at).getTime();
+    const expiresAt = new Date(poll.expires_at).getTime();
+    if (now >= expiresAt) return "expired";
+    if (now >= closesAt) return "closed";
+    return "open";
+  }, [poll, now]);
+
+  // compute totals, sort, ranks, ties
+  const weights = useMemo(() => {
+    const scheme = Array.isArray(poll?.point_scheme) ? poll.point_scheme : [];
+    return scheme.map((n) => Number(n) || 0);
+  }, [poll?.point_scheme]);
+
+  const totals = useMemo(() => {
+    const opts = Array.isArray(poll?.options) ? poll.options : [];
+    const map = new Map(opts.map((o) => [o, 0]));
+    for (const r of rows) {
+      if (map.has(r.option)) {
+        map.set(r.option, (map.get(r.option) || 0) + (Number(r.points) || 0));
+      }
     }
-
-    /* THEME PALETTES */
-    .theme-orange{ --bg-a:#ff7a18; --bg-b:#ff3d81; --bg-c:#7a5cff; --bg-d:#00d4ff; --tile-1:linear-gradient(135deg,#ffb457,#ff7a18); --tile-2:linear-gradient(135deg,#ff7ac1,#ff3d81); --tile-3:linear-gradient(135deg,#b39cff,#7a5cff); --tile-4:linear-gradient(135deg,#7ae8ff,#00d4ff); }
-    .theme-blue{   --bg-a:#2dd4ff; --bg-b:#5a7bff; --bg-c:#7a5cff; --bg-d:#00e1d0; --tile-1:linear-gradient(135deg,#a7f3ff,#2dd4ff); --tile-2:linear-gradient(135deg,#9ab2ff,#5a7bff); --tile-3:linear-gradient(135deg,#b7a9ff,#7a5cff); --tile-4:linear-gradient(135deg,#7affe8,#00e1d0); }
-    .theme-lime{   --bg-a:#a4ff3d; --bg-b:#00e1a1; --bg-c:#00d4ff; --bg-d:#7a5cff; --tile-1:linear-gradient(135deg,#d7ff8a,#a4ff3d); --tile-2:linear-gradient(135deg,#7dffd6,#00e1a1); --tile-3:linear-gradient(135deg,#7ae8ff,#00d4ff); --tile-4:linear-gradient(135deg,#b39cff,#7a5cff); }
-    .theme-pink{   --bg-a:#ff3d81; --bg-b:#ff7a18; --bg-c:#ff7ac1; --bg-d:#7a5cff; --tile-1:linear-gradient(135deg,#ff9ac2,#ff3d81); --tile-2:linear-gradient(135deg,#ffd18e,#ff7a18); --tile-3:linear-gradient(135deg,#ffb2de,#ff7ac1); --tile-4:linear-gradient(135deg,#b39cff,#7a5cff); }
-    .theme-vapor{  --bg-a:#00d4ff; --bg-b:#7a5cff; --bg-c:#ff3d81; --bg-d:#00ffa3; --tile-1:linear-gradient(135deg,#7ae8ff,#00d4ff); --tile-2:linear-gradient(135deg,#b39cff,#7a5cff); --tile-3:linear-gradient(135deg,#ff9ac2,#ff3d81); --tile-4:linear-gradient(135deg,#7dffd6,#00ffa3); }
-
-    * { box-sizing: border-box; margin:0; padding:0; }
-    html, body { height: 100%; }
-
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color: var(--ink-invert);
-      background: radial-gradient(1200px 600px at 10% -10%, rgba(255,255,255,.25), transparent 60%),
-                 radial-gradient(1000px 600px at 110% 10%, rgba(255,255,255,.15), transparent 55%),
-                 linear-gradient(135deg, var(--bg-a), var(--bg-b) 35%, var(--bg-c) 70%, var(--bg-d));
-      background-size: 200% 200%;
-      animation: bgShift 18s ease-in-out infinite alternate;
+    const arr = Array.from(map.entries()).map(([option, points]) => ({
+      option,
+      points,
+    }));
+    arr.sort(
+      (a, b) => b.points - a.points || a.option.localeCompare(b.option)
+    );
+    // assign ranks with ties sharing the same rank number
+    let rank = 1;
+    for (let i = 0; i < arr.length; i++) {
+      if (i > 0 && arr[i].points === arr[i - 1].points) {
+        arr[i].rank = arr[i - 1].rank;
+        arr[i].tie = true;
+        arr[i - 1].tie = true;
+      } else {
+        arr[i].rank = rank;
+      }
+      rank = i + 2;
     }
-    @keyframes bgShift{ from{ background-position: 0% 40%; } to{ background-position: 100% 60%; } }
+    return arr;
+  }, [rows, poll?.options]);
 
-    header{ max-width: var(--grid-max); margin: 0 auto; padding: 48px 20px 12px; text-align:center; }
-    .brand-badge{ display:inline-grid; place-items:center; width:100px; height:100px; border-radius: 28px; background: rgba(255,255,255,.15); box-shadow: inset 0 1px 0 rgba(255,255,255,.4), var(--shadow-1); margin-bottom:20px; }
-    .brand-badge span{ font-size:52px; }
-    .title{ font-weight:900; font-size: clamp(42px, 6vw, 72px); text-shadow: 0 8px 22px rgba(0,0,0,.35); margin-bottom:8px; }
-    .subtitle{ font-weight:600; font-size: clamp(18px, 2.5vw, 22px); opacity:.97; }
+  // derive ballot count safely: each ballot contributes sum(weights) total points
+  const ballotsCount = useMemo(() => {
+    const S = weights.reduce((a, b) => a + b, 0); // total points per ballot
+    if (!S) return 0;
+    const totalPoints = totals.reduce((a, r) => a + r.points, 0);
+    return Math.round(totalPoints / S);
+  }, [weights, totals]);
 
-    .themes{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:14px; }
-    .theme-btn{ appearance:none; cursor:pointer; border:none; color:#0a0a0a; font-weight:900; letter-spacing:.2px; padding:10px 14px; border-radius: 999px; background: rgba(255,255,255,.92); box-shadow: 0 6px 18px rgba(0,0,0,.22); }
-    .theme-btn:hover{ transform: translateY(-1px); }
+  const timeLeft = Math.max(
+    0,
+    (poll ? new Date(poll.closes_at).getTime() : 0) - now
+  );
 
-    main{ max-width: var(--grid-max); margin: 0 auto; padding: 12px 20px 60px; }
-    .grid{ display:grid; gap:28px; grid-template-columns: repeat(auto-fit, minmax(280px, 520px)); justify-content:center; }
+  // ---- render branches ----
+  if (loading) {
+    return ScreenWrap(
+      <div style={styles.container}>
+        <h1 style={styles.title}>Room {code}</h1>
+        <p style={styles.text}>Loading…</p>
+      </div>
+    );
+  }
+  if (!poll) {
+    return ScreenWrap(
+      <div style={styles.container}>
+        <h1 style={styles.title}>Room {code}</h1>
+        <p style={styles.text}>
+          We couldn’t find this poll. Double-check the code.
+        </p>
+        <button style={styles.secondaryBtn} onClick={() => nav("/")}>
+          Home
+        </button>
+      </div>
+    );
+  }
+  if (status === "expired") {
+    return ScreenWrap(
+      <div style={styles.container}>
+        <h1 style={styles.title}>{poll.title}</h1>
+        <p style={{ ...styles.text, marginTop: 8 }}>
+          This page has gone the way of your New Year’s resolutions.
+        </p>
+        <button style={styles.secondaryBtn} onClick={() => nav("/")}>
+          Home
+        </button>
+      </div>
+    );
+  }
 
-    /* BIG FUN GRADIENT TILES with SHINE */
-    .tile{
-      width:min(100%,520px);
-      display:flex; align-items:center; gap:18px; padding:26px;
-      border-radius: var(--radius-xxl);
-      color:#0b0b0b; background: var(--tile-1);
-      box-shadow: var(--shadow-1);
-      border: 1px solid rgba(255,255,255,.35);
-      position:relative; overflow:hidden; text-align:left;
-      transition: transform .18s cubic-bezier(.2,.8,.2,1), filter .18s ease, box-shadow .18s ease;
-    }
-    .tile:hover{ transform: translateY(-4px) rotate(-.4deg); filter: saturate(1.08); box-shadow: 0 28px 80px rgba(0,0,0,.45); }
-    .tile:active{ transform: translateY(-2px) scale(1.01); }
+  return ScreenWrap(
+    <div style={styles.container}>
+      {/* Banners */}
+      {state?.tooSlow && (
+        <Banner text="Too slow — voting’s over, but here are the results." />
+      )}
+      {state?.thanks && (
+        <Banner text="Thanks for voting! You’re viewing live results." />
+      )}
 
-    /* Sheen layers */
-    .tile::after{ content:""; position:absolute; inset:-2px; pointer-events:none; opacity:0; background: linear-gradient(100deg, transparent 0%, rgba(255,255,255,.75) 45%, rgba(255,255,255,.45) 55%, transparent 100%); transform: translateX(-140%); transition: opacity .18s ease; }
-    .tile:hover::after{ opacity:.9; animation: sweep 900ms ease forwards; }
-    .tile::before{ content:""; position:absolute; inset:0; pointer-events:none; opacity:0; background: radial-gradient(80% 60% at 20% 0%, rgba(255,255,255,.35), transparent 50%), radial-gradient(60% 40% at 100% 20%, rgba(255,255,255,.18), transparent 60%); transition: opacity .18s ease; }
-    .tile:active::before, .tile.press::before{ opacity:.6; }
-    .tile:active::after, .tile.press::after{ opacity:1; animation: sweep 700ms ease forwards; }
+      {/* Header */}
+      <div style={styles.headerRow}>
+        <h1 style={styles.title}>{poll.title}</h1>
+        <div style={styles.timer}>
+          {status === "open" ? <>Ends in {fmtHM(timeLeft)}</> : <>Voting Closed</>}
+        </div>
+      </div>
+      <div style={styles.subRow}>
+        <span style={styles.badge}>Code: {code}</span>
+        <span style={styles.badge}>Ballots: {ballotsCount}</span>
+      </div>
 
-    @keyframes sweep{ to{ transform: translateX(140%); } }
+      {/* Results list */}
+      <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
+        {totals.map((row) => {
+          const isWinner = row.rank === 1;
+          return (
+            <div
+              key={row.option}
+              style={{
+                ...styles.resultRow,
+                ...(isWinner ? styles.firstPlace : {}),
+              }}
+            >
+              <div style={styles.rankCell}>
+                <span
+                  style={{
+                    ...styles.rankNum,
+                    ...(isWinner ? styles.rankNumWinner : {}),
+                  }}
+                >
+                  {row.rank}
+                </span>
 
-    .mark{ width:68px; height:68px; display:grid; place-items:center; flex: 0 0 68px; border-radius: 22px; background: rgba(255,255,255,.92); border: 1px solid rgba(0,0,0,.05); box-shadow: inset 0 1px 0 rgba(255,255,255,.8), 0 10px 26px rgba(0,0,0,.16); font-size: 34px; }
-    .textblock{ display:flex; flex-direction:column; gap:6px; }
-    .name{ font-weight: 900; font-size: 26px; letter-spacing:.2px; }
-    .desc{ font-weight:600; opacity:.9; }
+                {/* crown character for winner */}
+                {isWinner && (
+                  <div style={styles.crownWrap} aria-label="Leader">
+                    <CrownBuddy />
+                  </div>
+                )}
 
-    .actions{ margin-left:auto; display:flex; gap:10px; }
-    .btn{ appearance:none; cursor:pointer; user-select:none; font-weight:900; letter-spacing:.3px; padding:12px 16px; border-radius: 14px; border: 2px solid rgba(0,0,0,.14); background: rgba(255,255,255,.95); color:#101010; box-shadow: 0 4px 12px rgba(0,0,0,.18); transition: transform .12s ease, box-shadow .12s ease, filter .12s ease; text-decoration:none; }
-    .btn:hover{ transform: translateY(-1px); filter: saturate(1.05); box-shadow: 0 8px 20px rgba(0,0,0,.22); }
+                {row.tie && <span style={styles.tieBadge}>TIE</span>}
+              </div>
 
-    /* Variants cycle per tile */
-    .v1{ background: var(--tile-1); }
-    .v2{ background: var(--tile-2); }
-    .v3{ background: var(--tile-3); }
-    .v4{ background: var(--tile-4); }
+              <div
+                style={{
+                  ...styles.optionCell,
+                  ...(isWinner ? styles.optionCellWinner : {}),
+                }}
+              >
+                {row.option}
+              </div>
 
-    footer{ margin-top:24px; text-align:center; font-weight:600; color: rgba(255,255,255,.9); }
+              <div
+                style={{
+                  ...styles.pointsCell,
+                  ...(isWinner ? styles.pointsCellWinner : {}),
+                }}
+              >
+                {row.points} pts
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
-    /* Under construction styles */
-    .wip{ display:inline-block; margin-left:8px; padding:4px 8px; border-radius: 999px; background: rgba(255,255,255,.92); color:#222; font-size: 12px; font-weight: 900; letter-spacing:.2px; border:1px solid rgba(0,0,0,.1); }
-    .btn.disabled{ opacity:.65; cursor:not-allowed; border-style:dashed; }
-    .wip-tile{ filter: saturate(0.96) brightness(0.98); }
-
-    @media (prefers-reduced-motion: reduce){ .tile, .btn { transition: none } .tile:hover { transform:none } .tile::after{ display:none } }
-  </style>
-</head>
-<body class="theme-orange">
-  <header>
-    <div class="brand-badge"><span>🥩</span></div>
-    <div class="title">PocketSteak's Apps</div>
-    <div class="subtitle">Big, bright, push-the-button fun.</div>
-    <div class="themes">
-      <button class="theme-btn" data-theme="orange">Orange</button>
-      <button class="theme-btn" data-theme="blue">Electric Blue</button>
-      <button class="theme-btn" data-theme="lime">Neon Lime</button>
-      <button class="theme-btn" data-theme="pink">Hot Pink</button>
-      <button class="theme-btn" data-theme="vapor">Vapor</button>
+      <div style={styles.actionsRow}>
+        <button
+          style={styles.secondaryBtn}
+          onClick={() => nav(`/room/${code}`)}
+        >
+          Back to Room
+        </button>
+        <button style={styles.linkBtn} onClick={() => nav("/")}>
+          Home
+        </button>
+      </div>
     </div>
-  </header>
+  );
+}
 
-  <main>
-    <div class="grid" id="grid"></div>
-  </main>
+/* ---------- Crown Buddy (cute jumping crown) ---------- */
+function CrownBuddy() {
+  return (
+    <svg
+      viewBox="0 0 64 48"
+      width="36"
+      height="27"
+      style={styles.crownSvg}
+      role="img"
+      aria-hidden="true"
+    >
+      {/* shadow (squash) */}
+      <ellipse cx="32" cy="44" rx="12" ry="3" fill="rgba(0,0,0,.35)" style={{ transformOrigin: "32px 44px" }} />
+      {/* base bar */}
+      <rect x="10" y="28" width="44" height="10" rx="5" fill="#ffb84d" />
+      {/* spikes */}
+      <path
+        d="M10 28 L20 12 L32 24 L44 8 L54 28 Z"
+        fill="#ffcf72"
+        stroke="#ff8c00"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+      {/* face */}
+      <circle cx="25" cy="30" r="2.2" fill="#3a2a12" />
+      <circle cx="39" cy="30" r="2.2" fill="#3a2a12" />
+      <path d="M28 34 Q32 36 36 34" stroke="#3a2a12" strokeWidth="2" fill="none" strokeLinecap="round" />
+      {/* jewels */}
+      <circle cx="20" cy="12" r="3" fill="#ff8c00" />
+      <circle cx="44" cy="8" r="3" fill="#ff8c00" />
+      <circle cx="32" cy="24" r="3" fill="#ff8c00" />
+    </svg>
+  );
+}
 
-  <footer>
-    © PocketSteak — Built to tap.
-  </footer>
+/* ---------- helpers / styles ---------- */
+function Banner({ text }) {
+  return <div style={styles.banner}>{text}</div>;
+}
+function ScreenWrap(children) {
+  return <div style={styles.wrap}>{children}</div>;
+}
 
-  <script>
-    // ---- Data ----
-    const APPS = [
-      { emoji:"🗳️", name:"The Secret Vote", desc:"Anonymous room-based ranking magic.", url:"https://pocket-steak.github.io/Voting-Repository/" },
-      { emoji:"🚧", name:"MTG Stats", desc:"Track & compare your game nights — Under construction.", url:"https://pocket-steak.github.io/mtg-stats/", underConstruction: true },
-      { emoji:"🚧", name:"The Randomizer", desc:"Instant decisions. Zero debates — Under construction.", url:"https://pocket-steak.github.io/randomizer/", underConstruction: true }
-    ];
+/* jump keyframes (with squash/stretch) */
+const crownJumpKeyframes = `
+@keyframes crown-jump {
+  0%   { transform: translateY(0) scaleY(1) scaleX(1); }
+  20%  { transform: translateY(-8px) scaleY(0.98) scaleX(1.02); }
+  40%  { transform: translateY(0) scaleY(1.04) scaleX(0.98); } /* land squash */
+  60%  { transform: translateY(-5px) scaleY(0.99) scaleX(1.01); }
+  100% { transform: translateY(0) scaleY(1) scaleX(1); }
+}
+@keyframes shadow-squash {
+  0%   { transform: scaleX(1) scaleY(1); opacity: .35; }
+  20%  { transform: scaleX(0.9) scaleY(1.05); opacity: .25; }
+  40%  { transform: scaleX(1.15) scaleY(0.8); opacity: .45; }
+  60%  { transform: scaleX(0.95) scaleY(1.05); opacity: .3; }
+  100% { transform: scaleX(1) scaleY(1); opacity: .35; }
+}
+`;
 
-    // ---- Render ----
-    const grid = document.getElementById('grid');
+const styles = {
+  // mobile-safe outer wrap
+  wrap: {
+    minHeight: "100vh",
+    display: "grid",
+    placeItems: "center",
+    background: "#0b0f17",
+    color: "#e9e9f1",
+    padding: "clamp(8px, 2vw, 16px)",
+    overflowX: "hidden",
+  },
 
-    function tileTemplate(a, idx){
-      const v = ['v1','v2','v3','v4'][idx % 4];
-      const wip = !!a.underConstruction;
-      const button = wip
-        ? `<span class="btn disabled" aria-disabled="true" title="Coming soon">Coming Soon</span>`
-        : `<a class="btn" href="${a.url}" target="_blank" rel="noopener noreferrer">Open ↗</a>`;
-      const badge = wip ? `<span class="wip">🚧 Under construction</span>` : '';
-      return `
-        <article class="tile ${v}${wip ? ' wip-tile' : ''}">
-          <div class="mark">${a.emoji}</div>
-          <div class="textblock">
-            <div class="name">${a.name}</div>
-            <div class="desc">${a.desc} ${badge}</div>
-          </div>
-          <div class="actions">
-            ${button}
-          </div>
-        </article>`;
-    }
+  container: {
+    width: "100%",
+    maxWidth: 720,
+    padding: "clamp(16px, 3vw, 24px)",
+    borderRadius: 16,
+    background: "rgba(255,255,255,0.04)",
+    boxShadow: "0 0 20px rgba(255,140,0,.35)",
+    boxSizing: "border-box",
+    margin: "0 auto",
+  },
 
-    function render(list){
-      grid.innerHTML = list.map(tileTemplate).join('');
-    }
+  headerRow: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    flexWrap: "wrap",
+  },
+  title: {
+    fontSize: "clamp(22px, 4.5vw, 28px)",
+    textShadow: "0 0 12px rgba(255,140,0,.8)",
+    margin: 0,
+  },
+  timer: { fontWeight: 700, color: "#ffd9b3", textShadow: "0 0 8px rgba(255,140,0,.6)" },
 
-    render(APPS);
+  subRow: {
+    marginTop: 8,
+    display: "flex",
+    gap: 10,
+    alignItems: "center",
+    flexWrap: "wrap",
+  },
+  badge: {
+    padding: "6px 12px",
+    borderRadius: 999,
+    border: "1px solid #333",
+    background: "#121727",
+    letterSpacing: 1,
+    fontSize: 12,
+  },
 
-    // ---- Theme switcher ----
-    document.addEventListener('click', (e)=>{
-      const btn = e.target.closest('[data-theme]');
-      if(btn){ document.body.className = `theme-${btn.dataset.theme}`; }
-    });
+  resultRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    flexWrap: "wrap",
+    padding: 12,
+    borderRadius: 12,
+    background: "rgba(255,255,255,0.03)",
+    border: "1px solid #222",
+    minWidth: 0,
+    transition: "transform .16s ease, box-shadow .16s ease, border-color .16s ease",
+  },
 
-    // ---- Press sheen for desktop + touch ----
-    (function(){
-      const onDown = (e)=>{ const t = e.target.closest('.tile'); if(t) t.classList.add('press'); };
-      const onUp   = ()=>{ document.querySelectorAll('.tile.press').forEach(t=>t.classList.remove('press')); };
-      document.addEventListener('pointerdown', onDown);
-      document.addEventListener('pointerup', onUp);
-      document.addEventListener('pointercancel', onUp);
-      document.addEventListener('pointerleave', onUp);
-    })();
+  // winner styling (bigger, glow, subtle scale)
+  firstPlace: {
+    borderColor: ORANGE,
+    boxShadow: "0 0 18px rgba(255,140,0,.5)",
+    transform: "scale(1.02)",
+    padding: 14,
+  },
 
-    // ---- Smoke tests (dev) ----
-    (function runTests(){
-      const t = (cond, msg)=>{ if(!cond) throw new Error(msg); };
-      try{
-        t(!!grid, 'grid element exists');
-        const tiles = grid.querySelectorAll('.tile');
-        t(tiles.length === APPS.length, 'renders one tile per app');
-        tiles.forEach((tile, i)=>{
-          t(!!tile.querySelector('.mark'), 'tile has mark');
-          t(!!tile.querySelector('.name'), 'tile has name');
-          t(tile.querySelector('.name').textContent === APPS[i].name, 'name matches data');
-          t(!!tile.querySelector('.desc'), 'tile has desc');
-        });
-        const s = tileTemplate({emoji:'✅', name:'Test', desc:'Demo', url:'#'}, 0);
-        t(/<article[\s\S]*class=\"tile/.test(s), 'tileTemplate returns HTML string');
-        console.log('✅ UI smoke tests passed');
-      } catch(err){ console.error('❌ UI tests failed:', err.message); }
-    })();
-  </script>
-</body>
-</html>
+  rankCell: { display: "flex", alignItems: "center", gap: 8, flex: "0 0 auto" },
+  rankNum: {
+    width: 36,
+    height: 36,
+    display: "grid",
+    placeItems: "center",
+    borderRadius: 999,
+    border: `1px solid ${ORANGE}`,
+    color: ORANGE,
+    fontWeight: 800,
+    background: "transparent",
+  },
+  rankNumWinner: {
+    background: "rgba(255,140,0,.08)",
+    boxShadow: "0 0 10px rgba(255,140,0,.45) inset",
+  },
+
+  crownWrap: {
+    position: "relative",
+    width: 36,
+    height: 27,
+    marginLeft: 2,
+  },
+
+  // animated crown buddy (jump loop)
+  crownSvg: {
+    display: "block",
+    filter: "drop-shadow(0 0 6px rgba(255,140,0,.9))",
+    transformOrigin: "50% 90%",
+    animation: "crown-jump 1.4s ease-in-out infinite",
+  },
+
+  tieBadge: {
+    marginLeft: 6,
+    padding: "2px 8px",
+    borderRadius: 999,
+    border: `1px solid ${ORANGE}`,
+    color: ORANGE,
+    fontSize: 12,
+  },
+
+  optionCell: { fontWeight: 700, minWidth: 0, flex: "1 1 200px" },
+  optionCellWinner: { fontSize: "1.06rem", letterSpacing: 0.2 },
+
+  pointsCell: {
+    marginLeft: "auto",
+    textAlign: "right",
+    fontVariantNumeric: "tabular-nums",
+    flex: "0 0 auto",
+  },
+  pointsCellWinner: { fontWeight: 800, color: "#ffd9b3", textShadow: "0 0 8px rgba(255,140,0,.45)" },
+
+  actionsRow: {
+    marginTop: 16,
+    display: "flex",
+    gap: 10,
+    flexWrap: "wrap",
+  },
+  secondaryBtn: {
+    padding: "12px 16px",
+    borderRadius: 12,
+    border: `1px solid ${ORANGE}`,
+    background: "transparent",
+    color: ORANGE,
+    cursor: "pointer",
+  },
+  linkBtn: {
+    padding: "12px 16px",
+    borderRadius: 12,
+    border: "1px solid #333",
+    background: "transparent",
+    color: "#aaa",
+    cursor: "pointer",
+  },
+
+  text: { opacity: 0.9 },
+  banner: {
+    marginBottom: 12,
+    padding: 10,
+    borderRadius: 10,
+    background: "rgba(255,140,0,.08)",
+    border: `1px solid rgba(255,140,0,.4)`,
+    color: "#ffd9b3",
+  },
+};
+
+// inject keyframes once
+(function injectOnce() {
+  if (document.getElementById("sv-crown-keyframes")) return;
+  const el = document.createElement("style");
+  el.id = "sv-crown-keyframes";
+  el.textContent = crownJumpKeyframes;
+  document.head.appendChild(el);
+})();
