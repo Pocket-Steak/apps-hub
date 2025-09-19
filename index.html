@@ -4,152 +4,129 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PocketSteak's Apps</title>
-  <meta name="description" content="A sleek, metallic hub for PocketSteak's projects and apps." />
+  <meta name="description" content="A bold, fun hub for PocketSteak's projects and apps." />
 
   <style>
     :root{
-      /* Near-Apple light silver base + metal accents */
-      --bg-1: #e9eef5;              /* light silver */
-      --bg-2: #dfe6ee;              /* subtle depth */
-      --ink: #0f141a;               /* primary text */
-      --ink-sub: #465769;           /* secondary text */
-      --accent: #ff8a3d;            /* refined orange */
-      --accent-2: #ffc07a;          /* warm partner */
-      --steel-1: #f6f9fc;           /* very light steel */
-      --steel-2: #e5ecf3;           /* mid light */
-      --steel-3: #cfd6df;           /* deeper steel */
-      --ring: rgba(255,138,61,.35);
-      --radius-xl: 22px;
-      --radius-lg: 14px;
-      --shadow-soft: 0 14px 44px rgba(15,20,26,.10);
-      --shadow-strong: 0 24px 80px rgba(15,20,26,.18);
-      --grid-max: 1140px;
+      --ink: #0a0a0a;
+      --ink-invert: #ffffff;
+      --shadow-1: 0 20px 60px rgba(0,0,0,.35);
+      --radius-xxl: 28px;
+      --grid-max: 1120px;
     }
 
-    * { box-sizing: border-box; }
+    /* THEME PALETTES */
+    .theme-orange{ --bg-a:#ff7a18; --bg-b:#ff3d81; --bg-c:#7a5cff; --bg-d:#00d4ff; --tile-1:linear-gradient(135deg,#ffb457,#ff7a18); --tile-2:linear-gradient(135deg,#ff7ac1,#ff3d81); --tile-3:linear-gradient(135deg,#b39cff,#7a5cff); --tile-4:linear-gradient(135deg,#7ae8ff,#00d4ff); }
+    .theme-blue{   --bg-a:#2dd4ff; --bg-b:#5a7bff; --bg-c:#7a5cff; --bg-d:#00e1d0; --tile-1:linear-gradient(135deg,#a7f3ff,#2dd4ff); --tile-2:linear-gradient(135deg,#9ab2ff,#5a7bff); --tile-3:linear-gradient(135deg,#b7a9ff,#7a5cff); --tile-4:linear-gradient(135deg,#7affe8,#00e1d0); }
+    .theme-lime{   --bg-a:#a4ff3d; --bg-b:#00e1a1; --bg-c:#00d4ff; --bg-d:#7a5cff; --tile-1:linear-gradient(135deg,#d7ff8a,#a4ff3d); --tile-2:linear-gradient(135deg,#7dffd6,#00e1a1); --tile-3:linear-gradient(135deg,#7ae8ff,#00d4ff); --tile-4:linear-gradient(135deg,#b39cff,#7a5cff); }
+    .theme-pink{   --bg-a:#ff3d81; --bg-b:#ff7a18; --bg-c:#ff7ac1; --bg-d:#7a5cff; --tile-1:linear-gradient(135deg,#ff9ac2,#ff3d81); --tile-2:linear-gradient(135deg,#ffd18e,#ff7a18); --tile-3:linear-gradient(135deg,#ffb2de,#ff7ac1); --tile-4:linear-gradient(135deg,#b39cff,#7a5cff); }
+    .theme-vapor{  --bg-a:#00d4ff; --bg-b:#7a5cff; --bg-c:#ff3d81; --bg-d:#00ffa3; --tile-1:linear-gradient(135deg,#7ae8ff,#00d4ff); --tile-2:linear-gradient(135deg,#b39cff,#7a5cff); --tile-3:linear-gradient(135deg,#ff9ac2,#ff3d81); --tile-4:linear-gradient(135deg,#7dffd6,#00ffa3); }
+
+    * { box-sizing: border-box; margin:0; padding:0; }
     html, body { height: 100%; }
 
     body{
       margin:0;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color: var(--ink);
-      background:
-        radial-gradient(1200px 560px at 18% -10%, rgba(255,192,122,.18), transparent 60%),
-        radial-gradient(1000px 540px at 115% 10%, rgba(255,138,61,.10), transparent 55%),
-        linear-gradient(180deg, var(--bg-1), var(--bg-2));
-      background-attachment: fixed;
+      color: var(--ink-invert);
+      background: radial-gradient(1200px 600px at 10% -10%, rgba(255,255,255,.25), transparent 60%),
+                 radial-gradient(1000px 600px at 110% 10%, rgba(255,255,255,.15), transparent 55%),
+                 linear-gradient(135deg, var(--bg-a), var(--bg-b) 35%, var(--bg-c) 70%, var(--bg-d));
+      background-size: 200% 200%;
+      animation: bgShift 18s ease-in-out infinite alternate;
+    }
+    @keyframes bgShift{ from{ background-position: 0% 40%; } to{ background-position: 100% 60%; } }
+
+    header{ max-width: var(--grid-max); margin: 0 auto; padding: 48px 20px 12px; text-align:center; }
+    .brand-badge{ display:inline-grid; place-items:center; width:100px; height:100px; border-radius: 28px; background: rgba(255,255,255,.15); box-shadow: inset 0 1px 0 rgba(255,255,255,.4), var(--shadow-1); margin-bottom:20px; }
+    .brand-badge span{ font-size:52px; }
+    .title{ font-weight:900; font-size: clamp(42px, 6vw, 72px); text-shadow: 0 8px 22px rgba(0,0,0,.35); margin-bottom:8px; }
+    .subtitle{ font-weight:600; font-size: clamp(18px, 2.5vw, 22px); opacity:.97; }
+
+    .themes{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:14px; }
+    .theme-btn{ appearance:none; cursor:pointer; border:none; color:#0a0a0a; font-weight:900; letter-spacing:.2px; padding:10px 14px; border-radius: 999px; background: rgba(255,255,255,.92); box-shadow: 0 6px 18px rgba(0,0,0,.22); }
+    .theme-btn:hover{ transform: translateY(-1px); }
+
+    main{ max-width: var(--grid-max); margin: 0 auto; padding: 12px 20px 60px; }
+    .grid{ display:grid; gap:28px; grid-template-columns: repeat(auto-fit, minmax(280px, 520px)); justify-content:center; }
+
+    /* BIG FUN GRADIENT TILES with SHINE */
+    .tile{
+      width:min(100%,520px);
+      display:flex; align-items:center; gap:18px; padding:26px;
+      border-radius: var(--radius-xxl);
+      color:#0b0b0b; background: var(--tile-1);
+      box-shadow: var(--shadow-1);
+      border: 1px solid rgba(255,255,255,.35);
+      position:relative; overflow:hidden; text-align:left;
+      transition: transform .18s cubic-bezier(.2,.8,.2,1), filter .18s ease, box-shadow .18s ease;
+    }
+    .tile:hover{ transform: translateY(-4px) rotate(-.4deg); filter: saturate(1.08); box-shadow: 0 28px 80px rgba(0,0,0,.45); }
+    .tile:active{ transform: translateY(-2px) scale(1.01); }
+
+    /* Sheen layers */
+    .tile::after{ content:""; position:absolute; inset:-2px; pointer-events:none; opacity:0; background: linear-gradient(100deg, transparent 0%, rgba(255,255,255,.75) 45%, rgba(255,255,255,.45) 55%, transparent 100%); transform: translateX(-140%); transition: opacity .18s ease; }
+    .tile:hover::after{ opacity:.9; animation: sweep 900ms ease forwards; }
+    .tile::before{ content:""; position:absolute; inset:0; pointer-events:none; opacity:0; background: radial-gradient(80% 60% at 20% 0%, rgba(255,255,255,.35), transparent 50%), radial-gradient(60% 40% at 100% 20%, rgba(255,255,255,.18), transparent 60%); transition: opacity .18s ease; }
+    .tile:active::before, .tile.press::before{ opacity:.6; }
+    .tile:active::after, .tile.press::after{ opacity:1; animation: sweep 700ms ease forwards; }
+
+    @keyframes sweep{ to{ transform: translateX(140%); } }
+
+    .mark{ width:68px; height:68px; display:grid; place-items:center; flex: 0 0 68px; border-radius: 22px; background: rgba(255,255,255,.92); border: 1px solid rgba(0,0,0,.05); box-shadow: inset 0 1px 0 rgba(255,255,255,.8), 0 10px 26px rgba(0,0,0,.16); font-size: 34px; }
+    .textblock{ display:flex; flex-direction:column; gap:6px; }
+    .name{ font-weight: 900; font-size: 26px; letter-spacing:.2px; }
+    .desc{ font-weight:600; opacity:.9; }
+
+    .actions{ margin-left:auto; display:flex; gap:10px; }
+    .btn{ appearance:none; cursor:pointer; user-select:none; font-weight:900; letter-spacing:.3px; padding:12px 16px; border-radius: 14px; border: 2px solid rgba(0,0,0,.14); background: rgba(255,255,255,.95); color:#101010; box-shadow: 0 4px 12px rgba(0,0,0,.18); transition: transform .12s ease, box-shadow .12s ease, filter .12s ease; text-decoration:none; }
+    .btn:hover{ transform: translateY(-1px); filter: saturate(1.05); box-shadow: 0 8px 20px rgba(0,0,0,.22); }
+
+    /* Variants cycle per tile */
+    .v1{ background: var(--tile-1); }
+    .v2{ background: var(--tile-2); }
+    .v3{ background: var(--tile-3); }
+    .v4{ background: var(--tile-4); }
+
+    footer{ margin-top:24px; text-align:center; font-weight:600; color: rgba(255,255,255,.9); }
+
+    /* Under construction styles */
+    .wip{
+      display:inline-block;
+      margin-left:8px;
+      padding:4px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.92);
+      color:#222;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing:.2px;
+      border:1px solid rgba(0,0,0,.1);
+    }
+    .btn.disabled{
+      opacity:.65;
+      cursor:not-allowed;
+      border-style:dashed;
+    }
+    .wip-tile{
+      filter: saturate(0.96) brightness(0.98);
     }
 
-    header{ padding: 40px 20px 8px; text-align:center; }
-    .title{
-      position: relative;
-      display:inline-block; padding:12px 22px; border-radius: 999px;
-      font-weight:800; font-size: clamp(32px, 3.8vw, 50px); letter-spacing:.2px;
-      color: var(--ink);
-      background:
-        /* chrome plate */
-        linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.65)) padding-box,
-        linear-gradient(180deg, #c8d1da, #9aa9b8) border-box;
-      border: 1px solid transparent;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.8), 0 14px 40px rgba(15,20,26,.18);
-      overflow: hidden;
-    }
-    /* animated highlight sweep over the chrome plate */
-    .title::after{
-      content:""; position:absolute; inset:0; pointer-events:none; opacity:0; transition:opacity .25s ease;
-      background: linear-gradient(75deg, transparent 0%, rgba(255,255,255,.7) 45%, rgba(255,255,255,.25) 55%, transparent 100%);
-      transform: translateX(-120%);
-    }
-    .title:hover::after{ opacity:1; animation: sweep 1100ms ease forwards; }
-
-    @keyframes sweep{ to{ transform: translateX(120%); } }
-
-    main{ max-width: var(--grid-max); margin: 0 auto; padding: 30px 20px 90px; }
-
-    .grid{ display:grid; gap:24px; grid-template-columns: repeat(12, 1fr); }
-    @media (max-width: 1200px){ .grid{ grid-template-columns: repeat(8, 1fr);} }
-    @media (max-width: 720px){ .grid{ grid-template-columns: repeat(4, 1fr);} }
-
-    /* ——— Brushed metal card ——— */
-    .card{
-      position: relative; overflow:hidden;
-      grid-column: span 4; /* 3-up desktop */
-      display:flex; flex-direction:column; gap:16px;
-      padding:24px; border-radius: var(--radius-xl);
-      color: var(--ink);
-      background:
-        /* sheen */
-        linear-gradient(160deg, rgba(255,255,255,.55) 0%, rgba(255,255,255,0) 40%),
-        /* brushed texture */
-        repeating-linear-gradient( 90deg, rgba(15,20,26,.06) 0px, rgba(15,20,26,.06) 1px, rgba(15,20,26,0) 2px, rgba(15,20,26,0) 5px),
-        /* metal base */
-        linear-gradient(180deg, var(--steel-1) 0%, var(--steel-2) 45%, var(--steel-3) 65%, var(--steel-1) 100%);
-      border:1px solid rgba(15,20,26,.18);
-      box-shadow: var(--shadow-soft);
-      transition: transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s ease, border-color .22s ease, filter .22s ease;
-    }
-    .card:hover{ transform: translateY(-6px); box-shadow: var(--shadow-strong); border-color: rgba(15,20,26,.28); filter: saturate(1.04); }
-
-    /* animated highlight sweep on card */
-    .card::after{
-      content:""; position:absolute; inset:-1px; pointer-events:none; opacity:0; transition: opacity .2s ease;
-      background: linear-gradient(75deg, transparent 0%, rgba(255,255,255,.6) 45%, rgba(255,255,255,.2) 55%, transparent 100%);
-      transform: translateX(-120%);
-    }
-    .card:hover::after{ opacity:1; animation: sweep 900ms ease forwards; }
-
-    .card .row{ display:flex; align-items:center; gap:14px; }
-    .badge{ width:52px; height:52px; display:grid; place-items:center; font-size:24px; border-radius: 14px; color: var(--ink);
-      background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.7));
-      border:1px solid rgba(15,20,26,.18);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.85), 0 6px 16px rgba(15,20,26,.10);
-    }
-    .name{ font-weight:800; font-size:20px; letter-spacing:.2px; }
-    .desc{ color: var(--ink-sub); line-height:1.55; }
-
-    .actions{ display:flex; gap:12px; margin-top:auto; }
-    .btn{
-      position: relative; overflow:hidden;
-      appearance:none; cursor:pointer; user-select:none; font-weight:800; letter-spacing:.2px;
-      padding:12px 16px; border-radius: 14px; border:1px solid rgba(15,20,26,.18);
-      color: var(--ink);
-      background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,255,255,.7));
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.8), 0 6px 20px rgba(15,20,26,.12);
-      transition: transform .15s ease, box-shadow .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
-    }
-    .btn:hover{ transform: translateY(-1px); }
-    .btn:focus-visible{ outline: none; box-shadow: 0 0 0 3px rgba(255,255,255,.6), 0 0 0 6px var(--ring); }
-
-    .btn.primary{
-      color:#1a1a1a; border-color: transparent;
-      background: linear-gradient(180deg, var(--accent), var(--accent-2));
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 10px 26px rgba(255,138,61,.28);
-    }
-    .btn.primary:hover{ filter: saturate(1.05); }
-
-    /* animated highlight sweep on primary button */
-    .btn.primary::after{
-      content:""; position:absolute; inset:0; pointer-events:none; opacity:0; transition:opacity .2s ease;
-      background: linear-gradient(75deg, transparent 0%, rgba(255,255,255,.7) 45%, rgba(255,255,255,.25) 55%, transparent 100%);
-      transform: translateX(-120%);
-    }
-    .btn.primary:hover::after{ opacity:1; animation: sweep 800ms ease forwards; }
-
-    footer{ max-width: var(--grid-max); margin: 0 auto; padding: 26px 20px 56px; color: var(--ink-sub); text-align:center }
-
-    /* Motion reduction */
-    @media (prefers-reduced-motion: reduce){
-      .card, .btn, .title { transition: none }
-      .card:hover, .title:hover { transform: none }
-      .card::after, .btn.primary::after, .title::after { display:none }
-    }
+    @media (prefers-reduced-motion: reduce){ .tile, .btn { transition: none } .tile:hover { transform:none } .tile::after{ display:none } }
   </style>
 </head>
-<body>
+<body class="theme-orange">
   <header>
+    <div class="brand-badge"><span>🥩</span></div>
     <div class="title">PocketSteak's Apps</div>
+    <div class="subtitle">Big, bright, push-the-button fun.</div>
+    <div class="themes">
+      <button class="theme-btn" data-theme="orange">Orange</button>
+      <button class="theme-btn" data-theme="blue">Electric Blue</button>
+      <button class="theme-btn" data-theme="lime">Neon Lime</button>
+      <button class="theme-btn" data-theme="pink">Hot Pink</button>
+      <button class="theme-btn" data-theme="vapor">Vapor</button>
+    </div>
   </header>
 
   <main>
@@ -157,63 +134,84 @@
   </main>
 
   <footer>
-    Built with ❤️, chrome shine, and a dash of fun.
+    © PocketSteak — Built to tap.
   </footer>
 
   <script>
+    // ---- Data ----
     const APPS = [
-      {
-        emoji: "🗳️",
-        name: "The Secret Vote",
-        desc: "Anonymous room-based ranking with QR join and reveal animations.",
-        url: "https://pocket-steak.github.io/Voting-Repository/"
-      },
-      {
-        emoji: "📊",
-        name: "MTG Stats",
-        desc: "Track, analyze, and compare Magic: The Gathering game data.",
-        url: "https://pocket-steak.github.io/mtg-stats/"
-      },
-      {
-        emoji: "🎲",
-        name: "The Randomizer",
-        desc: "Quick random choices for games, decks, and fun decisions.",
-        url: "https://pocket-steak.github.io/randomizer/"
-      }
+      { emoji:"🗳️", name:"The Secret Vote", desc:"Anonymous room-based ranking magic.", url:"https://pocket-steak.github.io/Voting-Repository/" },
+      { emoji:"🚧", name:"MTG Stats", desc:"Track & compare your game nights — Under construction.", url:"https://pocket-steak.github.io/mtg-stats/", underConstruction: true },
+      { emoji:"🚧", name:"The Randomizer", desc:"Instant decisions. Zero debates — Under construction.", url:"https://pocket-steak.github.io/randomizer/", underConstruction: true }
     ];
 
+    // ---- Render ----
     const grid = document.getElementById('grid');
 
-    function cardTemplate(a){
+    function tileTemplate(a, idx){
+      const v = ['v1','v2','v3','v4'][idx % 4];
+      const wip = !!a.underConstruction;
+      const button = wip
+        ? `<span class="btn disabled" aria-disabled="true" title="Coming soon">Coming Soon</span>`
+        : `<a class="btn" href="${a.url}" target="_blank" rel="noopener noreferrer">Open ↗</a>`;
+      const badge = wip ? `<span class="wip">🚧 Under construction</span>` : '';
       return `
-      <article class="card">
-        <div class="row">
-          <div class="badge">${a.emoji}</div>
-          <div class="name">${a.name}</div>
-        </div>
-        <p class="desc">${a.desc}</p>
-        <div class="actions">
-          <a class="btn primary" href="${a.url}" target="_blank" rel="noopener noreferrer">Open App ↗</a>
-          <button class="btn" data-copy="${a.url}">Copy Link</button>
-        </div>
-      </article>`;
+        <article class="tile ${v}${wip ? ' wip-tile' : ''}">
+          <div class="mark">${a.emoji}</div>
+          <div class="textblock">
+            <div class="name">${a.name}</div>
+            <div class="desc">${a.desc} ${badge}</div>
+          </div>
+          <div class="actions">
+            ${button}
+          </div>
+        </article>`;
     }
 
     function render(list){
-      grid.innerHTML = list.map(cardTemplate).join('');
+      grid.innerHTML = list.map(tileTemplate).join('');
     }
 
-    document.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-copy]');
-      if(!btn) return;
-      const url = btn.getAttribute('data-copy');
-      navigator.clipboard.writeText(url).then(() => {
-        btn.textContent = 'Copied!';
-        setTimeout(() => btn.textContent = 'Copy Link', 1000);
-      });
+    render(APPS);
+
+    // ---- Theme switcher ----
+    document.addEventListener('click', (e)=>{
+      const btn = e.target.closest('[data-theme]');
+      if(btn){ document.body.className = `theme-${btn.dataset.theme}`; }
     });
 
-    render(APPS);
+    // ---- Press sheen for desktop + touch ----
+    (function(){
+      const onDown = (e)=>{ const t = e.target.closest('.tile'); if(t) t.classList.add('press'); };
+      const onUp   = ()=>{ document.querySelectorAll('.tile.press').forEach(t=>t.classList.remove('press')); };
+      document.addEventListener('pointerdown', onDown);
+      document.addEventListener('pointerup', onUp);
+      document.addEventListener('pointercancel', onUp);
+      document.addEventListener('pointerleave', onUp);
+    })();
+
+    // ---- Smoke tests (dev) ----
+    (function runTests(){
+      const t = (cond, msg)=>{ if(!cond) throw new Error(msg); };
+      try{
+        t(!!grid, 'grid element exists');
+        const tiles = grid.querySelectorAll('.tile');
+        t(tiles.length === APPS.length, 'renders one tile per app');
+        tiles.forEach((tile, i)=>{
+          t(!!tile.querySelector('.mark'), 'tile has mark');
+          t(!!tile.querySelector('.name'), 'tile has name');
+          t(tile.querySelector('.name').textContent === APPS[i].name, 'name matches data');
+          t(!!tile.querySelector('.desc'), 'tile has desc');
+        });
+        // Under-construction tests
+        const wips = APPS.filter(a=>a.underConstruction);
+        if(wips.length){
+          const disabledBtns = [...document.querySelectorAll('.btn.disabled')];
+          t(disabledBtns.length === wips.length, 'disabled buttons match under-construction count');
+        }
+        console.log('✅ UI smoke tests passed');
+      } catch(err){ console.error('❌ UI tests failed:', err.message); }
+    })();
   </script>
 </body>
 </html>
