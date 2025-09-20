@@ -38,7 +38,7 @@
       --tile-fg:#0b0b0b; --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05);
     }
 
-    /* Sunset Soda (coral + magenta + lemon) */
+    /* Sunset Soda */
     .theme-sunset{
       --bg-a:#ff6b6b; --bg-b:#ff2e93; --bg-c:#ffb703; --bg-d:#ffd166;
       --tile-1:linear-gradient(135deg,#ffc1c1,#ff6b6b);
@@ -71,12 +71,27 @@
     }
     @keyframes bgShift{from{background-position:0% 40%}to{background-position:100% 60%}}
 
-    /* ===== HERO: split title left, large logo right ===== */
+    /* ===== HERO: big logo LEFT, title RIGHT with tiny gap ===== */
     header{max-width:var(--grid-max);margin:0 auto}
     .hero{
       padding:48px 20px 12px;
-      display:flex; align-items:center; justify-content:space-between; gap:40px;
+      display:flex; align-items:center; gap:12px;           /* tiny gap per request */
     }
+    .brand-badge.hero-badge{
+      flex:0 0 auto;
+      width:clamp(140px,22vw,260px);
+      height:clamp(140px,22vw,260px);
+      border-radius:32px;
+      background:rgba(255,255,255,.12);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.35), var(--shadow-1);
+      display:grid; place-items:center;
+    }
+    .brand-logo{
+      width:80%; height:auto; display:block; object-fit:contain;
+      border-radius:14px; filter:drop-shadow(0 6px 18px rgba(0,0,0,.35));
+    }
+    .theme-night .brand-logo{ filter:brightness(1.1) drop-shadow(0 6px 18px rgba(0,0,0,.6)); }
+
     .hero-text{flex:1 1 auto; min-width:0}
     .title{line-height:1.05; margin-bottom:8px}
     .title .line1,
@@ -93,24 +108,9 @@
     .theme-btn{appearance:none;cursor:pointer;border:none;color:#0a0a0a;font-weight:900;letter-spacing:.2px;padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.92);box-shadow:0 6px 18px rgba(0,0,0,.22)}
     .theme-btn:hover{transform:translateY(-1px)}
 
-    .brand-badge.hero-badge{
-      flex:0 0 auto;
-      width:clamp(140px,22vw,260px);
-      height:clamp(140px,22vw,260px);
-      border-radius:32px;
-      background:rgba(255,255,255,.12);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.35), var(--shadow-1);
-      display:grid; place-items:center;
-    }
-    .brand-logo{
-      width:80%; height:auto; display:block; object-fit:contain;
-      border-radius:14px; filter:drop-shadow(0 6px 18px rgba(0,0,0,.35));
-    }
-    .theme-night .brand-logo{ filter:brightness(1.1) drop-shadow(0 6px 18px rgba(0,0,0,.6)); }
-
     /* Mobile: stack and center */
     @media (max-width:720px){
-      .hero{flex-direction:column; align-items:center; text-align:center; gap:24px; padding:36px 14px 10px}
+      .hero{flex-direction:column; align-items:center; text-align:center; gap:20px; padding:36px 14px 10px}
       .themes{justify-content:center}
       .color-note{margin:10px auto 6px}
       .brand-badge.hero-badge{width:clamp(120px,40vw,200px); height:clamp(120px,40vw,200px)}
@@ -176,6 +176,10 @@
 <body class="theme-orange">
   <header>
     <div class="hero">
+      <div class="brand-badge hero-badge">
+        <img class="brand-logo" src="./assets/pocket_steak_logo.png" alt="PocketSteak logo" />
+      </div>
+
       <div class="hero-text">
         <div class="title">
           <span class="line1">PocketSteak's</span>
@@ -195,10 +199,6 @@
           <button class="theme-btn" data-theme="sunset">Sunset Soda</button>
           <button class="theme-btn" data-theme="night">Night</button>
         </div>
-      </div>
-
-      <div class="brand-badge hero-badge">
-        <img class="brand-logo" src="./assets/pocket_steak_logo.png" alt="PocketSteak logo" />
       </div>
     </div>
   </header>
