@@ -39,7 +39,7 @@
 
     /* ===== TOP: bare logo + title (Apps centered under PocketSteak's) ===== */
     header{max-width:var(--grid-max);margin:0 auto;padding:28px 20px 0}
-    .mast{ display:flex; align-items:center; gap:14px; }
+    .mast{ display:flex; align-items:center; gap:10px; }
 
     .logo{
       width:clamp(140px,22vw,260px);
@@ -52,6 +52,16 @@
     }
     .mast-title .line1{ align-self:flex-start; font-weight:900; font-size:clamp(42px,6vw,92px); }
     .mast-title .line2{ align-self:center; margin-top:2px; font-weight:900; font-size:clamp(38px,5.5vw,84px); }
+
+    /* Header title with orange gradient fill */
+.mast-title .line1,
+.mast-title .line2 {
+  background: linear-gradient(180deg, #ffb457, #ff7a18 60%, #ff5400);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;           /* lets the gradient show through */
+  text-shadow: none;            /* gradient usually looks cleaner without it */
+}
 
     .mast-spacer{ height:12px }
     .mast-bar{
