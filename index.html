@@ -14,30 +14,23 @@
       --tile-fg:#0b0b0b; --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05);
     }
 
-    /* ORANGE (amped) */
-    .theme-orange{
-      --bg-a:#ff9700; --bg-b:#ff6a00; --bg-c:#ff3d00; --bg-d:#ffcf33;
-      --tile-1:linear-gradient(135deg,#ffd166,#ff9f1c);
-      --tile-2:linear-gradient(135deg,#ff8fa3,#ff4d6d);
-      --tile-3:linear-gradient(135deg,#ffc06e,#ff6b35);
-      --tile-4:linear-gradient(135deg,#ffe082,#ff9e00);
-      --tile-fg:#0b0b0b; --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05);
+    /* Night (dark & mono) — the only theme now */
+    .theme-night{
+      --bg-a:#0b0b0d; --bg-b:#141417; --bg-c:#1c1c20; --bg-d:#2a2a2f;
+      --tile-1:linear-gradient(135deg,#2c2c31,#16161a);
+      --tile-2:linear-gradient(135deg,#34343a,#1b1b20);
+      --tile-3:linear-gradient(135deg,#3a3a41,#202026);
+      --tile-4:linear-gradient(135deg,#2f2f36,#141419);
+      --tile-fg:#f2f3f5; --mark-bg:rgba(255,255,255,.08); --mark-border:rgba(255,255,255,.15);
     }
-    .theme-blue  { --bg-a:#2dd4ff; --bg-b:#5a7bff; --bg-c:#7a5cff; --bg-d:#00e1d0; --tile-1:linear-gradient(135deg,#a7f3ff,#2dd4ff); --tile-2:linear-gradient(135deg,#9ab2ff,#5a7bff); --tile-3:linear-gradient(135deg,#b7a9ff,#7a5cff); --tile-4:linear-gradient(135deg,#7affe8,#00e1d0); --tile-fg:#0b0b0b; --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05); }
-    .theme-lime  { --bg-a:#a4ff3d; --bg-b:#00e1a1; --bg-c:#00d4ff; --bg-d:#7a5cff; --tile-1:linear-gradient(135deg,#d7ff8a,#a4ff3d); --tile-2:linear-gradient(135deg,#7dffd6,#00e1a1); --tile-3:linear-gradient(135deg,#7ae8ff,#00d4ff); --tile-4:linear-gradient(135deg,#b39cff,#7a5cff); --tile-fg:#0b0b0b; --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05); }
-    .theme-pink  { --bg-a:#ff3d81; --bg-b:#ff7a18; --bg-c:#ff7ac1; --bg-d:#7a5cff; --tile-1:linear-gradient(135deg,#ff9ac2,#ff3d81); --tile-2:linear-gradient(135deg,#ffd18e,#ff7a18); --tile-3:linear-gradient(135deg,#ffb2de,#ff7ac1); --tile-4:linear-gradient(135deg,#b39cff,#7a5cff); --tile-fg:#0b0b0b; --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05); }
-    .theme-vapor { --bg-a:#00d4ff; --bg-b:#7a5cff; --bg-c:#ff3d81; --bg-d:#00ffa3; --tile-1:linear-gradient(135deg,#7ae8ff,#00d4ff); --tile-2:linear-gradient(135deg,#b39cff,#7a5cff); --tile-3:linear-gradient(135deg,#ff9ac2,#ff3d81); --tile-4:linear-gradient(135deg,#7dffd6,#00ffa3); --tile-fg:#0b0b0b; --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05); }
-    .theme-peacock{ --bg-a:#00c2b2; --bg-b:#7a33ff; --bg-c:#9dff00; --bg-d:#ff4de3; --tile-1:linear-gradient(135deg,#8ff8e9,#00c2b2); --tile-2:linear-gradient(135deg,#c2a6ff,#7a33ff); --tile-3:linear-gradient(135deg,#d9ff76,#9dff00); --tile-4:linear-gradient(135deg,#ffb3f3,#ff4de3); --tile-fg:#0b0b0b; --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05); }
-    .theme-sunset{ --bg-a:#ff6b6b; --bg-b:#ff2e93; --bg-c:#ffb703; --bg-d:#ffd166; --tile-1:linear-gradient(135deg,#ffc1c1,#ff6b6b); --tile-2:linear-gradient(135deg,#ff9bd5,#ff2e93); --tile-3:linear-gradient(135deg,#ffe386,#ffb703); --tile-4:linear-gradient(135deg,#ffe6a8,#ffd166); --tile-fg:#0b0b0b; --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05); }
-    .theme-night{ --bg-a:#0b0b0d; --bg-b:#141417; --bg-c:#1c1c20; --bg-d:#2a2a2f; --tile-1:linear-gradient(135deg,#2c2c31,#16161a); --tile-2:linear-gradient(135deg,#34343a,#1b1b20); --tile-3:linear-gradient(135deg,#3a3a41,#202026); --tile-4:linear-gradient(135deg,#2f2f36,#141419); --tile-fg:#f2f3f5; --mark-bg:rgba(255,255,255,.08); --mark-border:rgba(255,255,255,.15); }
 
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%}
     body{
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--ink-invert);
       background:
-        radial-gradient(1200px 600px at 10% -10%, rgba(255,255,255,.25), transparent 60%),
-        radial-gradient(1000px 600px at 110% 10%, rgba(255,255,255,.15), transparent 55%),
+        radial-gradient(1200px 600px at 10% -10%, rgba(255,255,255,.18), transparent 60%),
+        radial-gradient(1000px 600px at 110% 10%, rgba(255,255,255,.12), transparent 55%),
         linear-gradient(135deg,var(--bg-a),var(--bg-b) 35%,var(--bg-c) 70%,var(--bg-d));
       background-size:200% 200%;
       animation:bgShift 18s ease-in-out infinite alternate;
@@ -51,11 +44,12 @@
     .logo{
       width:clamp(140px,22vw,260px);
       height:auto; display:block; object-fit:contain;
-      filter: drop-shadow(0 6px 18px rgba(0,0,0,.35));
+      filter:brightness(1.1) drop-shadow(0 6px 18px rgba(0,0,0,.6));
     }
-    .theme-night .logo{ filter:brightness(1.1) drop-shadow(0 6px 18px rgba(0,0,0,.6)); }
 
-    .mast-title{ display:flex; flex-direction:column; align-items:center; width:max-content; line-height:1.02; }
+    .mast-title{
+      display:flex; flex-direction:column; align-items:center; width:max-content; line-height:1.02;
+    }
     .mast-title .line1{ align-self:flex-start; font-weight:900; font-size:clamp(42px,6vw,92px); }
     .mast-title .line2{ align-self:center; margin-top:2px; font-weight:900; font-size:clamp(38px,5.5vw,84px); }
 
@@ -65,30 +59,6 @@
       background:rgba(255,255,255,.14);
       box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 10px 26px rgba(0,0,0,.18);
       margin:0 0 18px 0;
-    }
-
-    /* ===== CENTERED CONTENT UNDER THE BAR ===== */
-    .center-wrap{ text-align:center; padding:0 0 8px 0; }
-
-    /* Removed subtitle; bump space below the note and above buttons */
-    .color-note{
-      margin:0 auto 22px;              /* more space below the box */
-      max-width:820px; font-weight:700; line-height:1.35;
-      background:rgba(255,255,255,.14); padding:10px 14px; border-radius:14px;
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.35);
-    }
-    .themes{
-      display:flex;flex-wrap:wrap;gap:12px;justify-content:center;
-      margin-top:8px;                   /* extra breathing room from the box */
-    }
-    .theme-btn{appearance:none;cursor:pointer;border:none;color:#0a0a0a;font-weight:900;letter-spacing:.2px;padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.92);box-shadow:0 6px 18px rgba(0,0,0,.22)}
-    .theme-btn:hover{transform:translateY(-1px)}
-
-    /* Mobile: stack image over title if needed */
-    @media (max-width:760px){
-      .mast{ flex-direction:column; align-items:center; gap:14px }
-      .mast-title{ align-items:center; }
-      .mast-title .line1{ align-self:center; }
     }
 
     /* ===== MAIN GRID / TILES ===== */
@@ -101,15 +71,16 @@
       color:var(--tile-fg);
       background:var(--tile-1);
       box-shadow:var(--shadow-1);
-      border:1px solid rgba(255,255,255,.35);
+      border:1px solid rgba(255,255,255,.2);
       position:relative;overflow:hidden;text-align:left;
       transition:transform .18s cubic-bezier(.2,.8,.2,1),filter .18s ease,box-shadow .18s ease;
     }
     .tile:hover{transform:translateY(-4px) rotate(-.4deg);filter:saturate(1.08);box-shadow:0 28px 80px rgba(0,0,0,.45)}
     .tile:active{transform:translateY(-2px) scale(1.01)}
+
     .tile::after{content:"";position:absolute;inset:-2px;pointer-events:none;opacity:0;background:linear-gradient(100deg,transparent 0%,rgba(255,255,255,.75) 45%,rgba(255,255,255,.45) 55%,transparent 100%);transform:translateX(-140%);transition:opacity .18s ease}
     .tile:hover::after{opacity:.9;animation:sweep 900ms ease forwards}
-    .tile::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(80% 60% at 20% 0%,rgba(255,255,255,.35),transparent 50%),radial-gradient(60% 40% at 100% 20%,rgba(255,255,255,.18),transparent 60%);transition:opacity .18s ease}
+    .tile::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(80% 60% at 20% 0%,rgba(255,255,255,.2),transparent 50%),radial-gradient(60% 40% at 100% 20%,rgba(255,255,255,.12),transparent 60%);transition:opacity .18s ease}
     .tile:active::before,.tile.press::before{opacity:.6}
     .tile:active::after,.tile.press::after{opacity:1;animation:sweep 700ms ease forwards}
     @keyframes sweep{to{transform:translateX(140%)}}
@@ -117,7 +88,7 @@
     .mark{
       width:64px;height:64px;display:grid;place-items:center;border-radius:20px;
       background:var(--mark-bg); border:1px solid var(--mark-border);
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 10px 26px rgba(0,0,0,.16);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 10px 26px rgba(0,0,0,.2);
       font-size:32px;flex:0 0 auto
     }
     .textblock{display:flex;flex-direction:column;gap:6px;min-width:0}
@@ -125,16 +96,22 @@
     .desc{font-weight:600;opacity:.9;overflow-wrap:anywhere}
 
     .actions{margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;width:100%}
-    .btn{appearance:none;cursor:pointer;user-select:none;font-weight:900;letter-spacing:.3px;padding:10px 14px;border-radius:14px;border:2px solid rgba(0,0,0,.14);background:rgba(255,255,255,.95);color:#101010;box-shadow:0 4px 12px rgba(0,0,0,.18);transition:transform .12s ease,box-shadow .12s ease,filter .12s ease;text-decoration:none;white-space:nowrap;font-size:14px}
+    .btn{appearance:none;cursor:pointer;user-select:none;font-weight:900;letter-spacing:.3px;padding:10px 14px;border-radius:14px;border:2px solid rgba(255,255,255,.14);background:rgba(255,255,255,.9);color:#101010;box-shadow:0 4px 12px rgba(0,0,0,.18);transition:transform .12s ease,box-shadow .12s ease,filter .12s ease;text-decoration:none;white-space:nowrap;font-size:14px}
     .btn:hover{transform:translateY(-1px);filter:saturate(1.05);box-shadow:0 8px 20px rgba(0,0,0,.22)}
 
     .v1{background:var(--tile-1)} .v2{background:var(--tile-2)} .v3{background:var(--tile-3)} .v4{background:var(--tile-4)}
 
-    footer{margin-top:24px;text-align:center;font-weight:600;color:rgba(255,255,255,.9)}
-    .wip{display:inline-block;margin-left:8px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.92);color:#222;font-size:12px;font-weight:900;letter-spacing:.2px;border:1px solid rgba(0,0,0,.1)}
+    footer{margin-top:24px;text-align:center;font-weight:600;color:rgba(255,255,255,.8)}
+
+    .wip{display:inline-block;margin-left:8px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.1);color:#eee;font-size:12px;font-weight:900;letter-spacing:.2px;border:1px solid rgba(255,255,255,.18)}
     .btn.disabled{opacity:.65;cursor:not-allowed;border-style:dashed}
     .wip-tile{filter:saturate(.96) brightness(.98)}
 
+    @media (max-width:760px){
+      .mast{ flex-direction:column; align-items:center; gap:14px }
+      .mast-title{ align-items:center; }
+      .mast-title .line1{ align-self:center; }
+    }
     @media (max-width:640px){
       main{padding:8px 14px 48px}
       .grid{grid-template-columns:1fr}
@@ -146,7 +123,7 @@
     @media (prefers-reduced-motion:reduce){.tile,.btn{transition:none}.tile:hover{transform:none}.tile::after{display:none}}
   </style>
 </head>
-<body class="theme-orange">
+<body class="theme-night">
   <header>
     <div class="mast">
       <img class="logo" src="./assets/pocket_steak_logo.png" alt="PocketSteak logo" />
@@ -158,24 +135,6 @@
 
     <div class="mast-spacer"></div>
     <div class="mast-bar"></div>
-
-    <div class="center-wrap">
-      <!-- subtitle removed -->
-      <p class="color-note">
-        Let’s have some fun—set the color of the webpage to suit your style or mood.
-        Let’s bring some color into our lives!
-      </p>
-      <div class="themes">
-        <button class="theme-btn" data-theme="orange">Orange</button>
-        <button class="theme-btn" data-theme="blue">Electric Blue</button>
-        <button class="theme-btn" data-theme="lime">Neon Lime</button>
-        <button class="theme-btn" data-theme="pink">Hot Pink</button>
-        <button class="theme-btn" data-theme="vapor">Vapor</button>
-        <button class="theme-btn" data-theme="peacock">Peacock</button>
-        <button class="theme-btn" data-theme="sunset">Sunset Soda</button>
-        <button class="theme-btn" data-theme="night">Night</button>
-      </div>
-    </div>
   </header>
 
   <main>
@@ -185,18 +144,21 @@
   <footer>© PocketSteak — Built to tap.</footer>
 
   <script>
+    // App data
     const APPS = [
       { emoji:"🗳️", name:"The Secret Vote", desc:"Anonymous room-based ranking magic.", url:"https://pocket-steak.github.io/secret-vote/#/" },
       { emoji:"🚧", name:"MTG Stats", desc:"Track & compare your game nights — Under construction.", url:"#", underConstruction:true },
       { emoji:"🚧", name:"The Randomizer", desc:"Instant decisions. Zero debates — Under construction.", url:"#", underConstruction:true }
     ];
 
+    // Render tiles
     const grid = document.getElementById('grid');
     function tileTemplate(a, idx){
       const v = ['v1','v2','v3','v4'][idx % 4];
       const wip = !!a.underConstruction;
-      const btn = wip ? `<span class="btn disabled" aria-disabled="true" title="Coming soon">Coming Soon</span>`
-                      : `<a class="btn" href="${a.url}" target="_blank" rel="noopener noreferrer">Open ↗</a>`;
+      const btn = wip
+        ? `<span class="btn disabled" aria-disabled="true" title="Coming soon">Coming Soon</span>`
+        : `<a class="btn" href="${a.url}" target="_blank" rel="noopener noreferrer">Open ↗</a>`;
       const badge = wip ? `<span class="wip">🚧 Under construction</span>` : '';
       return `<article class="tile ${v}${wip ? ' wip-tile' : ''}">
         <div class="mark">${a.emoji}</div>
@@ -210,19 +172,7 @@
     function render(list){ grid.innerHTML = list.map(tileTemplate).join(''); }
     render(APPS);
 
-    const THEME_KEY='ps_theme';
-    function applyTheme(theme){
-      document.body.className = `theme-${theme}`;
-      try{ localStorage.setItem(THEME_KEY, theme); }catch(_){}
-    }
-    (function(){
-      try{ const t = localStorage.getItem(THEME_KEY); if(t) document.body.className = `theme-${t}`; }catch(_){}
-    })();
-    document.addEventListener('click', (e)=>{
-      const btn = e.target.closest('[data-theme]');
-      if(btn) applyTheme(btn.dataset.theme);
-    });
-
+    // Press sheen feedback
     (function(){
       const onDown = (e)=>{ const t = e.target.closest('.tile'); if(t) t.classList.add('press'); };
       const onUp   = ()=>{ document.querySelectorAll('.tile.press').forEach(t=>t.classList.remove('press')); };
