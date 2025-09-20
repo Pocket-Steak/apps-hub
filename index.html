@@ -11,11 +11,7 @@
       --ink:#0a0a0a; --ink-invert:#fff;
       --shadow-1:0 20px 60px rgba(0,0,0,.35);
       --radius-xxl:28px; --grid-max:1120px;
-
-      /* defaults for tiles/marks */
-      --tile-fg:#0b0b0b;
-      --mark-bg:rgba(255,255,255,.92);
-      --mark-border:rgba(0,0,0,.05);
+      --tile-fg:#0b0b0b; --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05);
     }
 
     /* ORANGE (amped) */
@@ -25,8 +21,7 @@
       --tile-2:linear-gradient(135deg,#ff8fa3,#ff4d6d);
       --tile-3:linear-gradient(135deg,#ffc06e,#ff6b35);
       --tile-4:linear-gradient(135deg,#ffe082,#ff9e00);
-      --tile-fg:#0b0b0b;
-      --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05);
+      --tile-fg:#0b0b0b; --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05);
     }
     .theme-blue  { --bg-a:#2dd4ff; --bg-b:#5a7bff; --bg-c:#7a5cff; --bg-d:#00e1d0; --tile-1:linear-gradient(135deg,#a7f3ff,#2dd4ff); --tile-2:linear-gradient(135deg,#9ab2ff,#5a7bff); --tile-3:linear-gradient(135deg,#b7a9ff,#7a5cff); --tile-4:linear-gradient(135deg,#7affe8,#00e1d0); --tile-fg:#0b0b0b; --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05); }
     .theme-lime  { --bg-a:#a4ff3d; --bg-b:#00e1a1; --bg-c:#00d4ff; --bg-d:#7a5cff; --tile-1:linear-gradient(135deg,#d7ff8a,#a4ff3d); --tile-2:linear-gradient(135deg,#7dffd6,#00e1a1); --tile-3:linear-gradient(135deg,#7ae8ff,#00d4ff); --tile-4:linear-gradient(135deg,#b39cff,#7a5cff); --tile-fg:#0b0b0b; --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05); }
@@ -60,8 +55,7 @@
       --tile-2:linear-gradient(135deg,#34343a,#1b1b20);
       --tile-3:linear-gradient(135deg,#3a3a41,#202026);
       --tile-4:linear-gradient(135deg,#2f2f36,#141419);
-      --tile-fg:#f2f3f5;
-      --mark-bg:rgba(255,255,255,.08); --mark-border:rgba(255,255,255,.15);
+      --tile-fg:#f2f3f5; --mark-bg:rgba(255,255,255,.08); --mark-border:rgba(255,255,255,.15);
     }
 
     *{box-sizing:border-box;margin:0;padding:0}
@@ -84,18 +78,11 @@
       box-shadow:inset 0 1px 0 rgba(255,255,255,.4),var(--shadow-1);
       margin-bottom:20px
     }
-    /* 🔁 Use your image instead of the emoji */
     .brand-logo{
-      width:78%;
-      height:auto;
-      display:block;
-      object-fit:contain;
-      border-radius:12px;              /* remove if you prefer square corners */
-      filter:drop-shadow(0 3px 10px rgba(0,0,0,.25));
+      width:78%; height:auto; display:block; object-fit:contain;
+      border-radius:12px; filter:drop-shadow(0 3px 10px rgba(0,0,0,.25));
     }
-    .theme-night .brand-logo{
-      filter:brightness(1.1) drop-shadow(0 3px 10px rgba(0,0,0,.5));
-    }
+    .theme-night .brand-logo{ filter:brightness(1.1) drop-shadow(0 3px 10px rgba(0,0,0,.5)); }
 
     .title{font-weight:900;font-size:clamp(42px,6vw,72px);text-shadow:0 8px 22px rgba(0,0,0,.35);margin-bottom:8px}
     .subtitle{font-weight:600;font-size:clamp(18px,2.5vw,22px);opacity:.97}
@@ -112,7 +99,7 @@
     main{max-width:var(--grid-max);margin:0 auto;padding:12px 20px 60px}
     .grid{display:grid;gap:28px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));justify-content:center}
 
-    /* Tiles - column layout for solid mobile behavior */
+    /* Tiles (mobile-friendly column layout) */
     .tile{
       display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding:22px;
       border-radius:var(--radius-xxl);
@@ -148,17 +135,14 @@
     .btn{appearance:none;cursor:pointer;user-select:none;font-weight:900;letter-spacing:.3px;padding:10px 14px;border-radius:14px;border:2px solid rgba(0,0,0,.14);background:rgba(255,255,255,.95);color:#101010;box-shadow:0 4px 12px rgba(0,0,0,.18);transition:transform .12s ease,box-shadow .12s ease,filter .12s ease;text-decoration:none;white-space:nowrap;font-size:14px}
     .btn:hover{transform:translateY(-1px);filter:saturate(1.05);box-shadow:0 8px 20px rgba(0,0,0,.22)}
 
-    /* Variant cycling */
     .v1{background:var(--tile-1)} .v2{background:var(--tile-2)} .v3{background:var(--tile-3)} .v4{background:var(--tile-4)}
 
     footer{margin-top:24px;text-align:center;font-weight:600;color:rgba(255,255,255,.9)}
 
-    /* Under construction */
     .wip{display:inline-block;margin-left:8px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.92);color:#222;font-size:12px;font-weight:900;letter-spacing:.2px;border:1px solid rgba(0,0,0,.1)}
     .btn.disabled{opacity:.65;cursor:not-allowed;border-style:dashed}
     .wip-tile{filter:saturate(.96) brightness(.98)}
 
-    /* Mobile tweaks */
     @media (max-width:640px){
       header{padding:36px 14px 10px}
       .color-note{margin:10px 14px 6px}
@@ -169,15 +153,13 @@
       .actions{justify-content:center}
       .btn{padding:8px 12px;font-size:13px;white-space:normal;max-width:100%}
     }
-
     @media (prefers-reduced-motion:reduce){.tile,.btn{transition:none}.tile:hover{transform:none}.tile::after{display:none}}
   </style>
 </head>
 <body class="theme-orange">
   <header>
     <div class="brand-badge">
-      <!-- ⬇️ Use your image file here -->
-      <img class="brand-logo" src="pocket_steak_logo.png" alt="PocketSteak logo" />
+      <img class="brand-logo" src="./assets/pocket_steak_logo.png" alt="PocketSteak logo" />
     </div>
     <div class="title">PocketSteak's Apps</div>
     <div class="subtitle">Big, bright, push-the-button fun.</div>
@@ -202,19 +184,19 @@
   <footer>© PocketSteak — Built to tap.</footer>
 
   <script>
-    // Apps
+    // Data
     const APPS = [
       { emoji:"🗳️", name:"The Secret Vote", desc:"Anonymous room-based ranking magic.", url:"https://pocket-steak.github.io/secret-vote/#/" },
       { emoji:"🚧", name:"MTG Stats", desc:"Track & compare your game nights — Under construction.", url:"#", underConstruction:true },
       { emoji:"🚧", name:"The Randomizer", desc:"Instant decisions. Zero debates — Under construction.", url:"#", underConstruction:true }
     ];
 
+    // Render
     const grid = document.getElementById('grid');
-
     function tileTemplate(a, idx){
       const v = ['v1','v2','v3','v4'][idx % 4];
       const wip = !!a.underConstruction;
-      const button = wip
+      const btn = wip
         ? `<span class="btn disabled" aria-disabled="true" title="Coming soon">Coming Soon</span>`
         : `<a class="btn" href="${a.url}" target="_blank" rel="noopener noreferrer">Open ↗</a>`;
       const badge = wip ? `<span class="wip">🚧 Under construction</span>` : '';
@@ -224,31 +206,32 @@
           <div class="name">${a.name}</div>
           <div class="desc">${a.desc} ${badge}</div>
         </div>
-        <div class="actions">${button}</div>
+        <div class="actions">${btn}</div>
       </article>`;
     }
     function render(list){ grid.innerHTML = list.map(tileTemplate).join(''); }
     render(APPS);
 
     // Theme switcher + persistence
-    const THEME_KEY = 'ps_theme';
+    const THEME_KEY='ps_theme';
     function applyTheme(theme){
       document.body.className = `theme-${theme}`;
-      try { localStorage.setItem(THEME_KEY, theme); } catch(_) {}
+      try{ localStorage.setItem(THEME_KEY, theme); }catch(_){}
     }
     (function(){
-      let t;
-      try { t = localStorage.getItem(THEME_KEY); } catch(_) {}
-      if(t){ document.body.className = `theme-${t}`; }
+      try{
+        const t = localStorage.getItem(THEME_KEY);
+        if(t) document.body.className = `theme-${t}`;
+      }catch(_){}
     })();
     document.addEventListener('click', (e)=>{
       const btn = e.target.closest('[data-theme]');
-      if(btn){ applyTheme(btn.dataset.theme); }
+      if(btn) applyTheme(btn.dataset.theme);
     });
 
-    // Press sheen for touch/desktop
+    // Press sheen
     (function(){
-      const onDown = (e)=>{ const t=e.target.closest('.tile'); if(t) t.classList.add('press'); };
+      const onDown = (e)=>{ const t = e.target.closest('.tile'); if(t) t.classList.add('press'); };
       const onUp   = ()=>{ document.querySelectorAll('.tile.press').forEach(t=>t.classList.remove('press')); };
       document.addEventListener('pointerdown', onDown);
       document.addEventListener('pointerup', onUp);
