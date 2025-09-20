@@ -71,28 +71,25 @@
     }
     @keyframes bgShift{from{background-position:0% 40%}to{background-position:100% 60%}}
 
-    /* ===== TOP: logo left + two-line left-aligned title, tight gap ===== */
+    /* ===== TOP: bare logo left + two-line title, tight gap ===== */
     header{max-width:var(--grid-max);margin:0 auto;padding:28px 20px 0}
     .mast{
       display:flex; align-items:center; gap:14px;   /* tight gap next to image */
     }
-    .mast-badge{
-      flex:0 0 auto;
+
+    /* No box: just the image at a fixed, responsive size */
+    .logo{
       width:clamp(140px,22vw,260px);
-      height:clamp(140px,22vw,260px);
-      border-radius:32px;
-      background:rgba(255,255,255,.12);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.35), var(--shadow-1);
-      display:grid; place-items:center;
+      height:auto;
+      display:block;
+      object-fit:contain;
+      /* keep a subtle drop shadow for depth (optional) */
+      filter: drop-shadow(0 6px 18px rgba(0,0,0,.35));
     }
-    .brand-logo{
-      width:80%; height:auto; display:block; object-fit:contain;
-      border-radius:14px; filter:drop-shadow(0 6px 18px rgba(0,0,0,.35));
-    }
-    .theme-night .brand-logo{ filter:brightness(1.1) drop-shadow(0 6px 18px rgba(0,0,0,.6)); }
+    .theme-night .logo{ filter:brightness(1.1) drop-shadow(0 6px 18px rgba(0,0,0,.6)); }
 
     .mast-title{
-      display:flex; flex-direction:column; align-items:flex-start;   /* left align */
+      display:flex; flex-direction:column; align-items:flex-start;
       line-height:1.02;
     }
     .mast-title .line1{
@@ -131,7 +128,7 @@
     .theme-btn{appearance:none;cursor:pointer;border:none;color:#0a0a0a;font-weight:900;letter-spacing:.2px;padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.92);box-shadow:0 6px 18px rgba(0,0,0,.22)}
     .theme-btn:hover{transform:translateY(-1px)}
 
-    /* Mobile: if space is tight, stack image over title */
+    /* Mobile: stack image over title if needed */
     @media (max-width:760px){
       .mast{ flex-direction:column; align-items:center; gap:14px }
       .mast-title{ align-items:center; }
@@ -196,11 +193,9 @@
 </head>
 <body class="theme-orange">
   <header>
-    <!-- Row: image left + two-line left-aligned title right -->
+    <!-- Row: bare image left + two-line left-aligned title right -->
     <div class="mast">
-      <div class="mast-badge">
-        <img class="brand-logo" src="./assets/pocket_steak_logo.png" alt="PocketSteak logo" />
-      </div>
+      <img class="logo" src="./assets/pocket_steak_logo.png" alt="PocketSteak logo" />
       <div class="mast-title">
         <span class="line1">PocketSteak's</span>
         <span class="line2">Apps</span>
