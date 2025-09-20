@@ -71,54 +71,45 @@
     }
     @keyframes bgShift{from{background-position:0% 40%}to{background-position:100% 60%}}
 
-    /* ===== TOP: bare logo left + two-line title, tight gap ===== */
+    /* ===== TOP: bare logo left + two-line title, with Apps centered under PocketSteak's ===== */
     header{max-width:var(--grid-max);margin:0 auto;padding:28px 20px 0}
-    .mast{
-      display:flex; align-items:center; gap:14px;   /* tight gap next to image */
-    }
+    .mast{ display:flex; align-items:center; gap:14px; }
 
-    /* No box: just the image at a fixed, responsive size */
     .logo{
       width:clamp(140px,22vw,260px);
-      height:auto;
-      display:block;
-      object-fit:contain;
-      /* keep a subtle drop shadow for depth (optional) */
+      height:auto; display:block; object-fit:contain;
       filter: drop-shadow(0 6px 18px rgba(0,0,0,.35));
     }
     .theme-night .logo{ filter:brightness(1.1) drop-shadow(0 6px 18px rgba(0,0,0,.6)); }
 
+    /* Key change: width shrinks to the first line; then center the second line */
     .mast-title{
-      display:flex; flex-direction:column; align-items:flex-start;
+      display:flex; flex-direction:column;
+      align-items:center;              /* center children by default */
+      width:max-content;               /* container width = widest child (line1) */
       line-height:1.02;
     }
     .mast-title .line1{
+      align-self:flex-start;           /* keep line1 left-aligned */
       font-weight:900; font-size:clamp(42px,6vw,92px);
     }
     .mast-title .line2{
+      align-self:center;               /* center line2 under line1 */
       margin-top:2px;
       font-weight:900; font-size:clamp(38px,5.5vw,84px);
     }
 
-    .mast-spacer{ height:12px }    /* small space below mast row */
-
+    .mast-spacer{ height:12px }
     .mast-bar{
-      height:10px;
-      border-radius:999px;
+      height:10px; border-radius:999px;
       background:rgba(255,255,255,.14);
       box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 10px 26px rgba(0,0,0,.18);
       margin:0 0 18px 0;
     }
 
     /* ===== CENTERED CONTENT UNDER THE BAR ===== */
-    .center-wrap{
-      text-align:center;
-      padding:0 0 8px 0;
-    }
-    .subtitle{
-      font-weight:600; font-size:clamp(18px,2.5vw,22px); opacity:.97;
-      margin:10px 0 8px 0;
-    }
+    .center-wrap{ text-align:center; padding:0 0 8px 0; }
+    .subtitle{ font-weight:600; font-size:clamp(18px,2.5vw,22px); opacity:.97; margin:10px 0 8px 0; }
     .color-note{
       margin:0 auto 12px; max-width:820px; font-weight:700; line-height:1.35;
       background:rgba(255,255,255,.14); padding:10px 14px; border-radius:14px;
@@ -132,6 +123,7 @@
     @media (max-width:760px){
       .mast{ flex-direction:column; align-items:center; gap:14px }
       .mast-title{ align-items:center; }
+      .mast-title .line1{ align-self:center; } /* on small screens, center both */
     }
 
     /* ===== MAIN GRID / TILES ===== */
@@ -150,7 +142,6 @@
     }
     .tile:hover{transform:translateY(-4px) rotate(-.4deg);filter:saturate(1.08);box-shadow:0 28px 80px rgba(0,0,0,.45)}
     .tile:active{transform:translateY(-2px) scale(1.01)}
-
     .tile::after{content:"";position:absolute;inset:-2px;pointer-events:none;opacity:0;background:linear-gradient(100deg,transparent 0%,rgba(255,255,255,.75) 45%,rgba(255,255,255,.45) 55%,transparent 100%);transform:translateX(-140%);transition:opacity .18s ease}
     .tile:hover::after{opacity:.9;animation:sweep 900ms ease forwards}
     .tile::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(80% 60% at 20% 0%,rgba(255,255,255,.35),transparent 50%),radial-gradient(60% 40% at 100% 20%,rgba(255,255,255,.18),transparent 60%);transition:opacity .18s ease}
@@ -175,7 +166,6 @@
     .v1{background:var(--tile-1)} .v2{background:var(--tile-2)} .v3{background:var(--tile-3)} .v4{background:var(--tile-4)}
 
     footer{margin-top:24px;text-align:center;font-weight:600;color:rgba(255,255,255,.9)}
-
     .wip{display:inline-block;margin-left:8px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.92);color:#222;font-size:12px;font-weight:900;letter-spacing:.2px;border:1px solid rgba(0,0,0,.1)}
     .btn.disabled{opacity:.65;cursor:not-allowed;border-style:dashed}
     .wip-tile{filter:saturate(.96) brightness(.98)}
@@ -193,7 +183,7 @@
 </head>
 <body class="theme-orange">
   <header>
-    <!-- Row: bare image left + two-line left-aligned title right -->
+    <!-- Row: bare image left + two-line title (Apps centered under PocketSteak's) -->
     <div class="mast">
       <img class="logo" src="./assets/pocket_steak_logo.png" alt="PocketSteak logo" />
       <div class="mast-title">
