@@ -48,7 +48,6 @@
     main{max-width:var(--grid-max);margin:0 auto;padding:12px 20px 60px}
     .grid{display:grid;gap:28px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));justify-content:center}
 
-    /* Tiles (column layout for better mobile fit) */
     .tile{
       display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding:22px;
       border-radius:var(--radius-xxl);
@@ -61,7 +60,6 @@
     .tile:hover{transform:translateY(-4px) rotate(-.4deg);filter:saturate(1.08);box-shadow:0 28px 80px rgba(0,0,0,.45)}
     .tile:active{transform:translateY(-2px) scale(1.01)}
 
-    /* Sheen */
     .tile::after{content:"";position:absolute;inset:-2px;pointer-events:none;opacity:0;background:linear-gradient(100deg,transparent 0%,rgba(255,255,255,.75) 45%,rgba(255,255,255,.45) 55%,transparent 100%);transform:translateX(-140%);transition:opacity .18s ease}
     .tile:hover::after{opacity:.9;animation:sweep 900ms ease forwards}
     .tile::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(80% 60% at 20% 0%,rgba(255,255,255,.35),transparent 50%),radial-gradient(60% 40% at 100% 20%,rgba(255,255,255,.18),transparent 60%);transition:opacity .18s ease}
@@ -71,7 +69,7 @@
 
     .mark{width:64px;height:64px;display:grid;place-items:center;border-radius:20px;background:rgba(255,255,255,.92);border:1px solid rgba(0,0,0,.05);box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 10px 26px rgba(0,0,0,.16);font-size:32px;flex:0 0 auto}
     .textblock{display:flex;flex-direction:column;gap:6px;min-width:0}
-    .name{font-weight:900;font-size:clamp(20px,5vw,26px);letter-spacing:.2px;overflow-wrap:anywhere;line-height:1.1}
+    .name{font-weight:900;font-size:clamp(20px,5vw,26px);letter-spacing:.2px;overflow-wrap:anywhere}
     .desc{font-weight:600;opacity:.9;overflow-wrap:anywhere}
 
     .actions{margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;width:100%}
@@ -82,20 +80,16 @@
 
     footer{margin-top:24px;text-align:center;font-weight:600;color:rgba(255,255,255,.9)}
 
-    /* Under construction */
     .wip{display:inline-block;margin-left:8px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.92);color:#222;font-size:12px;font-weight:900;letter-spacing:.2px;border:1px solid rgba(0,0,0,.1)}
     .btn.disabled{opacity:.65;cursor:not-allowed;border-style:dashed}
     .wip-tile{filter:saturate(.96) brightness(.98)}
 
-    /* 📱 Mobile fixes */
     @media (max-width:640px){
       header{padding:36px 14px 10px}
-      main{padding:8px 14px 48px}
-      .grid{grid-template-columns:1fr}              /* single column on phones */
       .tile{padding:18px;gap:12px;border-radius:22px}
       .mark{width:52px;height:52px;font-size:24px}
-      .actions{justify-content:center}              /* button sits below text */
-      .btn{padding:8px 12px;font-size:13px;white-space:normal;max-width:100%} /* allow wrapping */
+      .btn{padding:8px 12px;font-size:13px}
+      .actions{justify-content:center}
     }
 
     @media (prefers-reduced-motion:reduce){.tile,.btn{transition:none}.tile:hover{transform:none}.tile::after{display:none}}
@@ -123,19 +117,16 @@
 
   <script>
     const APPS = [
-      { emoji:"🗳️", name:"The Secret Vote", desc:"Anonymous room-based ranking magic.", url:"https://pocket-steak.github.io/Voting-Repository/" },
+      { emoji:"🗳️", name:"The Secret Vote", desc:"Anonymous room-based ranking magic.", url:"https://pocket-steak.github.io/secret-vote/#/" },
       { emoji:"🚧", name:"MTG Stats", desc:"Track & compare your game nights — Under construction.", url:"#", underConstruction:true },
       { emoji:"🚧", name:"The Randomizer", desc:"Instant decisions. Zero debates — Under construction.", url:"#", underConstruction:true }
     ];
 
     const grid=document.getElementById('grid');
-
     function tileTemplate(a,idx){
       const v=['v1','v2','v3','v4'][idx%4];
       const wip=!!a.underConstruction;
-      const button=wip
-        ? `<span class="btn disabled" aria-disabled="true" title="Coming soon">Coming Soon</span>`
-        : `<a class="btn" href="${a.url}" target="_blank" rel="noopener noreferrer">Open ↗</a>`;
+      const button=wip?`<span class="btn disabled" aria-disabled="true" title="Coming soon">Coming Soon</span>`:`<a class="btn" href="${a.url}" target="_blank" rel="noopener noreferrer">Open ↗</a>`;
       const badge=wip?`<span class="wip">🚧 Under construction</span>`:'';
       return `<article class="tile ${v}${wip?' wip-tile':''}">
         <div class="mark">${a.emoji}</div>
@@ -146,25 +137,11 @@
         <div class="actions">${button}</div>
       </article>`;
     }
-
-    function render(list){ grid.innerHTML = list.map(tileTemplate).join(''); }
+    function render(list){grid.innerHTML=list.map(tileTemplate).join('')}
     render(APPS);
 
-    // Theme switcher
-    document.addEventListener('click',e=>{
-      const btn=e.target.closest('[data-theme]');
-      if(btn){ document.body.className=`theme-${btn.dataset.theme}`; }
-    });
-
-    // Press sheen for touch/desktop
-    (function(){
-      const onDown=e=>{ const t=e.target.closest('.tile'); if(t) t.classList.add('press'); };
-      const onUp =()=>{ document.querySelectorAll('.tile.press').forEach(t=>t.classList.remove('press')); };
-      document.addEventListener('pointerdown',onDown);
-      document.addEventListener('pointerup',onUp);
-      document.addEventListener('pointercancel',onUp);
-      document.addEventListener('pointerleave',onUp);
-    })();
+    document.addEventListener('click',e=>{const btn=e.target.closest('[data-theme]');if(btn){document.body.className=`theme-${btn.dataset.theme}`}});
+    (function(){const onDown=e=>{const t=e.target.closest('.tile');if(t)t.classList.add('press')};const onUp=()=>{document.querySelectorAll('.tile.press').forEach(t=>t.classList.remove('press'))};document.addEventListener('pointerdown',onDown);document.addEventListener('pointerup',onUp);document.addEventListener('pointercancel',onUp);document.addEventListener('pointerleave',onUp)})();
   </script>
 </body>
 </html>
