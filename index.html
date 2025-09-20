@@ -18,7 +18,7 @@
       --mark-border:rgba(0,0,0,.05);
     }
 
-    /* THEME PALETTES (amped Orange) */
+    /* ORANGE (amped) */
     .theme-orange{
       --bg-a:#ff9700; --bg-b:#ff6a00; --bg-c:#ff3d00; --bg-d:#ffcf33;
       --tile-1:linear-gradient(135deg,#ffd166,#ff9f1c);
@@ -33,7 +33,7 @@
     .theme-pink  { --bg-a:#ff3d81; --bg-b:#ff7a18; --bg-c:#ff7ac1; --bg-d:#7a5cff; --tile-1:linear-gradient(135deg,#ff9ac2,#ff3d81); --tile-2:linear-gradient(135deg,#ffd18e,#ff7a18); --tile-3:linear-gradient(135deg,#ffb2de,#ff7ac1); --tile-4:linear-gradient(135deg,#b39cff,#7a5cff); --tile-fg:#0b0b0b; --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05); }
     .theme-vapor { --bg-a:#00d4ff; --bg-b:#7a5cff; --bg-c:#ff3d81; --bg-d:#00ffa3; --tile-1:linear-gradient(135deg,#7ae8ff,#00d4ff); --tile-2:linear-gradient(135deg,#b39cff,#7a5cff); --tile-3:linear-gradient(135deg,#ff9ac2,#ff3d81); --tile-4:linear-gradient(135deg,#7dffd6,#00ffa3); --tile-fg:#0b0b0b; --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05); }
 
-    /* NEW: Peacock (teal + lime + purple, playful) */
+    /* Peacock (teal + lime + purple) */
     .theme-peacock{
       --bg-a:#00c2b2; --bg-b:#7a33ff; --bg-c:#9dff00; --bg-d:#ff4de3;
       --tile-1:linear-gradient(135deg,#8ff8e9,#00c2b2);
@@ -43,7 +43,7 @@
       --tile-fg:#0b0b0b; --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05);
     }
 
-    /* NEW: Sunset Soda (coral + magenta + lemon) */
+    /* Sunset Soda (coral + magenta + lemon) */
     .theme-sunset{
       --bg-a:#ff6b6b; --bg-b:#ff2e93; --bg-c:#ffb703; --bg-d:#ffd166;
       --tile-1:linear-gradient(135deg,#ffc1c1,#ff6b6b);
@@ -53,26 +53,27 @@
       --tile-fg:#0b0b0b; --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05);
     }
 
-    /* NEW: Night (dark & monochrome) */
+    /* Night (dark & mono) */
     .theme-night{
       --bg-a:#0b0b0d; --bg-b:#141417; --bg-c:#1c1c20; --bg-d:#2a2a2f;
       --tile-1:linear-gradient(135deg,#2c2c31,#16161a);
       --tile-2:linear-gradient(135deg,#34343a,#1b1b20);
       --tile-3:linear-gradient(135deg,#3a3a41,#202026);
       --tile-4:linear-gradient(135deg,#2f2f36,#141419);
-      --tile-fg:#f2f3f5; /* light text on dark tiles */
+      --tile-fg:#f2f3f5;
       --mark-bg:rgba(255,255,255,.08); --mark-border:rgba(255,255,255,.15);
     }
 
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%}
-
     body{
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--ink-invert);
-      background: radial-gradient(1200px 600px at 10% -10%, rgba(255,255,255,.25), transparent 60%),
-                  radial-gradient(1000px 600px at 110% 10%, rgba(255,255,255,.15), transparent 55%),
-                  linear-gradient(135deg,var(--bg-a),var(--bg-b) 35%,var(--bg-c) 70%,var(--bg-d));
-      background-size:200% 200%; animation:bgShift 18s ease-in-out infinite alternate;
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(255,255,255,.25), transparent 60%),
+        radial-gradient(1000px 600px at 110% 10%, rgba(255,255,255,.15), transparent 55%),
+        linear-gradient(135deg,var(--bg-a),var(--bg-b) 35%,var(--bg-c) 70%,var(--bg-d));
+      background-size:200% 200%;
+      animation:bgShift 18s ease-in-out infinite alternate;
     }
     @keyframes bgShift{from{background-position:0% 40%}to{background-position:100% 60%}}
 
@@ -81,7 +82,6 @@
     .brand-badge span{font-size:52px}
     .title{font-weight:900;font-size:clamp(42px,6vw,72px);text-shadow:0 8px 22px rgba(0,0,0,.35);margin-bottom:8px}
     .subtitle{font-weight:600;font-size:clamp(18px,2.5vw,22px);opacity:.97}
-
     .color-note{
       margin:14px auto 10px; max-width:820px; font-weight:700; line-height:1.35;
       background:rgba(255,255,255,.14); padding:10px 14px; border-radius:14px;
@@ -95,7 +95,7 @@
     main{max-width:var(--grid-max);margin:0 auto;padding:12px 20px 60px}
     .grid{display:grid;gap:28px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));justify-content:center}
 
-    /* Tiles - column layout for robust mobile */
+    /* Tiles - column layout for solid mobile behavior */
     .tile{
       display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding:22px;
       border-radius:var(--radius-xxl);
@@ -170,16 +170,19 @@
       <button class="theme-btn" data-theme="pink">Hot Pink</button>
       <button class="theme-btn" data-theme="vapor">Vapor</button>
       <button class="theme-btn" data-theme="peacock">Peacock</button>
-      <button class="theme-btn" data-theme="sunset">Sunset Soda</button> <!-- NEW -->
-      <button class="theme-btn" data-theme="night">Night</button>       <!-- NEW -->
+      <button class="theme-btn" data-theme="sunset">Sunset Soda</button>
+      <button class="theme-btn" data-theme="night">Night</button>
     </div>
   </header>
 
-  <main><div class="grid" id="grid"></div></main>
+  <main>
+    <div class="grid" id="grid"></div>
+  </main>
+
   <footer>© PocketSteak — Built to tap.</footer>
 
   <script>
-    // --- Apps ---
+    // Apps
     const APPS = [
       { emoji:"🗳️", name:"The Secret Vote", desc:"Anonymous room-based ranking magic.", url:"https://pocket-steak.github.io/secret-vote/#/" },
       { emoji:"🚧", name:"MTG Stats", desc:"Track & compare your game nights — Under construction.", url:"#", underConstruction:true },
@@ -207,25 +210,23 @@
     function render(list){ grid.innerHTML = list.map(tileTemplate).join(''); }
     render(APPS);
 
-    // --- Theme switcher with persistence ---
+    // Theme switcher + persistence
     const THEME_KEY = 'ps_theme';
     function applyTheme(theme){
       document.body.className = `theme-${theme}`;
       try { localStorage.setItem(THEME_KEY, theme); } catch(_) {}
     }
-    // Restore saved theme (fallback to initial body class)
     (function(){
       let t;
       try { t = localStorage.getItem(THEME_KEY); } catch(_) {}
       if(t){ document.body.className = `theme-${t}`; }
     })();
-
     document.addEventListener('click', (e)=>{
       const btn = e.target.closest('[data-theme]');
       if(btn){ applyTheme(btn.dataset.theme); }
     });
 
-    // --- Press sheen for touch/desktop ---
+    // Press sheen for touch/desktop
     (function(){
       const onDown = (e)=>{ const t=e.target.closest('.tile'); if(t) t.classList.add('press'); };
       const onUp   = ()=>{ document.querySelectorAll('.tile.press').forEach(t=>t.classList.remove('press')); };
