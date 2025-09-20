@@ -27,36 +27,9 @@
     .theme-lime  { --bg-a:#a4ff3d; --bg-b:#00e1a1; --bg-c:#00d4ff; --bg-d:#7a5cff; --tile-1:linear-gradient(135deg,#d7ff8a,#a4ff3d); --tile-2:linear-gradient(135deg,#7dffd6,#00e1a1); --tile-3:linear-gradient(135deg,#7ae8ff,#00d4ff); --tile-4:linear-gradient(135deg,#b39cff,#7a5cff); --tile-fg:#0b0b0b; --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05); }
     .theme-pink  { --bg-a:#ff3d81; --bg-b:#ff7a18; --bg-c:#ff7ac1; --bg-d:#7a5cff; --tile-1:linear-gradient(135deg,#ff9ac2,#ff3d81); --tile-2:linear-gradient(135deg,#ffd18e,#ff7a18); --tile-3:linear-gradient(135deg,#ffb2de,#ff7ac1); --tile-4:linear-gradient(135deg,#b39cff,#7a5cff); --tile-fg:#0b0b0b; --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05); }
     .theme-vapor { --bg-a:#00d4ff; --bg-b:#7a5cff; --bg-c:#ff3d81; --bg-d:#00ffa3; --tile-1:linear-gradient(135deg,#7ae8ff,#00d4ff); --tile-2:linear-gradient(135deg,#b39cff,#7a5cff); --tile-3:linear-gradient(135deg,#ff9ac2,#ff3d81); --tile-4:linear-gradient(135deg,#7dffd6,#00ffa3); --tile-fg:#0b0b0b; --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05); }
-
-    /* Peacock (teal + lime + purple) */
-    .theme-peacock{
-      --bg-a:#00c2b2; --bg-b:#7a33ff; --bg-c:#9dff00; --bg-d:#ff4de3;
-      --tile-1:linear-gradient(135deg,#8ff8e9,#00c2b2);
-      --tile-2:linear-gradient(135deg,#c2a6ff,#7a33ff);
-      --tile-3:linear-gradient(135deg,#d9ff76,#9dff00);
-      --tile-4:linear-gradient(135deg,#ffb3f3,#ff4de3);
-      --tile-fg:#0b0b0b; --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05);
-    }
-
-    /* Sunset Soda */
-    .theme-sunset{
-      --bg-a:#ff6b6b; --bg-b:#ff2e93; --bg-c:#ffb703; --bg-d:#ffd166;
-      --tile-1:linear-gradient(135deg,#ffc1c1,#ff6b6b);
-      --tile-2:linear-gradient(135deg,#ff9bd5,#ff2e93);
-      --tile-3:linear-gradient(135deg,#ffe386,#ffb703);
-      --tile-4:linear-gradient(135deg,#ffe6a8,#ffd166);
-      --tile-fg:#0b0b0b; --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05);
-    }
-
-    /* Night (dark & mono) */
-    .theme-night{
-      --bg-a:#0b0b0d; --bg-b:#141417; --bg-c:#1c1c20; --bg-d:#2a2a2f;
-      --tile-1:linear-gradient(135deg,#2c2c31,#16161a);
-      --tile-2:linear-gradient(135deg,#34343a,#1b1b20);
-      --tile-3:linear-gradient(135deg,#3a3a41,#202026);
-      --tile-4:linear-gradient(135deg,#2f2f36,#141419);
-      --tile-fg:#f2f3f5; --mark-bg:rgba(255,255,255,.08); --mark-border:rgba(255,255,255,.15);
-    }
+    .theme-peacock{ --bg-a:#00c2b2; --bg-b:#7a33ff; --bg-c:#9dff00; --bg-d:#ff4de3; --tile-1:linear-gradient(135deg,#8ff8e9,#00c2b2); --tile-2:linear-gradient(135deg,#c2a6ff,#7a33ff); --tile-3:linear-gradient(135deg,#d9ff76,#9dff00); --tile-4:linear-gradient(135deg,#ffb3f3,#ff4de3); --tile-fg:#0b0b0b; --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05); }
+    .theme-sunset{ --bg-a:#ff6b6b; --bg-b:#ff2e93; --bg-c:#ffb703; --bg-d:#ffd166; --tile-1:linear-gradient(135deg,#ffc1c1,#ff6b6b); --tile-2:linear-gradient(135deg,#ff9bd5,#ff2e93); --tile-3:linear-gradient(135deg,#ffe386,#ffb703); --tile-4:linear-gradient(135deg,#ffe6a8,#ffd166); --tile-fg:#0b0b0b; --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05); }
+    .theme-night{ --bg-a:#0b0b0d; --bg-b:#141417; --bg-c:#1c1c20; --bg-d:#2a2a2f; --tile-1:linear-gradient(135deg,#2c2c31,#16161a); --tile-2:linear-gradient(135deg,#34343a,#1b1b20); --tile-3:linear-gradient(135deg,#3a3a41,#202026); --tile-4:linear-gradient(135deg,#2f2f36,#141419); --tile-fg:#f2f3f5; --mark-bg:rgba(255,255,255,.08); --mark-border:rgba(255,255,255,.15); }
 
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%}
@@ -71,7 +44,7 @@
     }
     @keyframes bgShift{from{background-position:0% 40%}to{background-position:100% 60%}}
 
-    /* ===== TOP: bare logo left + two-line title, with Apps centered under PocketSteak's ===== */
+    /* ===== TOP: bare logo + title (Apps centered under PocketSteak's) ===== */
     header{max-width:var(--grid-max);margin:0 auto;padding:28px 20px 0}
     .mast{ display:flex; align-items:center; gap:14px; }
 
@@ -82,22 +55,9 @@
     }
     .theme-night .logo{ filter:brightness(1.1) drop-shadow(0 6px 18px rgba(0,0,0,.6)); }
 
-    /* Key change: width shrinks to the first line; then center the second line */
-    .mast-title{
-      display:flex; flex-direction:column;
-      align-items:center;              /* center children by default */
-      width:max-content;               /* container width = widest child (line1) */
-      line-height:1.02;
-    }
-    .mast-title .line1{
-      align-self:flex-start;           /* keep line1 left-aligned */
-      font-weight:900; font-size:clamp(42px,6vw,92px);
-    }
-    .mast-title .line2{
-      align-self:center;               /* center line2 under line1 */
-      margin-top:2px;
-      font-weight:900; font-size:clamp(38px,5.5vw,84px);
-    }
+    .mast-title{ display:flex; flex-direction:column; align-items:center; width:max-content; line-height:1.02; }
+    .mast-title .line1{ align-self:flex-start; font-weight:900; font-size:clamp(42px,6vw,92px); }
+    .mast-title .line2{ align-self:center; margin-top:2px; font-weight:900; font-size:clamp(38px,5.5vw,84px); }
 
     .mast-spacer{ height:12px }
     .mast-bar{
@@ -109,13 +69,18 @@
 
     /* ===== CENTERED CONTENT UNDER THE BAR ===== */
     .center-wrap{ text-align:center; padding:0 0 8px 0; }
-    .subtitle{ font-weight:600; font-size:clamp(18px,2.5vw,22px); opacity:.97; margin:10px 0 8px 0; }
+
+    /* Removed subtitle; bump space below the note and above buttons */
     .color-note{
-      margin:0 auto 12px; max-width:820px; font-weight:700; line-height:1.35;
+      margin:0 auto 22px;              /* more space below the box */
+      max-width:820px; font-weight:700; line-height:1.35;
       background:rgba(255,255,255,.14); padding:10px 14px; border-radius:14px;
       box-shadow:inset 0 1px 0 rgba(255,255,255,.35);
     }
-    .themes{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:10px}
+    .themes{
+      display:flex;flex-wrap:wrap;gap:12px;justify-content:center;
+      margin-top:8px;                   /* extra breathing room from the box */
+    }
     .theme-btn{appearance:none;cursor:pointer;border:none;color:#0a0a0a;font-weight:900;letter-spacing:.2px;padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.92);box-shadow:0 6px 18px rgba(0,0,0,.22)}
     .theme-btn:hover{transform:translateY(-1px)}
 
@@ -123,7 +88,7 @@
     @media (max-width:760px){
       .mast{ flex-direction:column; align-items:center; gap:14px }
       .mast-title{ align-items:center; }
-      .mast-title .line1{ align-self:center; } /* on small screens, center both */
+      .mast-title .line1{ align-self:center; }
     }
 
     /* ===== MAIN GRID / TILES ===== */
@@ -183,7 +148,6 @@
 </head>
 <body class="theme-orange">
   <header>
-    <!-- Row: bare image left + two-line title (Apps centered under PocketSteak's) -->
     <div class="mast">
       <img class="logo" src="./assets/pocket_steak_logo.png" alt="PocketSteak logo" />
       <div class="mast-title">
@@ -192,13 +156,11 @@
       </div>
     </div>
 
-    <!-- small spacer then the bar -->
     <div class="mast-spacer"></div>
     <div class="mast-bar"></div>
 
-    <!-- centered content under the bar -->
     <div class="center-wrap">
-      <div class="subtitle">Big, bright, push-the-button fun.</div>
+      <!-- subtitle removed -->
       <p class="color-note">
         Let’s have some fun—set the color of the webpage to suit your style or mood.
         Let’s bring some color into our lives!
@@ -223,21 +185,18 @@
   <footer>© PocketSteak — Built to tap.</footer>
 
   <script>
-    // App data
     const APPS = [
       { emoji:"🗳️", name:"The Secret Vote", desc:"Anonymous room-based ranking magic.", url:"https://pocket-steak.github.io/secret-vote/#/" },
       { emoji:"🚧", name:"MTG Stats", desc:"Track & compare your game nights — Under construction.", url:"#", underConstruction:true },
       { emoji:"🚧", name:"The Randomizer", desc:"Instant decisions. Zero debates — Under construction.", url:"#", underConstruction:true }
     ];
 
-    // Render tiles
     const grid = document.getElementById('grid');
     function tileTemplate(a, idx){
       const v = ['v1','v2','v3','v4'][idx % 4];
       const wip = !!a.underConstruction;
-      const btn = wip
-        ? `<span class="btn disabled" aria-disabled="true" title="Coming soon">Coming Soon</span>`
-        : `<a class="btn" href="${a.url}" target="_blank" rel="noopener noreferrer">Open ↗</a>`;
+      const btn = wip ? `<span class="btn disabled" aria-disabled="true" title="Coming soon">Coming Soon</span>`
+                      : `<a class="btn" href="${a.url}" target="_blank" rel="noopener noreferrer">Open ↗</a>`;
       const badge = wip ? `<span class="wip">🚧 Under construction</span>` : '';
       return `<article class="tile ${v}${wip ? ' wip-tile' : ''}">
         <div class="mark">${a.emoji}</div>
@@ -251,24 +210,19 @@
     function render(list){ grid.innerHTML = list.map(tileTemplate).join(''); }
     render(APPS);
 
-    // Theme switcher with persistence
     const THEME_KEY='ps_theme';
     function applyTheme(theme){
       document.body.className = `theme-${theme}`;
       try{ localStorage.setItem(THEME_KEY, theme); }catch(_){}
     }
     (function(){
-      try{
-        const t = localStorage.getItem(THEME_KEY);
-        if(t) document.body.className = `theme-${t}`;
-      }catch(_){}
+      try{ const t = localStorage.getItem(THEME_KEY); if(t) document.body.className = `theme-${t}`; }catch(_){}
     })();
     document.addEventListener('click', (e)=>{
       const btn = e.target.closest('[data-theme]');
       if(btn) applyTheme(btn.dataset.theme);
     });
 
-    // Press sheen feedback
     (function(){
       const onDown = (e)=>{ const t = e.target.closest('.tile'); if(t) t.classList.add('press'); };
       const onUp   = ()=>{ document.querySelectorAll('.tile.press').forEach(t=>t.classList.remove('press')); };
