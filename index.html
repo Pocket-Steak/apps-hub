@@ -78,8 +78,25 @@
     @keyframes bgShift{from{background-position:0% 40%}to{background-position:100% 60%}}
 
     header{max-width:var(--grid-max);margin:0 auto;padding:48px 20px 12px;text-align:center}
-    .brand-badge{display:inline-grid;place-items:center;width:100px;height:100px;border-radius:28px;background:rgba(255,255,255,.15);box-shadow:inset 0 1px 0 rgba(255,255,255,.4),var(--shadow-1);margin-bottom:20px}
-    .brand-badge span{font-size:52px}
+    .brand-badge{
+      display:inline-grid;place-items:center;width:100px;height:100px;border-radius:28px;
+      background:rgba(255,255,255,.15);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.4),var(--shadow-1);
+      margin-bottom:20px
+    }
+    /* 🔁 Use your image instead of the emoji */
+    .brand-logo{
+      width:78%;
+      height:auto;
+      display:block;
+      object-fit:contain;
+      border-radius:12px;              /* remove if you prefer square corners */
+      filter:drop-shadow(0 3px 10px rgba(0,0,0,.25));
+    }
+    .theme-night .brand-logo{
+      filter:brightness(1.1) drop-shadow(0 3px 10px rgba(0,0,0,.5));
+    }
+
     .title{font-weight:900;font-size:clamp(42px,6vw,72px);text-shadow:0 8px 22px rgba(0,0,0,.35);margin-bottom:8px}
     .subtitle{font-weight:600;font-size:clamp(18px,2.5vw,22px);opacity:.97}
     .color-note{
@@ -158,7 +175,10 @@
 </head>
 <body class="theme-orange">
   <header>
-    <div class="brand-badge"><span>🥩</span></div>
+    <div class="brand-badge">
+      <!-- ⬇️ Use your image file here -->
+      <img class="brand-logo" src="assets/logo.png" alt="PocketSteak logo" />
+    </div>
     <div class="title">PocketSteak's Apps</div>
     <div class="subtitle">Big, bright, push-the-button fun.</div>
     <p class="color-note">Let’s have some fun—set the color of the webpage to suit your style or mood. Let’s bring some color into our lives!</p>
