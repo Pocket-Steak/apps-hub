@@ -7,20 +7,11 @@
   <meta name="description" content="A bold, fun hub for PocketSteak's projects and apps." />
 
   <style>
-    :root{
-      --ink:#0a0a0a; --ink-invert:#ffffff;
-      --shadow-1:0 20px 60px rgba(0,0,0,.35);
-      --radius-xxl:28px; --grid-max:1120px;
-    }
+    :root{ --ink:#0a0a0a; --ink-invert:#fff; --shadow-1:0 20px 60px rgba(0,0,0,.35); --radius-xxl:28px; --grid-max:1120px; }
 
     /* THEME PALETTES (amped Orange) */
     .theme-orange{
-      /* background ramp: bright sunrise oranges */
-      --bg-a:#ff9700;  /* vivid orange */
-      --bg-b:#ff6a00;  /* deep tangerine */
-      --bg-c:#ff3d00;  /* hot orange-red */
-      --bg-d:#ffcf33;  /* warm golden pop */
-      /* tile ramps: saturated and warm */
+      --bg-a:#ff9700; --bg-b:#ff6a00; --bg-c:#ff3d00; --bg-d:#ffcf33;
       --tile-1:linear-gradient(135deg,#ffd166,#ff9f1c);
       --tile-2:linear-gradient(135deg,#ff8fa3,#ff4d6d);
       --tile-3:linear-gradient(135deg,#ffc06e,#ff6b35);
@@ -31,18 +22,26 @@
     .theme-pink  { --bg-a:#ff3d81; --bg-b:#ff7a18; --bg-c:#ff7ac1; --bg-d:#7a5cff; --tile-1:linear-gradient(135deg,#ff9ac2,#ff3d81); --tile-2:linear-gradient(135deg,#ffd18e,#ff7a18); --tile-3:linear-gradient(135deg,#ffb2de,#ff7ac1); --tile-4:linear-gradient(135deg,#b39cff,#7a5cff); }
     .theme-vapor { --bg-a:#00d4ff; --bg-b:#7a5cff; --bg-c:#ff3d81; --bg-d:#00ffa3; --tile-1:linear-gradient(135deg,#7ae8ff,#00d4ff); --tile-2:linear-gradient(135deg,#b39cff,#7a5cff); --tile-3:linear-gradient(135deg,#ff9ac2,#ff3d81); --tile-4:linear-gradient(135deg,#7dffd6,#00ffa3); }
 
+    /* NEW: Peacock (teal + lime + purple, with a playful pop) */
+    .theme-peacock{
+      --bg-a:#00c2b2;   /* teal */
+      --bg-b:#7a33ff;   /* rich purple */
+      --bg-c:#9dff00;   /* neon lime */
+      --bg-d:#ff4de3;   /* fun pink accent */
+      --tile-1:linear-gradient(135deg,#8ff8e9,#00c2b2); /* teal glow */
+      --tile-2:linear-gradient(135deg,#c2a6ff,#7a33ff); /* lavender→purple */
+      --tile-3:linear-gradient(135deg,#d9ff76,#9dff00); /* lime pop */
+      --tile-4:linear-gradient(135deg,#ffb3f3,#ff4de3); /* playful pink */
+    }
+
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%}
-
     body{
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      color:var(--ink-invert);
-      background:
-        radial-gradient(1200px 600px at 10% -10%, rgba(255,255,255,.25), transparent 60%),
-        radial-gradient(1000px 600px at 110% 10%, rgba(255,255,255,.15), transparent 55%),
-        linear-gradient(135deg,var(--bg-a),var(--bg-b) 35%,var(--bg-c) 70%,var(--bg-d));
-      background-size:200% 200%;
-      animation:bgShift 18s ease-in-out infinite alternate;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--ink-invert);
+      background: radial-gradient(1200px 600px at 10% -10%, rgba(255,255,255,.25), transparent 60%),
+                  radial-gradient(1000px 600px at 110% 10%, rgba(255,255,255,.15), transparent 55%),
+                  linear-gradient(135deg,var(--bg-a),var(--bg-b) 35%,var(--bg-c) 70%,var(--bg-d));
+      background-size:200% 200%; animation:bgShift 18s ease-in-out infinite alternate;
     }
     @keyframes bgShift{from{background-position:0% 40%}to{background-position:100% 60%}}
 
@@ -52,15 +51,9 @@
     .title{font-weight:900;font-size:clamp(42px,6vw,72px);text-shadow:0 8px 22px rgba(0,0,0,.35);margin-bottom:8px}
     .subtitle{font-weight:600;font-size:clamp(18px,2.5vw,22px);opacity:.97}
 
-    /* New note above theme buttons */
     .color-note{
-      margin:14px auto 10px;
-      max-width:820px;
-      font-weight:700;
-      line-height:1.35;
-      background:rgba(255,255,255,.14);
-      padding:10px 14px;
-      border-radius:14px;
+      margin:14px auto 10px; max-width:820px; font-weight:700; line-height:1.35;
+      background:rgba(255,255,255,.14); padding:10px 14px; border-radius:14px;
       box-shadow:inset 0 1px 0 rgba(255,255,255,.35);
     }
 
@@ -71,20 +64,13 @@
     main{max-width:var(--grid-max);margin:0 auto;padding:12px 20px 60px}
     .grid{display:grid;gap:28px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));justify-content:center}
 
-    /* Tiles (column layout for solid mobile behavior) */
     .tile{
-      display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding:22px;
-      border-radius:var(--radius-xxl);
-      color:#0b0b0b;background:var(--tile-1);
-      box-shadow:var(--shadow-1);
-      border:1px solid rgba(255,255,255,.35);
-      position:relative;overflow:hidden;text-align:left;
-      transition:transform .18s cubic-bezier(.2,.8,.2,1),filter .18s ease,box-shadow .18s ease;
+      display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding:22px;border-radius:var(--radius-xxl);
+      color:#0b0b0b;background:var(--tile-1);box-shadow:var(--shadow-1);border:1px solid rgba(255,255,255,.35);
+      position:relative;overflow:hidden;text-align:left;transition:transform .18s cubic-bezier(.2,.8,.2,1),filter .18s ease,box-shadow .18s ease;
     }
     .tile:hover{transform:translateY(-4px) rotate(-.4deg);filter:saturate(1.08);box-shadow:0 28px 80px rgba(0,0,0,.45)}
     .tile:active{transform:translateY(-2px) scale(1.01)}
-
-    /* Sheen */
     .tile::after{content:"";position:absolute;inset:-2px;pointer-events:none;opacity:0;background:linear-gradient(100deg,transparent 0%,rgba(255,255,255,.75) 45%,rgba(255,255,255,.45) 55%,transparent 100%);transform:translateX(-140%);transition:opacity .18s ease}
     .tile:hover::after{opacity:.9;animation:sweep 900ms ease forwards}
     .tile::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(80% 60% at 20% 0%,rgba(255,255,255,.35),transparent 50%),radial-gradient(60% 40% at 100% 20%,rgba(255,255,255,.18),transparent 60%);transition:opacity .18s ease}
@@ -96,21 +82,15 @@
     .textblock{display:flex;flex-direction:column;gap:6px;min-width:0}
     .name{font-weight:900;font-size:clamp(20px,5vw,26px);letter-spacing:.2px;overflow-wrap:anywhere;line-height:1.1}
     .desc{font-weight:600;opacity:.9;overflow-wrap:anywhere}
-
     .actions{margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;width:100%}
     .btn{appearance:none;cursor:pointer;user-select:none;font-weight:900;letter-spacing:.3px;padding:10px 14px;border-radius:14px;border:2px solid rgba(0,0,0,.14);background:rgba(255,255,255,.95);color:#101010;box-shadow:0 4px 12px rgba(0,0,0,.18);transition:transform .12s ease,box-shadow .12s ease,filter .12s ease;text-decoration:none;white-space:nowrap;font-size:14px}
     .btn:hover{transform:translateY(-1px);filter:saturate(1.05);box-shadow:0 8px 20px rgba(0,0,0,.22)}
-
     .v1{background:var(--tile-1)}.v2{background:var(--tile-2)}.v3{background:var(--tile-3)}.v4{background:var(--tile-4)}
-
     footer{margin-top:24px;text-align:center;font-weight:600;color:rgba(255,255,255,.9)}
-
-    /* Under construction */
     .wip{display:inline-block;margin-left:8px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.92);color:#222;font-size:12px;font-weight:900;letter-spacing:.2px;border:1px solid rgba(0,0,0,.1)}
     .btn.disabled{opacity:.65;cursor:not-allowed;border-style:dashed}
     .wip-tile{filter:saturate(.96) brightness(.98)}
 
-    /* 📱 Mobile fixes */
     @media (max-width:640px){
       header{padding:36px 14px 10px}
       .color-note{margin:10px 14px 6px}
@@ -121,7 +101,6 @@
       .actions{justify-content:center}
       .btn{padding:8px 12px;font-size:13px;white-space:normal;max-width:100%}
     }
-
     @media (prefers-reduced-motion:reduce){.tile,.btn{transition:none}.tile:hover{transform:none}.tile::after{display:none}}
   </style>
 </head>
@@ -130,11 +109,7 @@
     <div class="brand-badge"><span>🥩</span></div>
     <div class="title">PocketSteak's Apps</div>
     <div class="subtitle">Big, bright, push-the-button fun.</div>
-
-    <!-- New note -->
-    <p class="color-note">
-      Let’s have some fun—set the color of the webpage to suit your style or mood. Let’s bring some color into our lives!
-    </p>
+    <p class="color-note">Let’s have some fun—set the color of the webpage to suit your style or mood. Let’s bring some color into our lives!</p>
 
     <div class="themes">
       <button class="theme-btn" data-theme="orange">Orange</button>
@@ -142,32 +117,31 @@
       <button class="theme-btn" data-theme="lime">Neon Lime</button>
       <button class="theme-btn" data-theme="pink">Hot Pink</button>
       <button class="theme-btn" data-theme="vapor">Vapor</button>
+      <button class="theme-btn" data-theme="peacock">Peacock</button> <!-- NEW -->
     </div>
   </header>
 
-  <main>
-    <div class="grid" id="grid"></div>
-  </main>
-
+  <main><div class="grid" id="grid"></div></main>
   <footer>© PocketSteak — Built to tap.</footer>
 
   <script>
+    // --- Apps ---
     const APPS = [
       { emoji:"🗳️", name:"The Secret Vote", desc:"Anonymous room-based ranking magic.", url:"https://pocket-steak.github.io/secret-vote/#/" },
       { emoji:"🚧", name:"MTG Stats", desc:"Track & compare your game nights — Under construction.", url:"#", underConstruction:true },
       { emoji:"🚧", name:"The Randomizer", desc:"Instant decisions. Zero debates — Under construction.", url:"#", underConstruction:true }
     ];
 
-    const grid=document.getElementById('grid');
+    const grid = document.getElementById('grid');
 
-    function tileTemplate(a,idx){
-      const v=['v1','v2','v3','v4'][idx%4];
-      const wip=!!a.underConstruction;
-      const button=wip
+    function tileTemplate(a, idx){
+      const v = ['v1','v2','v3','v4'][idx % 4];
+      const wip = !!a.underConstruction;
+      const button = wip
         ? `<span class="btn disabled" aria-disabled="true" title="Coming soon">Coming Soon</span>`
         : `<a class="btn" href="${a.url}" target="_blank" rel="noopener noreferrer">Open ↗</a>`;
-      const badge=wip?`<span class="wip">🚧 Under construction</span>`:'';
-      return `<article class="tile ${v}${wip?' wip-tile':''}">
+      const badge = wip ? `<span class="wip">🚧 Under construction</span>` : '';
+      return `<article class="tile ${v}${wip ? ' wip-tile' : ''}">
         <div class="mark">${a.emoji}</div>
         <div class="textblock">
           <div class="name">${a.name}</div>
@@ -176,24 +150,35 @@
         <div class="actions">${button}</div>
       </article>`;
     }
-
     function render(list){ grid.innerHTML = list.map(tileTemplate).join(''); }
     render(APPS);
 
-    // Theme switcher
-    document.addEventListener('click',e=>{
-      const btn=e.target.closest('[data-theme]');
-      if(btn){ document.body.className=`theme-${btn.dataset.theme}`; }
+    // --- Theme switcher with persistence ---
+    const THEME_KEY = 'ps_theme';
+    function applyTheme(theme){
+      document.body.className = `theme-${theme}`;
+      try { localStorage.setItem(THEME_KEY, theme); } catch(_) {}
+    }
+    // Restore saved theme (fallback to whatever body has initially)
+    (function(){
+      let t;
+      try { t = localStorage.getItem(THEME_KEY); } catch(_) {}
+      if(t){ document.body.className = `theme-${t}`; }
+    })();
+
+    document.addEventListener('click', (e)=>{
+      const btn = e.target.closest('[data-theme]');
+      if(btn){ applyTheme(btn.dataset.theme); }
     });
 
-    // Press sheen for touch/desktop
+    // --- Press sheen for touch/desktop ---
     (function(){
-      const onDown=e=>{ const t=e.target.closest('.tile'); if(t) t.classList.add('press'); };
-      const onUp =()=>{ document.querySelectorAll('.tile.press').forEach(t=>t.classList.remove('press')); };
-      document.addEventListener('pointerdown',onDown);
-      document.addEventListener('pointerup',onUp);
-      document.addEventListener('pointercancel',onUp);
-      document.addEventListener('pointerleave',onUp);
+      const onDown = (e)=>{ const t=e.target.closest('.tile'); if(t) t.classList.add('press'); };
+      const onUp   = ()=>{ document.querySelectorAll('.tile.press').forEach(t=>t.classList.remove('press')); };
+      document.addEventListener('pointerdown', onDown);
+      document.addEventListener('pointerup', onUp);
+      document.addEventListener('pointercancel', onUp);
+      document.addEventListener('pointerleave', onUp);
     })();
   </script>
 </body>
