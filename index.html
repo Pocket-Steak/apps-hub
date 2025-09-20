@@ -71,35 +71,55 @@
     }
     @keyframes bgShift{from{background-position:0% 40%}to{background-position:100% 60%}}
 
-    header{max-width:var(--grid-max);margin:0 auto;padding:48px 20px 12px;text-align:center}
-    .brand-badge{
-      display:inline-grid;place-items:center;width:100px;height:100px;border-radius:28px;
-      background:rgba(255,255,255,.15);
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.4),var(--shadow-1);
-      margin-bottom:20px
+    /* ===== HERO: split title left, large logo right ===== */
+    header{max-width:var(--grid-max);margin:0 auto}
+    .hero{
+      padding:48px 20px 12px;
+      display:flex; align-items:center; justify-content:space-between; gap:40px;
     }
-    .brand-logo{
-      width:78%; height:auto; display:block; object-fit:contain;
-      border-radius:12px; filter:drop-shadow(0 3px 10px rgba(0,0,0,.25));
-    }
-    .theme-night .brand-logo{ filter:brightness(1.1) drop-shadow(0 3px 10px rgba(0,0,0,.5)); }
+    .hero-text{flex:1 1 auto; min-width:0}
+    .title{line-height:1.05; margin-bottom:8px}
+    .title .line1,
+    .title .line2{display:block; font-weight:900; font-size:clamp(42px,6vw,84px)}
+    .subtitle{font-weight:600; font-size:clamp(18px,2.5vw,22px); opacity:.97}
 
-    .title{font-weight:900;font-size:clamp(42px,6vw,72px);text-shadow:0 8px 22px rgba(0,0,0,.35);margin-bottom:8px}
-    .subtitle{font-weight:600;font-size:clamp(18px,2.5vw,22px);opacity:.97}
     .color-note{
-      margin:14px auto 10px; max-width:820px; font-weight:700; line-height:1.35;
+      margin:14px 0 10px; max-width:820px; font-weight:700; line-height:1.35;
       background:rgba(255,255,255,.14); padding:10px 14px; border-radius:14px;
       box-shadow:inset 0 1px 0 rgba(255,255,255,.35);
     }
 
-    .themes{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:10px}
+    .themes{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-start;margin-top:10px}
     .theme-btn{appearance:none;cursor:pointer;border:none;color:#0a0a0a;font-weight:900;letter-spacing:.2px;padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.92);box-shadow:0 6px 18px rgba(0,0,0,.22)}
     .theme-btn:hover{transform:translateY(-1px)}
 
+    .brand-badge.hero-badge{
+      flex:0 0 auto;
+      width:clamp(140px,22vw,260px);
+      height:clamp(140px,22vw,260px);
+      border-radius:32px;
+      background:rgba(255,255,255,.12);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.35), var(--shadow-1);
+      display:grid; place-items:center;
+    }
+    .brand-logo{
+      width:80%; height:auto; display:block; object-fit:contain;
+      border-radius:14px; filter:drop-shadow(0 6px 18px rgba(0,0,0,.35));
+    }
+    .theme-night .brand-logo{ filter:brightness(1.1) drop-shadow(0 6px 18px rgba(0,0,0,.6)); }
+
+    /* Mobile: stack and center */
+    @media (max-width:720px){
+      .hero{flex-direction:column; align-items:center; text-align:center; gap:24px; padding:36px 14px 10px}
+      .themes{justify-content:center}
+      .color-note{margin:10px auto 6px}
+      .brand-badge.hero-badge{width:clamp(120px,40vw,200px); height:clamp(120px,40vw,200px)}
+    }
+
+    /* ===== MAIN GRID / TILES ===== */
     main{max-width:var(--grid-max);margin:0 auto;padding:12px 20px 60px}
     .grid{display:grid;gap:28px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));justify-content:center}
 
-    /* Tiles (mobile-friendly column layout) */
     .tile{
       display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding:22px;
       border-radius:var(--radius-xxl);
@@ -113,7 +133,6 @@
     .tile:hover{transform:translateY(-4px) rotate(-.4deg);filter:saturate(1.08);box-shadow:0 28px 80px rgba(0,0,0,.45)}
     .tile:active{transform:translateY(-2px) scale(1.01)}
 
-    /* Sheen layers */
     .tile::after{content:"";position:absolute;inset:-2px;pointer-events:none;opacity:0;background:linear-gradient(100deg,transparent 0%,rgba(255,255,255,.75) 45%,rgba(255,255,255,.45) 55%,transparent 100%);transform:translateX(-140%);transition:opacity .18s ease}
     .tile:hover::after{opacity:.9;animation:sweep 900ms ease forwards}
     .tile::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(80% 60% at 20% 0%,rgba(255,255,255,.35),transparent 50%),radial-gradient(60% 40% at 100% 20%,rgba(255,255,255,.18),transparent 60%);transition:opacity .18s ease}
@@ -144,8 +163,6 @@
     .wip-tile{filter:saturate(.96) brightness(.98)}
 
     @media (max-width:640px){
-      header{padding:36px 14px 10px}
-      .color-note{margin:10px 14px 6px}
       main{padding:8px 14px 48px}
       .grid{grid-template-columns:1fr}
       .tile{padding:18px;gap:12px;border-radius:22px}
@@ -158,22 +175,31 @@
 </head>
 <body class="theme-orange">
   <header>
-    <div class="brand-badge">
-      <img class="brand-logo" src="./assets/pocket_steak_logo.png" alt="PocketSteak logo" />
-    </div>
-    <div class="title">PocketSteak's Apps</div>
-    <div class="subtitle">Big, bright, push-the-button fun.</div>
-    <p class="color-note">Let’s have some fun—set the color of the webpage to suit your style or mood. Let’s bring some color into our lives!</p>
+    <div class="hero">
+      <div class="hero-text">
+        <div class="title">
+          <span class="line1">PocketSteak's</span>
+          <span class="line2">Apps</span>
+        </div>
+        <div class="subtitle">Big, bright, push-the-button fun.</div>
 
-    <div class="themes">
-      <button class="theme-btn" data-theme="orange">Orange</button>
-      <button class="theme-btn" data-theme="blue">Electric Blue</button>
-      <button class="theme-btn" data-theme="lime">Neon Lime</button>
-      <button class="theme-btn" data-theme="pink">Hot Pink</button>
-      <button class="theme-btn" data-theme="vapor">Vapor</button>
-      <button class="theme-btn" data-theme="peacock">Peacock</button>
-      <button class="theme-btn" data-theme="sunset">Sunset Soda</button>
-      <button class="theme-btn" data-theme="night">Night</button>
+        <p class="color-note">Let’s have some fun—set the color of the webpage to suit your style or mood. Let’s bring some color into our lives!</p>
+
+        <div class="themes">
+          <button class="theme-btn" data-theme="orange">Orange</button>
+          <button class="theme-btn" data-theme="blue">Electric Blue</button>
+          <button class="theme-btn" data-theme="lime">Neon Lime</button>
+          <button class="theme-btn" data-theme="pink">Hot Pink</button>
+          <button class="theme-btn" data-theme="vapor">Vapor</button>
+          <button class="theme-btn" data-theme="peacock">Peacock</button>
+          <button class="theme-btn" data-theme="sunset">Sunset Soda</button>
+          <button class="theme-btn" data-theme="night">Night</button>
+        </div>
+      </div>
+
+      <div class="brand-badge hero-badge">
+        <img class="brand-logo" src="./assets/pocket_steak_logo.png" alt="PocketSteak logo" />
+      </div>
     </div>
   </header>
 
@@ -184,14 +210,14 @@
   <footer>© PocketSteak — Built to tap.</footer>
 
   <script>
-    // Data
+    // App data
     const APPS = [
       { emoji:"🗳️", name:"The Secret Vote", desc:"Anonymous room-based ranking magic.", url:"https://pocket-steak.github.io/secret-vote/#/" },
       { emoji:"🚧", name:"MTG Stats", desc:"Track & compare your game nights — Under construction.", url:"#", underConstruction:true },
       { emoji:"🚧", name:"The Randomizer", desc:"Instant decisions. Zero debates — Under construction.", url:"#", underConstruction:true }
     ];
 
-    // Render
+    // Render tiles
     const grid = document.getElementById('grid');
     function tileTemplate(a, idx){
       const v = ['v1','v2','v3','v4'][idx % 4];
@@ -212,7 +238,7 @@
     function render(list){ grid.innerHTML = list.map(tileTemplate).join(''); }
     render(APPS);
 
-    // Theme switcher + persistence
+    // Theme switcher with persistence
     const THEME_KEY='ps_theme';
     function applyTheme(theme){
       document.body.className = `theme-${theme}`;
@@ -229,7 +255,7 @@
       if(btn) applyTheme(btn.dataset.theme);
     });
 
-    // Press sheen
+    // Press sheen feedback
     (function(){
       const onDown = (e)=>{ const t = e.target.closest('.tile'); if(t) t.classList.add('press'); };
       const onUp   = ()=>{ document.querySelectorAll('.tile.press').forEach(t=>t.classList.remove('press')); };
