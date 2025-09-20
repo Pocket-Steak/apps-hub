@@ -71,13 +71,12 @@
     }
     @keyframes bgShift{from{background-position:0% 40%}to{background-position:100% 60%}}
 
-    /* ===== HERO: big logo LEFT, title RIGHT with tiny gap ===== */
-    header{max-width:var(--grid-max);margin:0 auto}
-    .hero{
-      padding:48px 20px 12px;
-      display:flex; align-items:center; gap:12px;           /* tiny gap per request */
+    /* ===== TOP MAST: logo + title on one line, then spacer + bar ===== */
+    header{max-width:var(--grid-max);margin:0 auto;padding:28px 20px 0}
+    .mast{
+      display:flex; align-items:center; gap:16px;
     }
-    .brand-badge.hero-badge{
+    .mast-badge{
       flex:0 0 auto;
       width:clamp(140px,22vw,260px);
       height:clamp(140px,22vw,260px);
@@ -92,28 +91,47 @@
     }
     .theme-night .brand-logo{ filter:brightness(1.1) drop-shadow(0 6px 18px rgba(0,0,0,.6)); }
 
-    .hero-text{flex:1 1 auto; min-width:0}
-    .title{line-height:1.05; margin-bottom:8px}
-    .title .line1,
-    .title .line2{display:block; font-weight:900; font-size:clamp(42px,6vw,84px)}
-    .subtitle{font-weight:600; font-size:clamp(18px,2.5vw,22px); opacity:.97}
+    .mast-title{
+      font-weight:900;
+      font-size:clamp(38px,6vw,92px);
+      line-height:1;
+      letter-spacing:.5px;
+      text-shadow:0 8px 22px rgba(0,0,0,.35);
+      white-space:nowrap;          /* keep it on one line with the logo */
+    }
 
+    .mast-spacer{ height:12px }    /* small space below mast row */
+
+    .mast-bar{
+      height:10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.14);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 10px 26px rgba(0,0,0,.18);
+      margin:0 0 18px 0;
+    }
+
+    /* ===== CENTERED CONTENT BELOW THE BAR ===== */
+    .center-wrap{
+      text-align:center;
+      padding:0 0 8px 0;
+    }
+    .subtitle{
+      font-weight:600; font-size:clamp(18px,2.5vw,22px); opacity:.97;
+      margin:10px 0 8px 0;
+    }
     .color-note{
-      margin:14px 0 10px; max-width:820px; font-weight:700; line-height:1.35;
+      margin:0 auto 12px; max-width:820px; font-weight:700; line-height:1.35;
       background:rgba(255,255,255,.14); padding:10px 14px; border-radius:14px;
       box-shadow:inset 0 1px 0 rgba(255,255,255,.35);
     }
-
-    .themes{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-start;margin-top:10px}
+    .themes{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:10px}
     .theme-btn{appearance:none;cursor:pointer;border:none;color:#0a0a0a;font-weight:900;letter-spacing:.2px;padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.92);box-shadow:0 6px 18px rgba(0,0,0,.22)}
     .theme-btn:hover{transform:translateY(-1px)}
 
-    /* Mobile: stack and center */
-    @media (max-width:720px){
-      .hero{flex-direction:column; align-items:center; text-align:center; gap:20px; padding:36px 14px 10px}
-      .themes{justify-content:center}
-      .color-note{margin:10px auto 6px}
-      .brand-badge.hero-badge{width:clamp(120px,40vw,200px); height:clamp(120px,40vw,200px)}
+    /* Mobile: stack logo over title if needed */
+    @media (max-width:760px){
+      .mast{ flex-direction:column; align-items:center; gap:14px }
+      .mast-title{ white-space:normal; text-align:center }
     }
 
     /* ===== MAIN GRID / TILES ===== */
@@ -175,30 +193,34 @@
 </head>
 <body class="theme-orange">
   <header>
-    <div class="hero">
-      <div class="brand-badge hero-badge">
+    <!-- Top row: image + title on one line -->
+    <div class="mast">
+      <div class="mast-badge">
         <img class="brand-logo" src="./assets/pocket_steak_logo.png" alt="PocketSteak logo" />
       </div>
+      <h1 class="mast-title">PocketSteak's Apps</h1>
+    </div>
 
-      <div class="hero-text">
-        <div class="title">
-          <span class="line1">PocketSteak's</span>
-          <span class="line2">Apps</span>
-        </div>
-        <div class="subtitle">Big, bright, push-the-button fun.</div>
+    <!-- tiny spacer then the bar -->
+    <div class="mast-spacer"></div>
+    <div class="mast-bar"></div>
 
-        <p class="color-note">Let’s have some fun—set the color of the webpage to suit your style or mood. Let’s bring some color into our lives!</p>
-
-        <div class="themes">
-          <button class="theme-btn" data-theme="orange">Orange</button>
-          <button class="theme-btn" data-theme="blue">Electric Blue</button>
-          <button class="theme-btn" data-theme="lime">Neon Lime</button>
-          <button class="theme-btn" data-theme="pink">Hot Pink</button>
-          <button class="theme-btn" data-theme="vapor">Vapor</button>
-          <button class="theme-btn" data-theme="peacock">Peacock</button>
-          <button class="theme-btn" data-theme="sunset">Sunset Soda</button>
-          <button class="theme-btn" data-theme="night">Night</button>
-        </div>
+    <!-- centered content under the bar -->
+    <div class="center-wrap">
+      <div class="subtitle">Big, bright, push-the-button fun.</div>
+      <p class="color-note">
+        Let’s have some fun—set the color of the webpage to suit your style or mood.
+        Let’s bring some color into our lives!
+      </p>
+      <div class="themes">
+        <button class="theme-btn" data-theme="orange">Orange</button>
+        <button class="theme-btn" data-theme="blue">Electric Blue</button>
+        <button class="theme-btn" data-theme="lime">Neon Lime</button>
+        <button class="theme-btn" data-theme="pink">Hot Pink</button>
+        <button class="theme-btn" data-theme="vapor">Vapor</button>
+        <button class="theme-btn" data-theme="peacock">Peacock</button>
+        <button class="theme-btn" data-theme="sunset">Sunset Soda</button>
+        <button class="theme-btn" data-theme="night">Night</button>
       </div>
     </div>
   </header>
