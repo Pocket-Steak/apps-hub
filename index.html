@@ -12,6 +12,9 @@
       --shadow-1:0 20px 60px rgba(0,0,0,.35);
       --radius-xxl:28px; --grid-max:1120px;
       --tile-fg:#0b0b0b; --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05);
+
+      /* Brand */
+      --brand:#ff7a18; --brand-ink:#101010;
     }
 
     /* Night (dark & mono) — the only theme now */
@@ -54,14 +57,14 @@
     .mast-title .line2{ align-self:center; margin-top:2px; font-weight:900; font-size:clamp(38px,5.5vw,84px); }
 
     /* Header title with orange gradient fill */
-.mast-title .line1,
-.mast-title .line2 {
-  background: linear-gradient(180deg, #ffb457, #ff7a18 60%, #ff5400);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;           /* lets the gradient show through */
-  text-shadow: none;            /* gradient usually looks cleaner without it */
-}
+    .mast-title .line1,
+    .mast-title .line2 {
+      background: linear-gradient(180deg, #ffb457, #ff7a18 60%, #ff5400);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: none;
+    }
 
     .mast-spacer{ height:12px }
     .mast-bar{
@@ -84,9 +87,13 @@
       border:1px solid rgba(255,255,255,.2);
       position:relative;overflow:hidden;text-align:left;
       transition:transform .18s cubic-bezier(.2,.8,.2,1),filter .18s ease,box-shadow .18s ease;
+      outline:none;
     }
     .tile:hover{transform:translateY(-4px) rotate(-.4deg);filter:saturate(1.08);box-shadow:0 28px 80px rgba(0,0,0,.45)}
     .tile:active{transform:translateY(-2px) scale(1.01)}
+    .tile:focus-visible{
+      box-shadow:0 0 0 3px rgba(255,255,255,.15), 0 14px 40px rgba(0,0,0,.5);
+    }
 
     .tile::after{content:"";position:absolute;inset:-2px;pointer-events:none;opacity:0;background:linear-gradient(100deg,transparent 0%,rgba(255,255,255,.75) 45%,rgba(255,255,255,.45) 55%,transparent 100%);transform:translateX(-140%);transition:opacity .18s ease}
     .tile:hover::after{opacity:.9;animation:sweep 900ms ease forwards}
@@ -106,15 +113,43 @@
     .desc{font-weight:600;opacity:.9;overflow-wrap:anywhere}
 
     .actions{margin-top:8px;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;width:100%}
-    .btn{appearance:none;cursor:pointer;user-select:none;font-weight:900;letter-spacing:.3px;padding:10px 14px;border-radius:14px;border:2px solid rgba(255,255,255,.14);background:rgba(255,255,255,.9);color:#101010;box-shadow:0 4px 12px rgba(0,0,0,.18);transition:transform .12s ease,box-shadow .12s ease,filter .12s ease;text-decoration:none;white-space:nowrap;font-size:14px}
-    .btn:hover{transform:translateY(-1px);filter:saturate(1.05);box-shadow:0 8px 20px rgba(0,0,0,.22)}
+
+    /* Brand button */
+    .btn{
+      appearance:none; cursor:pointer; user-select:none;
+      font-weight:900; letter-spacing:.3px; font-size:14px;
+      padding:10px 14px; border-radius:14px; text-decoration:none; white-space:nowrap;
+
+      background:var(--brand);
+      color:#fff;
+      border:2px solid color-mix(in oklab, var(--brand) 85%, #fff);
+      box-shadow:0 6px 18px rgba(0,0,0,.28), inset 0 -2px 0 rgba(0,0,0,.15);
+      transition:transform .12s ease, box-shadow .12s ease, filter .12s ease;
+    }
+    .btn:hover{ transform:translateY(-1px); filter:saturate(1.05);
+      box-shadow:0 10px 28px rgba(0,0,0,.34), inset 0 -2px 0 rgba(0,0,0,.2);
+    }
+    .btn:active{ transform:translateY(0); box-shadow:0 6px 18px rgba(0,0,0,.28), inset 0 -1px 0 rgba(0,0,0,.2); }
+    .btn:focus-visible{
+      outline:none;
+      box-shadow:
+        0 0 0 2px #000,
+        0 0 0 4px color-mix(in oklab, var(--brand) 70%, white);
+    }
+
+    /* Keep disabled looking disabled */
+    .btn.disabled{
+      background:rgba(255,255,255,.18);
+      border:2px dashed rgba(255,255,255,.25);
+      color:rgba(255,255,255,.75);
+      opacity:.85; cursor:not-allowed;
+    }
 
     .v1{background:var(--tile-1)} .v2{background:var(--tile-2)} .v3{background:var(--tile-3)} .v4{background:var(--tile-4)}
 
     footer{margin-top:24px;text-align:center;font-weight:600;color:rgba(255,255,255,.8)}
 
     .wip{display:inline-block;margin-left:8px;padding:4px 8px;border-radius:999px;background:rgba(255,255,255,.1);color:#eee;font-size:12px;font-weight:900;letter-spacing:.2px;border:1px solid rgba(255,255,255,.18)}
-    .btn.disabled{opacity:.65;cursor:not-allowed;border-style:dashed}
     .wip-tile{filter:saturate(.96) brightness(.98)}
 
     @media (max-width:760px){
@@ -136,7 +171,7 @@
 <body class="theme-night">
   <header>
     <div class="mast">
-      <img class="logo" src="./assets/pocket_steak_logo.png" alt="PocketSteak logo" />
+      <img class="logo" src="./assets/pocket_steak_logo.png" alt="PocketSteak logo" loading="lazy" decoding="async" />
       <div class="mast-title">
         <span class="line1">PocketSteak's</span>
         <span class="line2">Apps</span>
@@ -163,14 +198,19 @@
 
     // Render tiles
     const grid = document.getElementById('grid');
+
     function tileTemplate(a, idx){
       const v = ['v1','v2','v3','v4'][idx % 4];
       const wip = !!a.underConstruction;
       const btn = wip
         ? `<span class="btn disabled" aria-disabled="true" title="Coming soon">Coming Soon</span>`
-        : `<a class="btn" href="${a.url}" target="_blank" rel="noopener noreferrer">Open ↗</a>`;
+        : `<a class="btn" href="${a.url}" target="_blank" rel="noopener noreferrer external">Open ↗</a>`;
       const badge = wip ? `<span class="wip">🚧 Under construction</span>` : '';
-      return `<article class="tile ${v}${wip ? ' wip-tile' : ''}">
+      return `<article class="tile ${v}${wip ? ' wip-tile' : ''}"
+                      data-url="${wip ? '' : a.url}"
+                      data-wip="${wip ? '1' : '0'}"
+                      tabindex="0" role="button"
+                      aria-label="${a.name}${wip ? ' (Under construction)' : ''}">
         <div class="mark">${a.emoji}</div>
         <div class="textblock">
           <div class="name">${a.name}</div>
@@ -179,6 +219,7 @@
         <div class="actions">${btn}</div>
       </article>`;
     }
+
     function render(list){ grid.innerHTML = list.map(tileTemplate).join(''); }
     render(APPS);
 
@@ -191,6 +232,35 @@
       document.addEventListener('pointercancel', onUp);
       document.addEventListener('pointerleave', onUp);
     })();
+
+    // Prevent tile click when pressing the inner "Open" button
+    document.addEventListener('click', (e) => {
+      const openBtn = e.target.closest('.btn');
+      if (openBtn) e.stopPropagation();
+    }, true);
+
+    // Make the entire tile clickable if not under construction
+    grid.addEventListener('click', (e) => {
+      const tile = e.target.closest('.tile');
+      if (!tile) return;
+      const url = tile.dataset.url;
+      const wip = tile.dataset.wip === '1';
+      if (wip || !url) return;
+      if (e.target.closest('.btn')) return; // avoid double navigate
+      window.open(url, '_blank', 'noopener,noreferrer');
+    });
+
+    // Keyboard: Enter/Space activates tile
+    grid.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const tile = e.target.closest('.tile');
+      if (!tile) return;
+      const url = tile.dataset.url;
+      const wip = tile.dataset.wip === '1';
+      if (wip || !url) return;
+      e.preventDefault();
+      window.open(url, '_blank', 'noopener,noreferrer');
+    });
   </script>
 </body>
 </html>
