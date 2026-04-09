@@ -148,6 +148,12 @@
         url: "/countdown/"
       },
       {
+        emoji: "🏠",
+        name: "Family Command Center",
+        desc: "Weekly calendar, grocery list, to-do list, and family notes.",
+        url: "/family/"
+      },
+      {
         emoji: "🚧",
         name: "MTG Stats",
         desc: "Track & compare your game nights — Under construction.",
@@ -165,7 +171,7 @@
 
     const grid = document.getElementById("grid");
 
-    grid.innerHTML = APPS.map((app, i) => `
+    grid.innerHTML = APPS.map((app) => `
       <article class="tile" data-url="${app.url}" data-wip="${app.underConstruction ? 1 : 0}">
         <div class="mark">${app.emoji}</div>
         <div class="name">${app.name}</div>
@@ -184,10 +190,10 @@
       const tile = e.target.closest(".tile");
       if (!tile) return;
       if (tile.dataset.wip === "1") return;
+
       const url = tile.dataset.url;
       if (!url) return;
 
-      // INTERNAL links → same tab, EXTERNAL → new tab
       if (url.startsWith("/")) {
         window.location.href = url;
       } else {
