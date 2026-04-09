@@ -1,0 +1,647 @@
+    <!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Family Day View</title>
+  <meta name="description" content="PocketSteak Family Calendar day view." />
+
+  <style>
+    :root{
+      --panel:#1a1c22;
+      --panel-2:#22252d;
+      --border:rgba(255,255,255,.08);
+      --text:#f3f4f6;
+      --muted:#b8bcc8;
+      --accent:#ff7a18;
+      --shadow:0 18px 50px rgba(0,0,0,.35);
+      --radius:24px;
+
+      --cal-1:#ff7a18;
+      --cal-2:#4dabf7;
+      --cal-3:#51cf66;
+      --cal-4:#f783ac;
+      --cal-5:#ffd43b;
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%}
+
+    body{
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(900px 500px at 0% 0%, rgba(255,122,24,.10), transparent 55%),
+        linear-gradient(180deg,#0d0e11,#12141a 35%, #171922 100%);
+      color:var(--text);
+      padding:20px;
+    }
+
+    .page{
+      max-width:1400px;
+      margin:0 auto;
+      display:grid;
+      gap:18px;
+    }
+
+    .topbar,
+    .timeline-shell,
+    .modal-card{
+      background:linear-gradient(180deg,var(--panel),var(--panel-2));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+
+    .topbar{
+      padding:20px 22px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+
+    .top-left{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .back-link{
+      color:var(--muted);
+      text-decoration:none;
+      font-weight:700;
+      font-size:14px;
+    }
+
+    .back-link:hover{
+      color:#fff;
+    }
+
+    .day-title{
+      font-size:34px;
+      font-weight:900;
+      line-height:1.1;
+    }
+
+    .quick-add-btn,
+    .save-btn,
+    .delete-btn,
+    .cancel-btn{
+      border:none;
+      border-radius:16px;
+      padding:12px 16px;
+      font-size:15px;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .quick-add-btn,
+    .save-btn{
+      background:var(--accent);
+      color:#fff;
+    }
+
+    .cancel-btn{
+      background:rgba(255,255,255,.08);
+      color:var(--text);
+    }
+
+    .delete-btn{
+      background:#b42318;
+      color:#fff;
+    }
+
+    .timeline-shell{
+      overflow:hidden;
+    }
+
+    .timeline{
+      position:relative;
+      display:grid;
+      grid-template-columns:100px 1fr;
+    }
+
+    .time-col,
+    .events-col{
+      position:relative;
+    }
+
+    .time-slot,
+    .event-slot{
+      height:40px;
+      border-bottom:1px solid var(--border);
+    }
+
+    .time-slot{
+      padding:0 14px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:flex-end;
+      font-size:13px;
+      font-weight:800;
+      color:var(--muted);
+    }
+
+    .time-slot.half{
+      color:transparent;
+    }
+
+    .events-col{
+      position:relative;
+    }
+
+    .event-slot{
+      position:relative;
+    }
+
+    .event-block{
+      position:absolute;
+      left:12px;
+      right:12px;
+      border-radius:16px;
+      padding:10px 12px;
+      color:#fff;
+      font-weight:800;
+      overflow:hidden;
+      cursor:pointer;
+      box-shadow:0 10px 24px rgba(0,0,0,.25);
+      z-index:2;
+    }
+
+    .event-time{
+      font-size:12px;
+      opacity:.95;
+      margin-bottom:4px;
+    }
+
+    .event-title{
+      font-size:15px;
+      line-height:1.2;
+    }
+
+    .modal{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      z-index:50;
+    }
+
+    .modal.open{
+      display:flex;
+    }
+
+    .modal-card{
+      width:min(520px, 100%);
+      padding:22px;
+      display:grid;
+      gap:16px;
+    }
+
+    .modal-title{
+      font-size:24px;
+      font-weight:900;
+    }
+
+    .form-grid{
+      display:grid;
+      gap:14px;
+    }
+
+    .field{
+      display:grid;
+      gap:8px;
+    }
+
+    .field label{
+      font-size:14px;
+      font-weight:800;
+      color:var(--muted);
+    }
+
+    .field input,
+    .field select{
+      width:100%;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      padding:12px 14px;
+      font-size:15px;
+      outline:none;
+    }
+
+    .field input::placeholder{
+      color:#98a0b3;
+    }
+
+    .modal-actions{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .modal-actions-left,
+    .modal-actions-right{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .error-text{
+      color:#ffb4ab;
+      font-size:14px;
+      font-weight:700;
+      min-height:20px;
+    }
+
+    @media (max-width: 800px){
+      body{
+        padding:14px;
+      }
+
+      .timeline{
+        grid-template-columns:74px 1fr;
+      }
+
+      .day-title{
+        font-size:26px;
+      }
+
+      .event-block{
+        left:8px;
+        right:8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="topbar">
+      <div class="top-left">
+        <a class="back-link" href="./calendar.html">← Back to Month</a>
+        <div class="day-title" id="dayTitle">Day View</div>
+      </div>
+
+      <button class="quick-add-btn" id="quickAddBtn">Quick Add</button>
+    </section>
+
+    <section class="timeline-shell">
+      <div class="timeline">
+        <div class="time-col" id="timeCol"></div>
+        <div class="events-col" id="eventsCol"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal" id="eventModal">
+    <div class="modal-card">
+      <div class="modal-title" id="modalTitle">Add Event</div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label for="eventCalendar">Calendar</label>
+          <select id="eventCalendar" required>
+            <option value="">Select a calendar</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="eventName">Event Name</label>
+          <input id="eventName" type="text" placeholder="Enter event name" />
+        </div>
+
+        <div class="field">
+          <label for="eventDate">Date</label>
+          <input id="eventDate" type="date" />
+        </div>
+
+        <div class="field">
+          <label for="eventStart">Start Time</label>
+          <input id="eventStart" type="time" />
+        </div>
+
+        <div class="field">
+          <label for="eventEnd">End Time</label>
+          <input id="eventEnd" type="time" />
+        </div>
+      </div>
+
+      <div class="error-text" id="errorText"></div>
+
+      <div class="modal-actions">
+        <div class="modal-actions-left">
+          <button class="delete-btn" id="deleteBtn" style="display:none;">Delete</button>
+        </div>
+
+        <div class="modal-actions-right">
+          <button class="cancel-btn" id="cancelBtn">Cancel</button>
+          <button class="save-btn" id="saveBtn">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "pocketsteak-family-events";
+    const START_HOUR = 6;
+    const END_HOUR = 22;
+    const SLOT_MINUTES = 30;
+    const SLOT_HEIGHT = 40;
+
+    const CALENDARS = [
+      { id: "family-main", name: "Family", color: "#ff7a18" },
+      { id: "nichol", name: "Nichol", color: "#4dabf7" },
+      { id: "jolie", name: "Jolie", color: "#51cf66" },
+      { id: "andrew", name: "Andrew", color: "#f783ac" },
+      { id: "other", name: "Other", color: "#ffd43b" }
+    ];
+
+    let selectedDate = getDateFromQuery();
+    let editingEventId = null;
+
+    function getDateFromQuery() {
+      const params = new URLSearchParams(window.location.search);
+      const date = params.get("date");
+      if (date) return date;
+      return formatDateKey(new Date());
+    }
+
+    function formatDateKey(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function parseDateKey(dateKey) {
+      const [year, month, day] = dateKey.split("-").map(Number);
+      return new Date(year, month - 1, day);
+    }
+
+    function formatLongDate(dateKey) {
+      const date = parseDateKey(dateKey);
+      return date.toLocaleDateString(undefined, {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric"
+      });
+    }
+
+    function getStoredEvents() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+      } catch {
+        return {};
+      }
+    }
+
+    function saveEvents(eventsByDate) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(eventsByDate));
+    }
+
+    function ensureEventIds(eventsByDate) {
+      let changed = false;
+
+      Object.keys(eventsByDate).forEach(dateKey => {
+        eventsByDate[dateKey] = (eventsByDate[dateKey] || []).map(event => {
+          if (!event.id) {
+            changed = true;
+            return { ...event, id: crypto.randomUUID() };
+          }
+          return event;
+        });
+      });
+
+      if (changed) {
+        saveEvents(eventsByDate);
+      }
+
+      return eventsByDate;
+    }
+
+    function getCalendarColor(calendarId) {
+      const found = CALENDARS.find(c => c.id === calendarId);
+      return found ? found.color : "#ff7a18";
+    }
+
+    function getCalendarOptions() {
+      const select = document.getElementById("eventCalendar");
+      select.innerHTML = `
+        <option value="">Select a calendar</option>
+        ${CALENDARS.map(cal => `<option value="${cal.id}">${cal.name}</option>`).join("")}
+      `;
+    }
+
+    function buildTimelineShell() {
+      const timeCol = document.getElementById("timeCol");
+      const eventsCol = document.getElementById("eventsCol");
+
+      timeCol.innerHTML = "";
+      eventsCol.innerHTML = "";
+
+      for (let hour = START_HOUR; hour < END_HOUR; hour++) {
+        for (let half = 0; half < 2; half++) {
+          const timeSlot = document.createElement("div");
+          timeSlot.className = `time-slot ${half === 1 ? "half" : ""}`;
+          timeSlot.textContent = half === 0 ? formatHour(hour) : "";
+          timeCol.appendChild(timeSlot);
+
+          const eventSlot = document.createElement("div");
+          eventSlot.className = "event-slot";
+          eventsCol.appendChild(eventSlot);
+        }
+      }
+    }
+
+    function formatHour(hour24) {
+      const suffix = hour24 >= 12 ? "PM" : "AM";
+      const hour12 = ((hour24 + 11) % 12) + 1;
+      return `${hour12}:00 ${suffix}`;
+    }
+
+    function timeToMinutes(timeStr) {
+      const [hour, minute] = timeStr.split(":").map(Number);
+      return (hour * 60) + minute;
+    }
+
+    function getDayEvents() {
+      const eventsByDate = ensureEventIds(getStoredEvents());
+      const dayEvents = eventsByDate[selectedDate] || [];
+      return [...dayEvents].sort((a, b) => a.start.localeCompare(b.start));
+    }
+
+    function renderHeader() {
+      document.getElementById("dayTitle").textContent = formatLongDate(selectedDate);
+    }
+
+    function renderEvents() {
+      const eventsCol = document.getElementById("eventsCol");
+      const existingBlocks = eventsCol.querySelectorAll(".event-block");
+      existingBlocks.forEach(block => block.remove());
+
+      const dayEvents = getDayEvents();
+
+      dayEvents.forEach(event => {
+        const startMinutes = timeToMinutes(event.start);
+        const endMinutes = timeToMinutes(event.end);
+        const baseMinutes = START_HOUR * 60;
+        const top = ((startMinutes - baseMinutes) / SLOT_MINUTES) * SLOT_HEIGHT;
+        const height = Math.max(((endMinutes - startMinutes) / SLOT_MINUTES) * SLOT_HEIGHT, SLOT_HEIGHT);
+
+        const block = document.createElement("div");
+        block.className = "event-block";
+        block.style.top = `${top}px`;
+        block.style.height = `${height - 4}px`;
+        block.style.background = getCalendarColor(event.calendarId);
+        block.dataset.eventId = event.id;
+
+        block.innerHTML = `
+          <div class="event-time">${event.start} - ${event.end}</div>
+          <div class="event-title">${event.title}</div>
+        `;
+
+        block.addEventListener("click", () => openEditModal(event.id));
+        eventsCol.appendChild(block);
+      });
+    }
+
+    function openAddModal() {
+      editingEventId = null;
+      document.getElementById("modalTitle").textContent = "Add Event";
+      document.getElementById("deleteBtn").style.display = "none";
+      document.getElementById("errorText").textContent = "";
+
+      document.getElementById("eventCalendar").value = "";
+      document.getElementById("eventName").value = "";
+      document.getElementById("eventDate").value = selectedDate;
+      document.getElementById("eventStart").value = "";
+      document.getElementById("eventEnd").value = "";
+
+      document.getElementById("eventModal").classList.add("open");
+    }
+
+    function openEditModal(eventId) {
+      const eventsByDate = ensureEventIds(getStoredEvents());
+      const event = (eventsByDate[selectedDate] || []).find(e => e.id === eventId);
+      if (!event) return;
+
+      editingEventId = eventId;
+      document.getElementById("modalTitle").textContent = "Edit Event";
+      document.getElementById("deleteBtn").style.display = "inline-block";
+      document.getElementById("errorText").textContent = "";
+
+      document.getElementById("eventCalendar").value = event.calendarId || "";
+      document.getElementById("eventName").value = event.title || "";
+      document.getElementById("eventDate").value = selectedDate;
+      document.getElementById("eventStart").value = event.start || "";
+      document.getElementById("eventEnd").value = event.end || "";
+
+      document.getElementById("eventModal").classList.add("open");
+    }
+
+    function closeModal() {
+      document.getElementById("eventModal").classList.remove("open");
+    }
+
+    function validateForm() {
+      const calendarId = document.getElementById("eventCalendar").value.trim();
+      const title = document.getElementById("eventName").value.trim();
+      const date = document.getElementById("eventDate").value;
+      const start = document.getElementById("eventStart").value;
+      const end = document.getElementById("eventEnd").value;
+
+      if (!calendarId) return "Choose a calendar.";
+      if (!title) return "Enter an event name.";
+      if (!date) return "Choose a date.";
+      if (!start) return "Choose a start time.";
+      if (!end) return "Choose an end time.";
+      if (start >= end) return "End time must be after start time.";
+
+      const minTime = "06:00";
+      const maxTime = "22:00";
+      if (start < minTime || end > maxTime) {
+        return "Events must stay between 6:00 AM and 10:00 PM.";
+      }
+
+      return "";
+    }
+
+    function saveForm() {
+      const error = validateForm();
+      document.getElementById("errorText").textContent = error;
+      if (error) return;
+
+      const calendarId = document.getElementById("eventCalendar").value.trim();
+      const title = document.getElementById("eventName").value.trim();
+      const date = document.getElementById("eventDate").value;
+      const start = document.getElementById("eventStart").value;
+      const end = document.getElementById("eventEnd").value;
+
+      const eventsByDate = ensureEventIds(getStoredEvents());
+
+      Object.keys(eventsByDate).forEach(dateKey => {
+        eventsByDate[dateKey] = (eventsByDate[dateKey] || []).filter(event => event.id !== editingEventId);
+      });
+
+      const targetDateEvents = eventsByDate[date] || [];
+
+      targetDateEvents.push({
+        id: editingEventId || crypto.randomUUID(),
+        calendarId,
+        title,
+        start,
+        end
+      });
+
+      eventsByDate[date] = targetDateEvents.sort((a, b) => a.start.localeCompare(b.start));
+      saveEvents(eventsByDate);
+
+      selectedDate = date;
+      history.replaceState({}, "", `./day.html?date=${date}`);
+
+      closeModal();
+      renderAll();
+    }
+
+    function deleteEvent() {
+      if (!editingEventId) return;
+      const confirmed = window.confirm("Delete this event?");
+      if (!confirmed) return;
+
+      const eventsByDate = ensureEventIds(getStoredEvents());
+      eventsByDate[selectedDate] = (eventsByDate[selectedDate] || []).filter(event => event.id !== editingEventId);
+      saveEvents(eventsByDate);
+
+      closeModal();
+      renderAll();
+    }
+
+    function renderAll() {
+      renderHeader();
+      buildTimelineShell();
+      renderEvents();
+    }
+
+    getCalendarOptions();
+    renderAll();
+
+    document.getElementById("quickAddBtn").addEventListener("click", openAddModal);
+    document.getElementById("cancelBtn").addEventListener("click", closeModal);
+    document.getElementById("saveBtn").addEventListener("click", saveForm);
+    document.getElementById("deleteBtn").addEventListener("click", deleteEvent);
+
+    document.getElementById("eventModal").addEventListener("click", (e) => {
+      if (e.target.id === "eventModal") {
+        closeModal();
+      }
+    });
+  </script>
+</body>
+</html>
