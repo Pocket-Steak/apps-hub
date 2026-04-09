@@ -21,7 +21,6 @@
     }
 
     *{box-sizing:border-box;margin:0;padding:0}
-
     html,body{min-height:100%}
 
     body{
@@ -176,12 +175,6 @@
       font-size:24px;
       font-weight:900;
       line-height:1.1;
-    }
-
-    .time-note{
-      font-size:14px;
-      color:var(--muted);
-      font-weight:600;
     }
 
     .days-grid{
@@ -404,11 +397,12 @@
       return date.toLocaleDateString(undefined, { weekday: "short" });
     }
 
-    function getStoredEvents() {
+    function getEvents() {
       try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        return Array.isArray(parsed) ? parsed : [];
       } catch {
-        return {};
+        return [];
       }
     }
 
@@ -416,54 +410,62 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
     }
 
-    function sortEvents(list) {
-      return [...list].sort((a, b) => a.start.localeCompare(b.start));
+    function makeId() {
+      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+      return "evt-" + Date.now() + "-" + Math.random().toString(16).slice(2);
     }
 
-    function seedIfEmpty() {
-      const existing = getStoredEvents();
-      const hasAnyEvents = Object.keys(existing).length > 0;
-      if (hasAnyEvents) return;
+    function sortEvents(events) {
+      return [...events].sort((a, b) => {
+        if (a.date !== b.date) return a.date.localeCompare(b.date);
+        return a.start.localeCompare(b.start);
+      });
+    }
+
+    function getEventsForDate(dateKey) {
+      return sortEvents(getEvents().filter(event => event.date === dateKey));
+    }
+
+    function seedSampleEventsIfEmpty() {
+      const events = getEvents();
+      if (events.length > 0) return;
 
       const today = new Date();
       const tomorrow = new Date();
       tomorrow.setDate(today.getDate() + 1);
 
-      const sample = {
-        [formatDateKey(today)]: [
-          {
-            title: "Sample Event",
-            start: "09:00",
-            end: "10:00",
-            note: "Replace with Google Calendar later.",
-            calendarId: "family-main"
-          },
-          {
-            title: "Another Event",
-            start: "15:30",
-            end: "16:15",
-            note: "",
-            calendarId: "andrew"
-          }
-        ],
-        [formatDateKey(tomorrow)]: [
-          {
-            title: "Tomorrow Item",
-            start: "11:00",
-            end: "11:30",
-            note: "",
-            calendarId: "jolie"
-          }
-        ]
-      };
-
-      saveEvents(sample);
+      saveEvents([
+        {
+          id: makeId(),
+          calendarId: "family-main",
+          title: "Sample Event",
+          date: formatDateKey(today),
+          start: "09:00",
+          end: "10:00"
+        },
+        {
+          id: makeId(),
+          calendarId: "andrew",
+          title: "Another Event",
+          date: formatDateKey(today),
+          start: "15:30",
+          end: "16:15"
+        },
+        {
+          id: makeId(),
+          calendarId: "jolie",
+          title: "Tomorrow Item",
+          date: formatDateKey(tomorrow),
+          start: "11:00",
+          end: "11:30"
+        }
+      ]);
     }
 
-    function renderToday(eventsByDate) {
+    function renderToday() {
       const today = new Date();
       const todayKey = formatDateKey(today);
-      const todayEvents = sortEvents(eventsByDate[todayKey] || []);
+      const todayEvents = getEventsForDate(todayKey);
 
       document.getElementById("todayDate").textContent = formatTodayBig(today);
       document.getElementById("todayFullDate").textContent = formatTodayFull(today);
@@ -477,13 +479,12 @@
         block.innerHTML = `
           <div class="time-range">${event.start} - ${event.end}</div>
           <div class="time-title">${event.title}</div>
-          ${event.note ? `<div class="time-note">${event.note}</div>` : ""}
         `;
         container.appendChild(block);
       });
     }
 
-    function renderNextSixDays(eventsByDate) {
+    function renderNextSixDays() {
       const grid = document.getElementById("daysGrid");
       grid.innerHTML = "";
 
@@ -492,11 +493,10 @@
         date.setDate(date.getDate() + i);
 
         const key = formatDateKey(date);
-        const events = sortEvents(eventsByDate[key] || []);
+        const events = getEventsForDate(key);
 
         const card = document.createElement("article");
         card.className = "day-card";
-        card.dataset.date = key;
 
         const eventsHtml = events.map(event => `
           <div class="mini-event">
@@ -522,35 +522,8 @@
     }
 
     function addTodayEvent() {
-      const title = prompt("Event title?");
-      if (!title) return;
-
-      const start = prompt("Start time? Use HH:MM");
-      if (!start) return;
-
-      const end = prompt("End time? Use HH:MM");
-      if (!end) return;
-
-      const note = prompt("Optional note?") || "";
-
-      const today = new Date();
-      const key = formatDateKey(today);
-
-      const eventsByDate = getStoredEvents();
-      const existing = eventsByDate[key] || [];
-
-      existing.push({
-        title,
-        start,
-        end,
-        note,
-        calendarId: "family-main"
-      });
-
-      eventsByDate[key] = existing;
-
-      saveEvents(eventsByDate);
-      renderAll();
+      const todayKey = formatDateKey(new Date());
+      window.location.href = `./day.html?date=${todayKey}&add=1`;
     }
 
     function handleNavClick(label) {
@@ -563,12 +536,11 @@
     }
 
     function renderAll() {
-      const eventsByDate = getStoredEvents();
-      renderToday(eventsByDate);
-      renderNextSixDays(eventsByDate);
+      renderToday();
+      renderNextSixDays();
     }
 
-    seedIfEmpty();
+    seedSampleEventsIfEmpty();
     renderAll();
 
     document.getElementById("quickAddBtn").addEventListener("click", addTodayEvent);
