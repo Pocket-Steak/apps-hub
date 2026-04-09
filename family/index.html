@@ -329,7 +329,7 @@
 </head>
 <body>
   <div class="page">
-    <a class="back-link" href="/">← Back to PocketSteak Apps</a>
+    <a class="back-link" href="../index.html">← Back to PocketSteak Apps</a>
 
     <section class="weather-banner">
       <div class="weather-left">
@@ -431,11 +431,29 @@
 
       const sample = {
         [formatDateKey(today)]: [
-          { title: "Sample Event", start: "09:00", end: "10:00", note: "Replace with Google Calendar later." },
-          { title: "Another Event", start: "15:30", end: "16:15", note: "" }
+          {
+            title: "Sample Event",
+            start: "09:00",
+            end: "10:00",
+            note: "Replace with Google Calendar later.",
+            calendarId: "family-main"
+          },
+          {
+            title: "Another Event",
+            start: "15:30",
+            end: "16:15",
+            note: "",
+            calendarId: "andrew"
+          }
         ],
         [formatDateKey(tomorrow)]: [
-          { title: "Tomorrow Item", start: "11:00", end: "11:30", note: "" }
+          {
+            title: "Tomorrow Item",
+            start: "11:00",
+            end: "11:30",
+            note: "",
+            calendarId: "jolie"
+          }
         ]
       };
 
@@ -496,7 +514,7 @@
         `;
 
         card.addEventListener("click", () => {
-          alert("Full calendar page is the next page to build.");
+          window.location.href = `./day.html?date=${key}`;
         });
 
         grid.appendChild(card);
@@ -507,10 +525,10 @@
       const title = prompt("Event title?");
       if (!title) return;
 
-      const start = prompt("Start time? Use HH:MM (example: 09:00)");
+      const start = prompt("Start time? Use HH:MM");
       if (!start) return;
 
-      const end = prompt("End time? Use HH:MM (example: 10:00)");
+      const end = prompt("End time? Use HH:MM");
       if (!end) return;
 
       const note = prompt("Optional note?") || "";
@@ -521,7 +539,14 @@
       const eventsByDate = getStoredEvents();
       const existing = eventsByDate[key] || [];
 
-      existing.push({ title, start, end, note });
+      existing.push({
+        title,
+        start,
+        end,
+        note,
+        calendarId: "family-main"
+      });
+
       eventsByDate[key] = existing;
 
       saveEvents(eventsByDate);
@@ -529,6 +554,11 @@
     }
 
     function handleNavClick(label) {
+      if (label === "Calendar") {
+        window.location.href = "./calendar.html";
+        return;
+      }
+
       alert(`${label} page is next to build.`);
     }
 
