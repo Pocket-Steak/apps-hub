@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Family Calendar</title>
+  <meta name="description" content="PocketSteak Family Calendar month view." />
+
+  <style>
+    :root{
+      --bg:#0e0f12;
+      --panel:#1a1c22;
+      --panel-2:#22252d;
+      --border:rgba(255,255,255,.08);
+      --text:#f3f4f6;
+      --muted:#b8bcc8;
+      --accent:#ff7a18;
+      --shadow:0 18px 50px rgba(0,0,0,.35);
+      --radius:24px;
+
+      --cal-1:#ff7a18;
+      --cal-2:#4dabf7;
+      --cal-3:#51cf66;
+      --cal-4:#f783ac;
+      --cal-5:#ffd43b;
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%}
+
+    body{
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(900px 500px at 0% 0%, rgba(255,122,24,.10), transparent 55%),
+        linear-gradient(180deg,#0d0e11,#12141a 35%, #171922 100%);
+      color:var(--text);
+      padding:20px;
+    }
+
+    .page{
+      max-width:1600px;
+      margin:0 auto;
+      display:grid;
+      gap:18px;
+    }
+
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+
+    .back-link{
+      color:var(--muted);
+      text-decoration:none;
+      font-weight:700;
+    }
+
+    .back-link:hover{color:#fff}
+
+    .month-bar,
+    .legend,
+    .calendar-shell{
+      background:linear-gradient(180deg,var(--panel),var(--panel-2));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+
+    .month-bar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:18px 22px;
+    }
+
+    .month-title{
+      font-size:34px;
+      font-weight:900;
+    }
+
+    .month-controls{
+      display:flex;
+      gap:12px;
+    }
+
+    .icon-btn{
+      border:none;
+      background:rgba(255,255,255,.08);
+      color:var(--text);
+      border-radius:14px;
+      padding:12px 16px;
+      font-size:18px;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .icon-btn:hover{
+      background:rgba(255,255,255,.14);
+    }
+
+    .legend{
+      display:flex;
+      gap:18px;
+      flex-wrap:wrap;
+      padding:14px 18px;
+    }
+
+    .legend-item{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-size:15px;
+      font-weight:800;
+      color:var(--muted);
+    }
+
+    .swatch{
+      width:14px;
+      height:14px;
+      border-radius:999px;
+      flex:0 0 auto;
+    }
+
+    .calendar-shell{
+      overflow:hidden;
+    }
+
+    .weekday-row,
+    .month-grid{
+      display:grid;
+      grid-template-columns:repeat(7, minmax(0, 1fr));
+    }
+
+    .weekday-row{
+      background:rgba(255,255,255,.04);
+      border-bottom:1px solid var(--border);
+    }
+
+    .weekday{
+      padding:14px 10px;
+      text-align:center;
+      font-size:14px;
+      font-weight:900;
+      color:var(--muted);
+      letter-spacing:.04em;
+      text-transform:uppercase;
+    }
+
+    .day-cell{
+      min-height:150px;
+      border-right:1px solid var(--border);
+      border-bottom:1px solid var(--border);
+      padding:10px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      cursor:pointer;
+    }
+
+    .day-cell:nth-child(7n){
+      border-right:none;
+    }
+
+    .day-cell:hover{
+      background:rgba(255,255,255,.03);
+    }
+
+    .day-cell.faded{
+      opacity:.42;
+    }
+
+    .day-cell.today{
+      outline:2px solid rgba(255,122,24,.55);
+      outline-offset:-2px;
+    }
+
+    .day-number{
+      font-size:16px;
+      font-weight:900;
+    }
+
+    .event-list{
+      display:grid;
+      gap:6px;
+      overflow:hidden;
+    }
+
+    .event-chip{
+      border-radius:10px;
+      padding:6px 8px;
+      font-size:12px;
+      font-weight:800;
+      line-height:1.2;
+      color:#fff;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .more{
+      font-size:12px;
+      font-weight:800;
+      color:var(--muted);
+      padding-top:2px;
+    }
+
+    @media (max-width: 1100px){
+      .day-cell{
+        min-height:130px;
+      }
+    }
+
+    @media (max-width: 800px){
+      body{
+        padding:14px;
+      }
+
+      .month-title{
+        font-size:26px;
+      }
+
+      .day-cell{
+        min-height:110px;
+        padding:8px;
+      }
+
+      .event-chip{
+        font-size:11px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <a class="back-link" href="./index.html">← Back to Home</a>
+    </div>
+
+    <section class="month-bar">
+      <button class="icon-btn" id="prevMonthBtn">←</button>
+      <div class="month-title" id="monthTitle">Month</div>
+      <button class="icon-btn" id="nextMonthBtn">→</button>
+    </section>
+
+    <section class="legend" id="legend"></section>
+
+    <section class="calendar-shell">
+      <div class="weekday-row" id="weekdayRow"></div>
+      <div class="month-grid" id="monthGrid"></div>
+    </section>
+  </div>
+
+  <script>
+    const CALENDARS = [
+      { id: "family-main", name: "Family", color: "var(--cal-1)" },
+      { id: "nichol", name: "Nichol", color: "var(--cal-2)" },
+      { id: "jolie", name: "Jolie", color: "var(--cal-3)" },
+      { id: "andrew", name: "Andrew", color: "var(--cal-4)" },
+      { id: "other", name: "Other", color: "var(--cal-5)" }
+    ];
+
+    const STORAGE_KEY = "pocketsteak-family-events";
+    let currentDate = new Date();
+
+    function getStoredEvents() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+      } catch {
+        return {};
+      }
+    }
+
+    function formatDateKey(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function formatMonthTitle(date) {
+      return date.toLocaleDateString(undefined, {
+        month: "long",
+        year: "numeric"
+      });
+    }
+
+    function isSameDate(a, b) {
+      return (
+        a.getFullYear() === b.getFullYear() &&
+        a.getMonth() === b.getMonth() &&
+        a.getDate() === b.getDate()
+      );
+    }
+
+    function getMondayFirstIndex(date) {
+      const day = date.getDay();
+      return day === 0 ? 6 : day - 1;
+    }
+
+    function buildLegend() {
+      const legend = document.getElementById("legend");
+      legend.innerHTML = CALENDARS.map(cal => `
+        <div class="legend-item">
+          <span class="swatch" style="background:${cal.color}"></span>
+          <span>${cal.name}</span>
+        </div>
+      `).join("");
+    }
+
+    function buildWeekdays() {
+      const names = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      document.getElementById("weekdayRow").innerHTML = names
+        .map(name => `<div class="weekday">${name}</div>`)
+        .join("");
+    }
+
+    function getCalendarColor(calendarId) {
+      const found = CALENDARS.find(c => c.id === calendarId);
+      return found ? found.color : "var(--cal-1)";
+    }
+
+    function getMonthCells(viewDate) {
+      const year = viewDate.getFullYear();
+      const month = viewDate.getMonth();
+
+      const firstOfMonth = new Date(year, month, 1);
+      const startOffset = getMondayFirstIndex(firstOfMonth);
+
+      const gridStart = new Date(year, month, 1 - startOffset);
+
+      const cells = [];
+      for (let i = 0; i < 42; i++) {
+        const d = new Date(gridStart);
+        d.setDate(gridStart.getDate() + i);
+        cells.push(d);
+      }
+
+      return cells;
+    }
+
+    function renderMonth() {
+      document.getElementById("monthTitle").textContent = formatMonthTitle(currentDate);
+
+      const monthGrid = document.getElementById("monthGrid");
+      const eventsByDate = getStoredEvents();
+      const today = new Date();
+      const currentMonth = currentDate.getMonth();
+
+      const cells = getMonthCells(currentDate);
+
+      monthGrid.innerHTML = cells.map(date => {
+        const key = formatDateKey(date);
+        const events = (eventsByDate[key] || []).sort((a, b) => a.start.localeCompare(b.start));
+        const faded = date.getMonth() !== currentMonth ? "faded" : "";
+        const todayClass = isSameDate(date, today) ? "today" : "";
+
+        const visibleCount = 4;
+        const visibleEvents = events.slice(0, visibleCount);
+        const remaining = events.length - visibleEvents.length;
+
+        return `
+          <article class="day-cell ${faded} ${todayClass}" data-date="${key}">
+            <div class="day-number">${date.getDate()}</div>
+            <div class="event-list">
+              ${visibleEvents.map(event => `
+                <div class="event-chip" style="background:${getCalendarColor(event.calendarId)}">
+                  ${event.title}
+                </div>
+              `).join("")}
+              ${remaining > 0 ? `<div class="more">+ ${remaining} more</div>` : ""}
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      document.querySelectorAll(".day-cell").forEach(cell => {
+        cell.addEventListener("click", () => {
+          const date = cell.dataset.date;
+          window.location.href = `./day.html?date=${date}`;
+        });
+      });
+    }
+
+    document.getElementById("prevMonthBtn").addEventListener("click", () => {
+      currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+      renderMonth();
+    });
+
+    document.getElementById("nextMonthBtn").addEventListener("click", () => {
+      currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
+      renderMonth();
+    });
+
+    buildLegend();
+    buildWeekdays();
+    renderMonth();
+  </script>
+</body>
+</html>
