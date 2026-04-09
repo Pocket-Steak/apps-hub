@@ -8,13 +8,11 @@
 
   <style>
     :root{
-      --bg:#0e0f12;
       --panel:#1a1c22;
       --panel-2:#22252d;
       --border:rgba(255,255,255,.08);
       --text:#f3f4f6;
       --muted:#b8bcc8;
-      --accent:#ff7a18;
       --shadow:0 18px 50px rgba(0,0,0,.35);
       --radius:24px;
 
@@ -79,11 +77,6 @@
     .month-title{
       font-size:34px;
       font-weight:900;
-    }
-
-    .month-controls{
-      display:flex;
-      gap:12px;
     }
 
     .icon-btn{
@@ -255,11 +248,11 @@
 
   <script>
     const CALENDARS = [
-      { id: "family-main", name: "Family", color: "var(--cal-1)" },
-      { id: "nichol", name: "Nichol", color: "var(--cal-2)" },
-      { id: "jolie", name: "Jolie", color: "var(--cal-3)" },
-      { id: "andrew", name: "Andrew", color: "var(--cal-4)" },
-      { id: "other", name: "Other", color: "var(--cal-5)" }
+      { id: "family-main", name: "Family", color: "#ff7a18" },
+      { id: "nichol", name: "Nichol", color: "#4dabf7" },
+      { id: "jolie", name: "Jolie", color: "#51cf66" },
+      { id: "andrew", name: "Andrew", color: "#f783ac" },
+      { id: "other", name: "Other", color: "#ffd43b" }
     ];
 
     const STORAGE_KEY = "pocketsteak-family-events";
@@ -268,7 +261,7 @@
     function getStoredEvents() {
       try {
         return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-      } catch {
+      } catch (e) {
         return {};
       }
     }
@@ -319,7 +312,7 @@
 
     function getCalendarColor(calendarId) {
       const found = CALENDARS.find(c => c.id === calendarId);
-      return found ? found.color : "var(--cal-1)";
+      return found ? found.color : "#ff7a18";
     }
 
     function getMonthCells(viewDate) {
@@ -328,7 +321,6 @@
 
       const firstOfMonth = new Date(year, month, 1);
       const startOffset = getMondayFirstIndex(firstOfMonth);
-
       const gridStart = new Date(year, month, 1 - startOffset);
 
       const cells = [];
