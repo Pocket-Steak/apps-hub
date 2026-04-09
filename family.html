@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PocketSteak Family Command Center</title>
+  <meta name="description" content="PocketSteak Family Command Center home page." />
+
+  <style>
+    :root{
+      --bg:#0e0f12;
+      --panel:#1a1c22;
+      --panel-2:#22252d;
+      --border:rgba(255,255,255,.08);
+      --text:#f3f4f6;
+      --muted:#b8bcc8;
+      --accent:#ff7a18;
+      --accent-2:#ff9c4d;
+      --shadow:0 18px 50px rgba(0,0,0,.35);
+      --radius:24px;
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+
+    html,body{min-height:100%}
+
+    body{
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(900px 500px at 0% 0%, rgba(255,122,24,.12), transparent 55%),
+        linear-gradient(180deg,#0d0e11,#12141a 35%, #171922 100%);
+      color:var(--text);
+      padding:20px;
+    }
+
+    .page{
+      max-width:1600px;
+      margin:0 auto;
+      display:grid;
+      gap:20px;
+    }
+
+    .weather-banner,
+    .today-card,
+    .day-card,
+    .nav-btn{
+      background:linear-gradient(180deg,var(--panel),var(--panel-2));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+
+    .weather-banner{
+      min-height:84px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:20px 24px;
+      gap:16px;
+    }
+
+    .weather-left{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    .weather-label{
+      font-size:14px;
+      font-weight:800;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+
+    .weather-main{
+      font-size:28px;
+      font-weight:900;
+      line-height:1;
+    }
+
+    .weather-sub{
+      font-size:16px;
+      color:var(--muted);
+      font-weight:600;
+    }
+
+    .home-layout{
+      display:grid;
+      grid-template-columns:minmax(380px, 1.15fr) minmax(540px, 1fr);
+      gap:20px;
+      align-items:stretch;
+    }
+
+    .today-card{
+      padding:24px;
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+      min-height:520px;
+    }
+
+    .today-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:16px;
+    }
+
+    .today-heading{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .today-label{
+      font-size:15px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--accent-2);
+    }
+
+    .today-date{
+      font-size:44px;
+      line-height:1;
+      font-weight:900;
+    }
+
+    .today-full-date{
+      font-size:18px;
+      color:var(--muted);
+      font-weight:700;
+    }
+
+    .quick-add-btn{
+      border:none;
+      background:var(--accent);
+      color:#fff;
+      padding:14px 18px;
+      border-radius:16px;
+      font-size:16px;
+      font-weight:900;
+      cursor:pointer;
+      min-width:120px;
+    }
+
+    .quick-add-btn:hover{
+      filter:brightness(1.06);
+    }
+
+    .time-blocks{
+      display:grid;
+      gap:14px;
+      margin-top:4px;
+    }
+
+    .time-block{
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.05);
+      border-radius:20px;
+      padding:18px 18px 16px;
+      min-height:90px;
+      display:grid;
+      gap:8px;
+    }
+
+    .time-range{
+      font-size:14px;
+      font-weight:900;
+      color:var(--accent-2);
+      letter-spacing:.02em;
+    }
+
+    .time-title{
+      font-size:24px;
+      font-weight:900;
+      line-height:1.1;
+    }
+
+    .time-note{
+      font-size:14px;
+      color:var(--muted);
+      font-weight:600;
+    }
+
+    .days-grid{
+      display:grid;
+      grid-template-columns:repeat(3, 1fr);
+      gap:16px;
+      align-content:stretch;
+    }
+
+    .day-card{
+      min-height:250px;
+      padding:16px;
+      cursor:pointer;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      transition:transform .15s ease;
+    }
+
+    .day-card:hover{
+      transform:translateY(-3px);
+    }
+
+    .day-name{
+      font-size:22px;
+      font-weight:900;
+      line-height:1;
+    }
+
+    .day-date{
+      font-size:14px;
+      color:var(--muted);
+      font-weight:700;
+    }
+
+    .day-events{
+      display:grid;
+      gap:10px;
+      margin-top:6px;
+    }
+
+    .mini-event{
+      background:rgba(255,255,255,.05);
+      border-radius:14px;
+      padding:10px 12px;
+      display:grid;
+      gap:4px;
+    }
+
+    .mini-time{
+      font-size:12px;
+      color:var(--accent-2);
+      font-weight:900;
+    }
+
+    .mini-title{
+      font-size:14px;
+      font-weight:800;
+      line-height:1.2;
+    }
+
+    .nav-row{
+      display:grid;
+      grid-template-columns:repeat(6, 1fr);
+      gap:16px;
+    }
+
+    .nav-btn{
+      border:none;
+      color:var(--text);
+      min-height:96px;
+      font-size:20px;
+      font-weight:900;
+      cursor:pointer;
+      transition:transform .15s ease, border-color .15s ease;
+    }
+
+    .nav-btn:hover{
+      transform:translateY(-2px);
+      border-color:rgba(255,122,24,.45);
+    }
+
+    .back-link{
+      color:var(--muted);
+      font-size:14px;
+      font-weight:700;
+      text-decoration:none;
+      justify-self:start;
+      padding:0 4px;
+    }
+
+    .back-link:hover{
+      color:#fff;
+    }
+
+    @media (max-width: 1200px){
+      .home-layout{
+        grid-template-columns:1fr;
+      }
+
+      .days-grid{
+        grid-template-columns:repeat(3, 1fr);
+      }
+
+      .nav-row{
+        grid-template-columns:repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 820px){
+      body{
+        padding:14px;
+      }
+
+      .weather-banner{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+
+      .today-top{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+
+      .days-grid{
+        grid-template-columns:repeat(2, 1fr);
+      }
+
+      .nav-row{
+        grid-template-columns:repeat(2, 1fr);
+      }
+
+      .today-date{
+        font-size:36px;
+      }
+    }
+
+    @media (max-width: 560px){
+      .days-grid,
+      .nav-row{
+        grid-template-columns:1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <a class="back-link" href="/">← Back to PocketSteak Apps</a>
+
+    <section class="weather-banner">
+      <div class="weather-left">
+        <div class="weather-label">Weather</div>
+        <div class="weather-main" id="weatherMain">Weather banner placeholder</div>
+        <div class="weather-sub" id="weatherSub">We can hook this to a real API later.</div>
+      </div>
+    </section>
+
+    <section class="home-layout">
+      <article class="today-card">
+        <div class="today-top">
+          <div class="today-heading">
+            <div class="today-label">Today</div>
+            <div class="today-date" id="todayDate">--</div>
+            <div class="today-full-date" id="todayFullDate">--</div>
+          </div>
+
+          <button class="quick-add-btn" id="quickAddBtn">Quick Add</button>
+        </div>
+
+        <div class="time-blocks" id="todayTimeBlocks"></div>
+      </article>
+
+      <section class="days-grid" id="daysGrid"></section>
+    </section>
+
+    <section class="nav-row">
+      <button class="nav-btn" data-target="Calendar">Calendar</button>
+      <button class="nav-btn" data-target="Grocery List">Grocery List</button>
+      <button class="nav-btn" data-target="To-Do List">To-Do List</button>
+      <button class="nav-btn" data-target="Nichol">Nichol</button>
+      <button class="nav-btn" data-target="Jolie">Jolie</button>
+      <button class="nav-btn" data-target="Andrew">Andrew</button>
+    </section>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "pocketsteak-family-events";
+
+    function formatDateKey(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function formatMonthDay(date) {
+      return date.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric"
+      });
+    }
+
+    function formatTodayBig(date) {
+      return date.toLocaleDateString(undefined, {
+        month: "long",
+        day: "numeric"
+      });
+    }
+
+    function formatTodayFull(date) {
+      return date.toLocaleDateString(undefined, {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric"
+      });
+    }
+
+    function getShortDayName(date) {
+      return date.toLocaleDateString(undefined, { weekday: "short" });
+    }
+
+    function getStoredEvents() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+      } catch {
+        return {};
+      }
+    }
+
+    function saveEvents(events) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+    }
+
+    function sortEvents(list) {
+      return [...list].sort((a, b) => a.start.localeCompare(b.start));
+    }
+
+    function seedIfEmpty() {
+      const existing = getStoredEvents();
+      const hasAnyEvents = Object.keys(existing).length > 0;
+      if (hasAnyEvents) return;
+
+      const today = new Date();
+      const tomorrow = new Date();
+      tomorrow.setDate(today.getDate() + 1);
+
+      const sample = {
+        [formatDateKey(today)]: [
+          { title: "Sample Event", start: "09:00", end: "10:00", note: "Replace with Google Calendar later." },
+          { title: "Another Event", start: "15:30", end: "16:15", note: "" }
+        ],
+        [formatDateKey(tomorrow)]: [
+          { title: "Tomorrow Item", start: "11:00", end: "11:30", note: "" }
+        ]
+      };
+
+      saveEvents(sample);
+    }
+
+    function renderToday(eventsByDate) {
+      const today = new Date();
+      const todayKey = formatDateKey(today);
+      const todayEvents = sortEvents(eventsByDate[todayKey] || []);
+
+      document.getElementById("todayDate").textContent = formatTodayBig(today);
+      document.getElementById("todayFullDate").textContent = formatTodayFull(today);
+
+      const container = document.getElementById("todayTimeBlocks");
+      container.innerHTML = "";
+
+      todayEvents.forEach(event => {
+        const block = document.createElement("div");
+        block.className = "time-block";
+        block.innerHTML = `
+          <div class="time-range">${event.start} - ${event.end}</div>
+          <div class="time-title">${event.title}</div>
+          ${event.note ? `<div class="time-note">${event.note}</div>` : ""}
+        `;
+        container.appendChild(block);
+      });
+    }
+
+    function renderNextSixDays(eventsByDate) {
+      const grid = document.getElementById("daysGrid");
+      grid.innerHTML = "";
+
+      for (let i = 1; i <= 6; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() + i);
+
+        const key = formatDateKey(date);
+        const events = sortEvents(eventsByDate[key] || []);
+
+        const card = document.createElement("article");
+        card.className = "day-card";
+        card.dataset.date = key;
+
+        const eventsHtml = events.map(event => `
+          <div class="mini-event">
+            <div class="mini-time">${event.start} - ${event.end}</div>
+            <div class="mini-title">${event.title}</div>
+          </div>
+        `).join("");
+
+        card.innerHTML = `
+          <div>
+            <div class="day-name">${getShortDayName(date)}</div>
+            <div class="day-date">${formatMonthDay(date)}</div>
+          </div>
+          <div class="day-events">${eventsHtml}</div>
+        `;
+
+        card.addEventListener("click", () => {
+          alert("Full calendar page is the next page to build.");
+        });
+
+        grid.appendChild(card);
+      }
+    }
+
+    function addTodayEvent() {
+      const title = prompt("Event title?");
+      if (!title) return;
+
+      const start = prompt("Start time? Use HH:MM (example: 09:00)");
+      if (!start) return;
+
+      const end = prompt("End time? Use HH:MM (example: 10:00)");
+      if (!end) return;
+
+      const note = prompt("Optional note?") || "";
+
+      const today = new Date();
+      const key = formatDateKey(today);
+
+      const eventsByDate = getStoredEvents();
+      const existing = eventsByDate[key] || [];
+
+      existing.push({ title, start, end, note });
+      eventsByDate[key] = existing;
+
+      saveEvents(eventsByDate);
+      renderAll();
+    }
+
+    function handleNavClick(label) {
+      alert(`${label} page is next to build.`);
+    }
+
+    function renderAll() {
+      const eventsByDate = getStoredEvents();
+      renderToday(eventsByDate);
+      renderNextSixDays(eventsByDate);
+    }
+
+    seedIfEmpty();
+    renderAll();
+
+    document.getElementById("quickAddBtn").addEventListener("click", addTodayEvent);
+
+    document.querySelectorAll(".nav-btn").forEach(btn => {
+      btn.addEventListener("click", () => handleNavClick(btn.dataset.target));
+    });
+  </script>
+</body>
+</html>
