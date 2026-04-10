@@ -1222,7 +1222,7 @@
       metaEl.textContent = `${activeRows.length} ${activeLabel} • ${doneRows.length} ${doneLabel}`;
       listEl.innerHTML = previewRows.length
         ? previewRows.map(row => `
-            <div class="preview-item${row.done ? " done" : ""}">
+            <div class="preview-item${row.done ? " done" : ""}" style="border-left-color:${getOwnerColor(row.owner)}">
               <div class="preview-item-title">${escapeHtml(row.title)}</div>
               <div class="preview-item-meta">
                 <span class="owner-dot" style="background:${getOwnerColor(row.owner)}"></span>

@@ -13,12 +13,15 @@
       --bg: #0b0f1a;
       --panel: rgba(21, 28, 47, 0.92);
       --panel-2: rgba(31, 39, 63, 0.9);
+      --surface: rgba(255, 255, 255, 0.045);
       --border: rgba(255, 255, 255, 0.09);
+      --border-strong: rgba(255, 255, 255, 0.12);
       --text: #f5f7fb;
       --muted: #b7bfd3;
       --danger: #d93025;
       --danger-hover: #b3261e;
       --accent: #ff8a1f;
+      --accent-2: #ffb26f;
       --accent-hover: #e97812;
       --success: #16a34a;
       --owner-andrew: #ff8a1f;
@@ -26,6 +29,7 @@
       --owner-jolie: #22c55e;
       --owner-default: #ec4899;
       --shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
+      --shadow-soft: 0 10px 26px rgba(0, 0, 0, 0.22);
       --radius-xl: 28px;
       --radius-lg: 22px;
       --radius-md: 18px;
@@ -52,6 +56,9 @@
 
     body {
       padding: clamp(12px, 2vw, 22px);
+      background:
+        radial-gradient(900px 500px at 0% 0%, rgba(255, 122, 24, 0.12), transparent 55%),
+        linear-gradient(180deg, #0d0e11 0%, #12141a 35%, #171922 100%);
     }
 
     .app {
@@ -62,8 +69,10 @@
     }
 
     .card {
-      background: linear-gradient(90deg, rgba(24, 30, 49, 0.96), rgba(31, 39, 63, 0.92));
-      border: 1px solid var(--border);
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.05), transparent 34%),
+        linear-gradient(180deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--border-strong);
       border-radius: var(--radius-xl);
       box-shadow: var(--shadow);
       padding: clamp(18px, 2.6vw, 26px);
@@ -101,7 +110,7 @@
       align-items: center;
       justify-content: center;
       text-decoration: none;
-      transition: transform 0.12s ease, opacity 0.12s ease, background 0.12s ease;
+      transition: transform 0.18s ease, opacity 0.18s ease, background 0.18s ease, filter 0.18s ease;
       -webkit-tap-highlight-color: transparent;
       user-select: none;
     }
@@ -122,6 +131,7 @@
 
     .btn-back:hover {
       background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-1px);
     }
 
     .btn-danger {
@@ -130,6 +140,7 @@
 
     .btn-danger:hover {
       background: var(--danger-hover);
+      transform: translateY(-1px);
     }
 
     .btn-accent {
@@ -138,6 +149,7 @@
 
     .btn-accent:hover {
       background: var(--accent-hover);
+      transform: translateY(-1px);
     }
 
     .connect-wrap {
@@ -151,7 +163,7 @@
       min-width: 320px;
       border-radius: 999px;
       border: 1px solid var(--border);
-      background: rgba(10, 14, 24, 0.55);
+      background: var(--surface);
       padding: 12px 22px;
       display: flex;
       flex-direction: column;
@@ -193,7 +205,7 @@
       min-height: 82px;
       border-radius: 24px;
       border: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(255, 255, 255, 0.06);
+      background: var(--surface);
       color: var(--text);
       font-size: clamp(1.5rem, 2.3vw, 2rem);
       font-weight: 700;
@@ -216,7 +228,7 @@
       min-height: 82px;
       border-radius: 24px;
       border: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(255, 255, 255, 0.06);
+      background: var(--surface);
       color: var(--text);
       font-size: 1.15rem;
       font-weight: 800;
@@ -270,20 +282,22 @@
       min-height: 110px;
       width: 100%;
       border: 1px solid rgba(255, 255, 255, 0.1);
+      border-left: 6px solid var(--owner-default);
       border-radius: 22px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.03));
+      background: linear-gradient(180deg, var(--surface), rgba(255,255,255,0.03));
       color: var(--text);
       padding: 18px 20px;
       text-align: left;
       font-size: 1.65rem;
       font-weight: 850;
       cursor: pointer;
-      transition: transform 0.12s ease, background 0.12s ease, opacity 0.12s ease;
+      transition: transform 0.18s ease, background 0.18s ease, opacity 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
       -webkit-tap-highlight-color: transparent;
       word-break: break-word;
       display: grid;
       gap: 12px;
       align-content: start;
+      box-shadow: var(--shadow-soft);
     }
 
     .tile-title {
@@ -337,6 +351,7 @@
 
     .tile:hover {
       background: linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.05));
+      transform: translateY(-2px);
     }
 
     .tile.bought {
@@ -603,6 +618,13 @@
       if (str === "nichol") return "Nichol";
       if (str === "jolie") return "Jolie";
       return "";
+    }
+
+    function getOwnerColor(owner) {
+      if (owner === "Andrew") return "var(--owner-andrew)";
+      if (owner === "Nichol") return "var(--owner-nichol)";
+      if (owner === "Jolie") return "var(--owner-jolie)";
+      return "var(--owner-default)";
     }
 
     function getOwnerClassName(owner) {
@@ -1038,6 +1060,7 @@
         const button = document.createElement("button");
         button.type = "button";
         button.className = "tile";
+        button.style.borderLeftColor = getOwnerColor(row.owner);
         button.innerHTML = `
           <div class="tile-title">${escapeHtml(row.item)}</div>
           <div class="tile-owner ${getOwnerClassName(row.owner)}">
@@ -1053,6 +1076,7 @@
         const button = document.createElement("button");
         button.type = "button";
         button.className = "tile bought";
+        button.style.borderLeftColor = getOwnerColor(row.owner);
         button.innerHTML = `
           <div class="tile-title">${escapeHtml(row.item)}</div>
           <div class="tile-owner ${getOwnerClassName(row.owner)}">

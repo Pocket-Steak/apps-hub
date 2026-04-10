@@ -10,12 +10,16 @@
     :root{
       --panel:#1a1c22;
       --panel-2:#22252d;
+      --surface:rgba(255,255,255,.045);
       --border:rgba(255,255,255,.08);
+      --border-strong:rgba(255,255,255,.12);
       --text:#f3f4f6;
       --muted:#b8bcc8;
       --shadow:0 18px 50px rgba(0,0,0,.35);
+      --shadow-soft:0 10px 26px rgba(0,0,0,.22);
       --radius:24px;
       --accent:#ff7a18;
+      --accent-2:#ffb26f;
     }
 
     *{box-sizing:border-box;margin:0;padding:0}
@@ -24,7 +28,7 @@
     body{
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
       background:
-        radial-gradient(900px 500px at 0% 0%, rgba(255,122,24,.10), transparent 55%),
+        radial-gradient(900px 500px at 0% 0%, rgba(255,122,24,.12), transparent 55%),
         linear-gradient(180deg,#0d0e11,#12141a 35%, #171922 100%);
       color:var(--text);
       padding:20px;
@@ -56,8 +60,10 @@
     .icon-btn,
     .top-btn,
     .status-pill{
-      background:linear-gradient(180deg,var(--panel),var(--panel-2));
-      border:1px solid var(--border);
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,.05), transparent 34%),
+        linear-gradient(180deg,var(--panel),var(--panel-2));
+      border:1px solid var(--border-strong);
       border-radius:16px;
       box-shadow:var(--shadow);
     }
@@ -72,12 +78,14 @@
       font-weight:900;
       cursor:pointer;
       min-height:52px;
+      transition:transform .18s ease, background .18s ease, filter .18s ease;
     }
 
     .nav-btn:hover,
     .top-btn:hover,
     .icon-btn:hover{
       background:linear-gradient(180deg,#24272f,#2c3039);
+      transform:translateY(-1px);
     }
 
     .top-btn.accent{
@@ -116,8 +124,10 @@
     .month-bar,
     .legend,
     .calendar-shell{
-      background:linear-gradient(180deg,var(--panel),var(--panel-2));
-      border:1px solid var(--border);
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,.05), transparent 34%),
+        linear-gradient(180deg,var(--panel),var(--panel-2));
+      border:1px solid var(--border-strong);
       border-radius:24px;
       box-shadow:var(--shadow);
     }
@@ -176,7 +186,7 @@
     }
 
     .weekday-row{
-      background:rgba(255,255,255,.04);
+      background:var(--surface);
       border-bottom:1px solid var(--border);
     }
 
@@ -199,7 +209,7 @@
       flex-direction:column;
       gap:8px;
       cursor:pointer;
-      transition:background .15s ease;
+      transition:background .18s ease, box-shadow .18s ease;
     }
 
     .day-cell:nth-child(7n){
@@ -207,7 +217,8 @@
     }
 
     .day-cell:hover{
-      background:rgba(255,255,255,.03);
+      background:rgba(255,255,255,.04);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
     }
 
     .day-cell.faded{
@@ -240,6 +251,7 @@
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
+      box-shadow:var(--shadow-soft);
     }
 
     .more{
