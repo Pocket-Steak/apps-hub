@@ -505,7 +505,7 @@
           if (response.error) {
             console.error("OAuth token error:", response);
             setStatus("Setup failed", false);
-            showMessage("Google sign-in failed.", "error");
+            showMessage(getReadableError(response), "error");
             return;
           }
 
@@ -538,9 +538,16 @@
     function getReadableError(error) {
       const message =
         error?.result?.error?.message ||
+        error?.details ||
         error?.message ||
+        error?.error ||
         "Something went wrong with Google Sheets.";
-      return message;
+
+      const code = error?.code || error?.result?.error?.code;
+      const status = error?.status || error?.result?.error?.status;
+      const suffix = [code, status].filter(Boolean).join(" / ");
+
+      return suffix ? `${message} (${suffix})` : message;
     }
 
     // =========================
@@ -558,7 +565,7 @@
         } catch (error) {
           console.error("gapi init error:", error);
           setStatus("Setup failed", false);
-          showMessage("Google API client failed to load.", "error");
+          showMessage(getReadableError(error), "error");
         }
       });
     }
@@ -619,7 +626,7 @@
           if (response.error) {
             console.error("OAuth token error:", response);
             setStatus("Setup failed", false);
-            showMessage("Google sign-in failed.", "error");
+            showMessage(getReadableError(response), "error");
             setBusy(false);
             return;
           }
@@ -650,7 +657,7 @@
       } catch (error) {
         console.error(error);
         setStatus("Setup failed", false);
-        showMessage("Could not start Google sign-in.", "error");
+        showMessage(getReadableError(error), "error");
         setBusy(false);
       }
     }
@@ -729,7 +736,7 @@
         itemInput.focus();
       } catch (error) {
         console.error(error);
-        showMessage("Could not add the grocery item.", "error");
+        showMessage(getReadableError(error), "error");
         setBusy(false);
       }
     }
@@ -756,7 +763,7 @@
         await loadGroceries();
       } catch (error) {
         console.error(error);
-        showMessage("Could not update the grocery item.", "error");
+        showMessage(getReadableError(error), "error");
         setBusy(false);
       }
     }
@@ -798,7 +805,7 @@
         showMessage("All items cleared.", "success");
       } catch (error) {
         console.error(error);
-        showMessage("Could not clear the grocery list.", "error");
+        showMessage(getReadableError(error), "error");
         setBusy(false);
       }
     }
@@ -854,8 +861,18 @@
     // =========================
     setBusy(true);
     setStatus("Loading Google...", false);
-    initGapi();
-    initGisReadyCheck();
+
+    if (window.location.protocol === "file:") {
+      setBusy(false);
+      setStatus("Serve from localhost", false);
+      showMessage(
+        "Google sign-in will not work from a file:// page. Open this through a local server like http://localhost:5500 or your hosted site.",
+        "error"
+      );
+    } else {
+      initGapi();
+      initGisReadyCheck();
+    }
   </script>
 </body>
 </html>
