@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Grocery List</title>
+  <meta name="description" content="PocketSteak Grocery List" />
+
+  <style>
+    :root{
+      --panel:#1a1c22;
+      --panel-2:#22252d;
+      --border:rgba(255,255,255,.08);
+      --text:#f3f4f6;
+      --muted:#b8bcc8;
+      --accent:#ff7a18;
+      --danger:#b42318;
+      --shadow:0 18px 50px rgba(0,0,0,.35);
+      --radius:24px;
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%}
+
+    body{
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(900px 500px at 0% 0%, rgba(255,122,24,.10), transparent 55%),
+        linear-gradient(180deg,#0d0e11,#12141a 35%, #171922 100%);
+      color:var(--text);
+      padding:20px;
+    }
+
+    .page{
+      max-width:1400px;
+      margin:0 auto;
+      display:grid;
+      gap:18px;
+    }
+
+    .topbar,
+    .input-shell,
+    .list-shell,
+    .status-pill{
+      background:linear-gradient(180deg,var(--panel),var(--panel-2));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+
+    .topbar{
+      padding:20px 22px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+
+    .top-left{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .page-title{
+      font-size:34px;
+      font-weight:900;
+      line-height:1.1;
+    }
+
+    .top-actions,
+    .top-right{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .nav-btn,
+    .top-btn,
+    .action-btn{
+      border:none;
+      border-radius:16px;
+      padding:14px 18px;
+      font-size:15px;
+      font-weight:900;
+      cursor:pointer;
+      min-height:52px;
+      background:rgba(255,255,255,.08);
+      color:var(--text);
+    }
+
+    .nav-btn:hover,
+    .top-btn:hover,
+    .action-btn:hover{
+      background:rgba(255,255,255,.14);
+    }
+
+    .top-btn.accent,
+    .action-btn.accent{
+      background:var(--accent);
+      color:#fff;
+    }
+
+    .top-btn.accent:hover,
+    .action-btn.accent:hover{
+      filter:brightness(1.06);
+    }
+
+    .action-btn.danger{
+      background:var(--danger);
+      color:#fff;
+    }
+
+    .status-pill{
+      min-height:52px;
+      padding:10px 16px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:2px;
+      min-width:240px;
+    }
+
+    .status-label{
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+
+    .status-text{
+      font-size:14px;
+      font-weight:800;
+      color:var(--text);
+    }
+
+    .input-shell{
+      padding:20px;
+      display:grid;
+      gap:16px;
+    }
+
+    .input-row{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:14px;
+      align-items:center;
+    }
+
+    .item-input{
+      width:100%;
+      min-height:64px;
+      border-radius:18px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      padding:16px 18px;
+      font-size:22px;
+      font-weight:700;
+      outline:none;
+    }
+
+    .item-input::placeholder{
+      color:#98a0b3;
+      font-weight:600;
+    }
+
+    .hint{
+      font-size:14px;
+      color:var(--muted);
+      font-weight:700;
+    }
+
+    .error-text{
+      font-size:14px;
+      font-weight:800;
+      color:#ffb4ab;
+      min-height:20px;
+    }
+
+    .list-shell{
+      padding:20px;
+      display:grid;
+      gap:16px;
+      min-height:300px;
+    }
+
+    .section-title{
+      font-size:22px;
+      font-weight:900;
+    }
+
+    .tiles{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0, 1fr));
+      gap:16px;
+    }
+
+    .tile{
+      border:none;
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:20px;
+      padding:18px;
+      min-height:110px;
+      text-align:left;
+      color:var(--text);
+      cursor:pointer;
+      display:grid;
+      gap:8px;
+      transition:transform .15s ease, background .15s ease;
+    }
+
+    .tile:hover{
+      transform:translateY(-2px);
+      background:rgba(255,255,255,.08);
+    }
+
+    .tile-title{
+      font-size:24px;
+      font-weight:900;
+      line-height:1.15;
+      word-break:break-word;
+    }
+
+    .tile-sub{
+      font-size:13px;
+      color:var(--muted);
+      font-weight:800;
+    }
+
+    .empty-state{
+      color:var(--muted);
+      font-weight:800;
+      font-size:18px;
+      padding:6px 2px;
+    }
+
+    @media (max-width: 1000px){
+      .tiles{
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 800px){
+      body{
+        padding:14px;
+      }
+
+      .top-right,
+      .top-actions{
+        width:100%;
+      }
+
+      .nav-btn,
+      .top-btn{
+        flex:1 1 0;
+      }
+
+      .status-pill{
+        width:100%;
+      }
+
+      .input-row{
+        grid-template-columns:1fr;
+      }
+
+      .page-title{
+        font-size:28px;
+      }
+
+      .item-input{
+        font-size:20px;
+      }
+    }
+
+    @media (max-width: 600px){
+      .tiles{
+        grid-template-columns:1fr;
+      }
+    }
+  </style>
+
+  <script async defer src="https://apis.google.com/js/api.js"></script>
+  <script async defer src="https://accounts.google.com/gsi/client"></script>
+</head>
+<body>
+  <div class="page">
+    <section class="topbar">
+      <div class="top-left">
+        <div class="top-actions">
+          <button class="nav-btn" id="backHomeBtn" type="button">← Back to Home</button>
+          <button class="action-btn danger" id="clearAllBtn" type="button">Clear All Items</button>
+        </div>
+        <div class="page-title">Grocery List</div>
+      </div>
+
+      <div class="top-right">
+        <div class="status-pill">
+          <div class="status-label">Google</div>
+          <div class="status-text" id="statusText">Loading…</div>
+        </div>
+        <button class="top-btn accent" id="authBtn" type="button">Connect</button>
+        <button class="top-btn" id="signOutBtn" type="button" style="display:none;">Sign Out</button>
+      </div>
+    </section>
+
+    <section class="input-shell">
+      <div class="input-row">
+        <input
+          id="itemInput"
+          class="item-input"
+          type="text"
+          placeholder="Add grocery item"
+          autocomplete="off"
+        />
+        <button class="action-btn accent" id="addBtn" type="button">Add Item</button>
+      </div>
+      <div class="hint">Tap a grocery tile to mark it bought.</div>
+      <div class="error-text" id="errorText"></div>
+    </section>
+
+    <section class="list-shell">
+      <div class="section-title">Active Items</div>
+      <div class="tiles" id="tiles"></div>
+      <div class="empty-state" id="emptyState" style="display:none;">No grocery items right now.</div>
+    </section>
+  </div>
+
+  <script>
+    const CLIENT_ID = "82204016171-ta1ipuu88gie0tkq69je3di5uifu1kki.apps.googleusercontent.com";
+    const API_KEY = "AIzaSyBPZEeYB8IaheJPJA2Y44msGfDwIhJMpGU";
+    const DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
+    const SCOPES = "https://www.googleapis.com/auth/spreadsheets";
+
+    const TOKEN_KEY = "pocketsteak_google_access_token";
+    const TOKEN_EXP_KEY = "pocketsteak_google_token_exp";
+
+    const SPREADSHEET_ID = "1ccfVTfNqrrzMLkD4uK8fkWs3wRJENs5XQJHJfjkWmmY";
+    const SHEET_NAME = "Groceries";
+    const READ_RANGE = "Groceries!A:E";
+    const APPEND_RANGE = "Groceries!A:E";
+
+    let tokenClient = null;
+    let gapiInited = false;
+    let gisInited = false;
+    let groceryRows = [];
+
+    function setStatus(text) {
+      document.getElementById("statusText").textContent = text;
+    }
+
+    function saveToken(accessToken, expiresInSeconds = 3600) {
+      const expiresAt = Date.now() + (expiresInSeconds * 1000);
+      sessionStorage.setItem(TOKEN_KEY, accessToken);
+      sessionStorage.setItem(TOKEN_EXP_KEY, String(expiresAt));
+    }
+
+    function getSavedToken() {
+      const token = sessionStorage.getItem(TOKEN_KEY);
+      const exp = Number(sessionStorage.getItem(TOKEN_EXP_KEY) || "0");
+      if (!token || !exp) return null;
+      if (Date.now() >= exp) {
+        clearSavedToken();
+        return null;
+      }
+      return token;
+    }
+
+    function clearSavedToken() {
+      sessionStorage.removeItem(TOKEN_KEY);
+      sessionStorage.removeItem(TOKEN_EXP_KEY);
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function getTodayStamp() {
+      return new Date().toLocaleString();
+    }
+
+    function parseRows(values) {
+      if (!values || values.length <= 1) return [];
+
+      return values.slice(1).map((row, index) => ({
+        rowNumber: index + 2,
+        item: row[0] || "",
+        category: row[1] || "",
+        addedBy: row[2] || "",
+        addedOn: row[3] || "",
+        bought: row[4] || ""
+      }));
+    }
+
+    function getActiveRows() {
+      return groceryRows.filter(row => {
+        const boughtValue = String(row.bought || "").trim().toLowerCase();
+        return boughtValue !== "yes";
+      });
+    }
+
+    function renderTiles() {
+      const tiles = document.getElementById("tiles");
+      const empty = document.getElementById("emptyState");
+      const activeRows = getActiveRows();
+
+      if (activeRows.length === 0) {
+        tiles.innerHTML = "";
+        empty.style.display = "block";
+        return;
+      }
+
+      empty.style.display = "none";
+      tiles.innerHTML = activeRows.map(row => `
+        <button class="tile" type="button" data-row="${row.rowNumber}">
+          <div class="tile-title">${escapeHtml(row.item)}</div>
+          <div class="tile-sub">Tap to mark bought</div>
+        </button>
+      `).join("");
+
+      tiles.querySelectorAll(".tile").forEach(tile => {
+        tile.addEventListener("click", async () => {
+          const rowNumber = Number(tile.dataset.row);
+          await markBought(rowNumber);
+        });
+      });
+    }
+
+    async function loadGroceries() {
+      try {
+        setStatus("Loading groceries…");
+
+        const resp = await gapi.client.sheets.spreadsheets.values.get({
+          spreadsheetId: SPREADSHEET_ID,
+          range: READ_RANGE
+        });
+
+        const values = resp.result.values || [];
+        groceryRows = parseRows(values);
+        renderTiles();
+        setStatus(`Loaded ${getActiveRows().length} active items`);
+      } catch (err) {
+        console.error(err);
+        setStatus("Load failed");
+        document.getElementById("errorText").textContent = "Could not load the grocery sheet.";
+      }
+    }
+
+    async function addItem() {
+      const input = document.getElementById("itemInput");
+      const errorText = document.getElementById("errorText");
+      const item = input.value.trim();
+
+      errorText.textContent = "";
+
+      if (!item) {
+        errorText.textContent = "Enter a grocery item.";
+        return;
+      }
+
+      try {
+        document.getElementById("addBtn").disabled = true;
+
+        await gapi.client.sheets.spreadsheets.values.append({
+          spreadsheetId: SPREADSHEET_ID,
+          range: APPEND_RANGE,
+          valueInputOption: "USER_ENTERED",
+          insertDataOption: "INSERT_ROWS",
+          resource: {
+            values: [[item, "", "", getTodayStamp(), "No"]]
+          }
+        });
+
+        input.value = "";
+        await loadGroceries();
+      } catch (err) {
+        console.error(err);
+        errorText.textContent = "Could not add the grocery item.";
+      } finally {
+        document.getElementById("addBtn").disabled = false;
+      }
+    }
+
+    async function markBought(rowNumber) {
+      try {
+        setStatus("Marking bought…");
+
+        await gapi.client.sheets.spreadsheets.values.update({
+          spreadsheetId: SPREADSHEET_ID,
+          range: `${SHEET_NAME}!E${rowNumber}`,
+          valueInputOption: "USER_ENTERED",
+          resource: {
+            values: [["Yes"]]
+          }
+        });
+
+        await loadGroceries();
+      } catch (err) {
+        console.error(err);
+        document.getElementById("errorText").textContent = "Could not mark item bought.";
+        setStatus("Update failed");
+      }
+    }
+
+    async function clearAllItems() {
+      const confirmed = window.confirm("Clear all grocery items from the sheet?");
+      if (!confirmed) return;
+
+      try {
+        setStatus("Clearing sheet…");
+        document.getElementById("clearAllBtn").disabled = true;
+
+        await gapi.client.sheets.spreadsheets.values.clear({
+          spreadsheetId: SPREADSHEET_ID,
+          range: `${SHEET_NAME}!A2:E`
+        });
+
+        groceryRows = [];
+        renderTiles();
+        setStatus("All items cleared");
+      } catch (err) {
+        console.error(err);
+        document.getElementById("errorText").textContent = "Could not clear the grocery sheet.";
+        setStatus("Clear failed");
+      } finally {
+        document.getElementById("clearAllBtn").disabled = false;
+      }
+    }
+
+    async function gapiLoaded() {
+      await new Promise((resolve) => gapi.load("client", resolve));
+      await gapi.client.init({
+        apiKey: API_KEY,
+        discoveryDocs: [DISCOVERY_DOC],
+      });
+      gapiInited = true;
+      maybeReady();
+    }
+
+    function gisLoaded() {
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: async (resp) => {
+          if (resp.error) {
+            console.error(resp);
+            setStatus("Connection failed");
+            return;
+          }
+
+          const token = gapi.client.getToken();
+          if (token?.access_token) {
+            saveToken(token.access_token, resp.expires_in || 3600);
+          }
+
+          document.getElementById("authBtn").textContent = "Refresh";
+          document.getElementById("signOutBtn").style.display = "inline-flex";
+
+          await loadGroceries();
+        },
+      });
+
+      gisInited = true;
+      maybeReady();
+    }
+
+    async function maybeReady() {
+      if (!gapiInited || !gisInited) return;
+
+      document.getElementById("authBtn").disabled = false;
+
+      const savedToken = getSavedToken();
+      if (savedToken) {
+        gapi.client.setToken({ access_token: savedToken });
+        document.getElementById("authBtn").textContent = "Refresh";
+        document.getElementById("signOutBtn").style.display = "inline-flex";
+        setStatus("Restoring connection…");
+        await loadGroceries();
+      } else {
+        setStatus("Not connected");
+      }
+    }
+
+    async function handleAuthClick() {
+      if (!tokenClient) return;
+      setStatus("Connecting…");
+      tokenClient.requestAccessToken({ prompt: "consent" });
+    }
+
+    function handleSignoutClick() {
+      const token = gapi.client.getToken();
+      if (token?.access_token) {
+        google.accounts.oauth2.revoke(token.access_token);
+      }
+
+      gapi.client.setToken("");
+      clearSavedToken();
+      groceryRows = [];
+      renderTiles();
+      document.getElementById("authBtn").textContent = "Connect";
+      document.getElementById("signOutBtn").style.display = "none";
+      setStatus("Not connected");
+    }
+
+    document.getElementById("backHomeBtn").addEventListener("click", () => {
+      window.location.href = "./index.html";
+    });
+
+    document.getElementById("authBtn").addEventListener("click", handleAuthClick);
+    document.getElementById("signOutBtn").addEventListener("click", handleSignoutClick);
+    document.getElementById("addBtn").addEventListener("click", addItem);
+    document.getElementById("clearAllBtn").addEventListener("click", clearAllItems);
+
+    document.getElementById("itemInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        addItem();
+      }
+    });
+
+    renderTiles();
+    document.getElementById("authBtn").disabled = true;
+    setStatus("Loading Google tools…");
+
+    window.addEventListener("load", async () => {
+      try {
+        await gapiLoaded();
+        gisLoaded();
+      } catch (err) {
+        console.error(err);
+        setStatus("Setup failed");
+      }
+    });
+  </script>
+</body>
+</html>
