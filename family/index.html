@@ -244,11 +244,13 @@
     .home-layout{
       display:grid;
       grid-template-columns:minmax(320px, .88fr) minmax(500px, 1.35fr);
+      grid-template-rows:minmax(0, 1fr) minmax(0, 1fr);
       grid-template-areas:
-        "previews today"
-        "previews days";
+        "today previews"
+        "days previews";
       gap:12px;
       align-items:stretch;
+      height:min(72vh, 760px);
       min-height:min(72vh, 760px);
     }
 
@@ -258,7 +260,7 @@
       flex-direction:column;
       gap:14px;
       min-height:0;
-      height:min(42vh, 420px);
+      height:auto;
       cursor:pointer;
       border-color:var(--border-strong);
       box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.04);
@@ -411,15 +413,17 @@
       grid-area:days;
       display:grid;
       grid-template-columns:repeat(3, minmax(0, 1fr));
-      grid-auto-rows:152px;
+      grid-template-rows:repeat(2, minmax(0, 1fr));
+      grid-auto-rows:auto;
       gap:12px;
       align-content:stretch;
-      height:316px;
-      min-height:316px;
+      height:100%;
+      min-height:0;
     }
 
     .day-card{
-      height:152px;
+      height:auto;
+      min-height:0;
       padding:14px;
       cursor:pointer;
       display:flex;
@@ -495,8 +499,8 @@
       grid-template-columns:1fr;
       grid-template-rows:repeat(2, minmax(0, 1fr));
       gap:12px;
+      height:100%;
       min-height:0;
-      max-height:min(72vh, 760px);
       overflow:hidden;
     }
 
@@ -670,15 +674,18 @@
     @media (max-width: 1200px){
       .home-layout{
         grid-template-columns:1fr;
+        grid-template-rows:none;
         grid-template-areas:
           "today"
           "days"
           "previews";
+        height:auto;
         min-height:auto;
       }
 
       .days-grid{
         grid-template-columns:repeat(3, 1fr);
+        grid-template-rows:none;
         grid-auto-rows:152px;
         height:auto;
         min-height:0;
@@ -867,8 +874,9 @@
     }
 
     @media (orientation: landscape) and (max-height: 900px){
-      .today-card{
-        height:min(44vh, 360px);
+      .home-layout{
+        height:min(72vh, 620px);
+        min-height:min(72vh, 620px);
       }
 
       .time-blocks{
@@ -889,17 +897,14 @@
       }
 
       .days-grid{
-        grid-auto-rows:132px;
-        height:276px;
-        min-height:276px;
+        grid-template-rows:repeat(2, minmax(0, 1fr));
+        grid-auto-rows:auto;
+        height:100%;
+        min-height:0;
       }
 
       .day-card{
-        height:132px;
-      }
-
-      .preview-grid{
-        max-height:min(72vh, 620px);
+        height:auto;
       }
     }
 
