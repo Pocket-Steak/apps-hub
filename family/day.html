@@ -474,18 +474,21 @@
     <section class="topbar">
       <div class="top-left">
         <div class="top-actions">
-          <button class="nav-btn" id="backHomeBtn" type="button">← Back to Home</button>
+          <button class="nav-btn" id="backHomeBtn" type="button" style="display:none;">← Back to Home</button>
         </div>
         <div class="day-title" id="dayTitle">Day View</div>
       </div>
 
       <div class="top-actions">
-        <div class="status-pill">
-          <div class="status-label">Google</div>
-          <div class="status-text" id="statusText">Loading…</div>
+        <button class="top-btn" type="button" onclick="window.location.href='./settings.html'">Settings</button>
+        <div style="display:none;">
+          <div class="status-pill">
+            <div class="status-label">Google</div>
+            <div class="status-text" id="statusText">Loading…</div>
+          </div>
+          <button class="top-btn accent" id="authBtn" type="button">Connect</button>
+          <button class="top-btn" id="signOutBtn" type="button" style="display:none;">Sign Out</button>
         </div>
-        <button class="top-btn accent" id="authBtn" type="button">Connect</button>
-        <button class="top-btn" id="signOutBtn" type="button" style="display:none;">Sign Out</button>
         <button class="quick-add-btn" id="quickAddBtn" type="button">Quick Add</button>
       </div>
     </section>
