@@ -435,7 +435,7 @@
       isBusy = value;
       addBtn.disabled = value || !isConnected;
       clearAllBtn.disabled = value || !isConnected;
-      connectBtn.disabled = value;
+      connectBtn.disabled = value && appReady;
       itemInput.disabled = value || !isConnected;
       inputCard.classList.toggle("loading", value);
     }
@@ -878,7 +878,17 @@
     // =========================
     // EVENTS
     // =========================
-    connectBtn.addEventListener("click", () => connectGoogle(true));
+    connectBtn.addEventListener("click", () => {
+      if (!appReady) {
+        setStatus("Retrying Google...", false);
+        showMessage("Trying to load Google services again...", "");
+        initGapi();
+        initGisReadyCheck();
+        return;
+      }
+
+      connectGoogle(true);
+    });
     addBtn.addEventListener("click", addItem);
     clearAllBtn.addEventListener("click", clearAllItems);
 
