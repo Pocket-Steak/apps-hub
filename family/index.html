@@ -435,6 +435,29 @@
       }
     }
 
+    @media (max-width: 1024px){
+      body{
+        padding:16px;
+      }
+
+      .topbar{
+        align-items:stretch;
+      }
+
+      .top-actions,
+      .top-right{
+        width:100%;
+      }
+
+      .top-btn{
+        flex:1 1 180px;
+      }
+
+      .status-pill{
+        flex:1 1 260px;
+      }
+    }
+
     @media (max-width: 1000px){
       .weather-banner{
         grid-template-columns:1fr 1fr;
@@ -502,6 +525,15 @@
       .days-grid,
       .nav-row{
         grid-template-columns:1fr;
+      }
+
+      .weather-banner{
+        padding:12px;
+      }
+
+      .today-card,
+      .day-card{
+        min-height:auto;
       }
     }
   </style>

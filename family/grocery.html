@@ -47,7 +47,7 @@
     }
 
     body {
-      padding: 22px;
+      padding: clamp(12px, 2vw, 22px);
     }
 
     .app {
@@ -62,7 +62,7 @@
       border: 1px solid var(--border);
       border-radius: var(--radius-xl);
       box-shadow: var(--shadow);
-      padding: 26px;
+      padding: clamp(18px, 2.6vw, 26px);
     }
 
     .topbar {
@@ -238,7 +238,7 @@
 
     .tile-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       gap: 16px;
     }
 
@@ -291,37 +291,84 @@
       pointer-events: none;
     }
 
+    @media (max-width: 1180px) {
+      .topbar {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .spacer {
+        display: none;
+      }
+
+      .connect-wrap {
+        grid-column: 1 / -1;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+
+      .status-pill {
+        min-width: min(100%, 320px);
+        flex: 1 1 280px;
+      }
+
+      .connect-wrap .btn {
+        flex: 1 1 220px;
+      }
+    }
+
     @media (max-width: 980px) {
       .topbar {
         grid-template-columns: 1fr 1fr;
-        grid-template-areas:
-          "back clear"
-          "title title"
-          "status connect";
       }
 
-      .topbar > .btn-back { grid-area: back; }
-      .topbar > .btn-danger { grid-area: clear; }
-      .topbar > h1 { grid-area: title; }
-      .topbar > .spacer { display: none; }
-      .topbar > .connect-wrap { grid-area: status / status / connect / connect; }
-
       .connect-wrap {
-        flex-direction: column;
+        flex-direction: row;
         align-items: stretch;
       }
 
       .status-pill {
-        min-width: 0;
+        min-width: 100%;
       }
 
       .input-row {
         grid-template-columns: 1fr;
       }
 
+      .tile-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      }
+
       .btn,
       .item-input {
         font-size: 1.35rem;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .topbar,
+      .input-row {
+        grid-template-columns: 1fr;
+      }
+
+      .connect-wrap,
+      .connect-wrap .btn {
+        width: 100%;
+        flex: 1 1 100%;
+      }
+
+      .btn,
+      .item-input,
+      .tile {
+        font-size: 1.15rem;
+      }
+
+      .btn {
+        min-height: 62px;
+      }
+
+      .tile {
+        min-height: 88px;
+        padding: 16px 18px;
       }
     }
   </style>
