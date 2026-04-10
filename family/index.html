@@ -460,15 +460,55 @@
 
     @media (max-width: 1000px){
       .weather-banner{
-        grid-template-columns:1fr 1fr;
+        grid-template-columns:1.45fr repeat(3, minmax(0, .9fr));
+        gap:10px;
+        padding:12px;
       }
+
       .weather-day{
-        min-height:92px;
+        min-height:88px;
+        padding:8px 6px;
       }
+
       .weather-today{
-        grid-column:1 / -1;
+        grid-column:auto;
+        padding:12px 14px;
       }
-      .weather-day:nth-child(n+5){
+
+      .weather-location{
+        font-size:11px;
+      }
+
+      .weather-today-label{
+        font-size:14px;
+      }
+
+      .weather-today-temp{
+        font-size:28px;
+      }
+
+      .weather-today-details{
+        font-size:12px;
+      }
+
+      .weather-icon{
+        font-size:22px;
+      }
+
+      .weather-day-name,
+      .weather-day-temps{
+        font-size:12px;
+      }
+
+      .weather-day-icon{
+        font-size:18px;
+      }
+
+      .weather-day-condition{
+        font-size:10px;
+      }
+
+      .weather-day:nth-child(n+6){
         display:none;
       }
     }
@@ -509,15 +549,28 @@
       }
 
       .weather-banner{
-        grid-template-columns:1fr;
-      }
-
-      .weather-day{
-        display:none;
+        grid-template-columns:1.35fr repeat(2, minmax(0, .9fr));
+        gap:8px;
       }
 
       .weather-today{
-        grid-column:auto;
+        padding:10px 12px;
+      }
+
+      .weather-today-temp{
+        font-size:24px;
+      }
+
+      .weather-icon{
+        font-size:20px;
+      }
+
+      .weather-day{
+        min-height:82px;
+      }
+
+      .weather-day:nth-child(n+5){
+        display:none;
       }
     }
 
@@ -528,12 +581,16 @@
       }
 
       .weather-banner{
+        grid-template-columns:1fr;
         padding:12px;
       }
 
-      .today-card,
-      .day-card{
-        min-height:auto;
+      .weather-day{
+        display:none;
+      }
+
+      .weather-today{
+        grid-column:auto;
       }
     }
   </style>
