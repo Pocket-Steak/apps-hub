@@ -481,17 +481,17 @@
     }
 
     function getAccessTokenFromSession() {
-      return sessionStorage.getItem(SESSION_TOKEN_KEY);
+      return localStorage.getItem(SESSION_TOKEN_KEY);
     }
 
     function saveAccessTokenToSession(token) {
       if (token) {
-        sessionStorage.setItem(SESSION_TOKEN_KEY, token);
+        localStorage.setItem(SESSION_TOKEN_KEY, token);
       }
     }
 
     function clearAccessTokenFromSession() {
-      sessionStorage.removeItem(SESSION_TOKEN_KEY);
+      localStorage.removeItem(SESSION_TOKEN_KEY);
     }
 
     function ensureAppInitialized() {
