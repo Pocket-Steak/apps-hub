@@ -426,6 +426,7 @@
     let tokenClient = null;
     let gapiInited = false;
     let gisInited = false;
+    let appReady = false;
     let slideIndex = [];
     let currentQuery = "";
 
@@ -470,6 +471,10 @@
         error?.details ||
         "Something went wrong loading Google Slides."
       );
+    }
+
+    function setSearchMessage(message) {
+      document.getElementById("resultsList").innerHTML = `<div class="empty-state">${escapeHtml(message)}</div>`;
     }
 
     function extractTextFromShape(shape) {
@@ -589,33 +594,10 @@
       }
     }
 
-    async function handleAuthClick() {
-      if (!tokenClient) return;
+    function ensureAppInitialized() {
+      if (appReady) return;
+      if (!gapiInited || !gisInited) return;
 
-      setStatus("Connecting…");
-      tokenClient.requestAccessToken({ prompt: "consent" });
-    }
-
-    async function gapiLoaded() {
-      await new Promise((resolve, reject) => {
-        gapi.load("client", {
-          callback: resolve,
-          onerror: reject,
-          timeout: 10000,
-          ontimeout: reject,
-        });
-      });
-
-      await gapi.client.init({
-        apiKey: API_KEY,
-        discoveryDocs: [DISCOVERY_DOC],
-      });
-
-      gapiInited = true;
-      maybeEnableApp();
-    }
-
-    function gisLoaded() {
       tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: CLIENT_ID,
         scope: SCOPES,
@@ -623,6 +605,7 @@
           if (response.error) {
             console.error(response);
             setStatus("Connection failed");
+            document.getElementById("searchMeta").textContent = getReadableError(response);
             return;
           }
 
@@ -639,18 +622,95 @@
             console.error(error);
             setStatus("Load failed");
             document.getElementById("searchMeta").textContent = getReadableError(error);
+            setSearchMessage("The cookbook loaded Google, but the Slides deck could not be indexed yet.");
           }
         },
       });
 
-      gisInited = true;
-      maybeEnableApp();
-    }
-
-    function maybeEnableApp() {
-      if (!gapiInited || !gisInited) return;
+      appReady = true;
       document.getElementById("connectBtn").disabled = false;
       restoreSessionIfPossible();
+    }
+
+    async function handleAuthClick() {
+      if (!appReady || !tokenClient) {
+        setStatus("Google still loading…");
+        document.getElementById("searchMeta").textContent = "Google tools are still starting. Try again in a second.";
+        return;
+      }
+
+      setStatus("Connecting…");
+      document.getElementById("searchMeta").textContent = "Waiting for Google sign-in approval…";
+
+      try {
+        const existingToken = gapi.client.getToken();
+        tokenClient.requestAccessToken({
+          prompt: existingToken ? "" : "consent",
+        });
+      } catch (error) {
+        console.error(error);
+        setStatus("Connection failed");
+        document.getElementById("searchMeta").textContent = getReadableError(error);
+      }
+    }
+
+    function initGapi() {
+      const startedAt = Date.now();
+
+      const waitForGapi = () => {
+        if (window.gapi && typeof window.gapi.load === "function") {
+          window.gapi.load("client", async () => {
+            try {
+              await window.gapi.client.init({
+                apiKey: API_KEY,
+                discoveryDocs: [DISCOVERY_DOC],
+              });
+              gapiInited = true;
+              ensureAppInitialized();
+            } catch (error) {
+              console.error("gapi init error:", error);
+              setStatus("Setup failed");
+              document.getElementById("searchMeta").textContent = getReadableError(error);
+              setSearchMessage("The Google Slides API did not finish loading correctly.");
+            }
+          });
+          return;
+        }
+
+        if (Date.now() - startedAt > 10000) {
+          setStatus("Google failed to load");
+          document.getElementById("searchMeta").textContent = "The Google API script did not finish loading.";
+          setSearchMessage("Check your internet connection or browser extensions, then refresh.");
+          return;
+        }
+
+        window.setTimeout(waitForGapi, 100);
+      };
+
+      waitForGapi();
+    }
+
+    function initGisReadyCheck() {
+      const startedAt = Date.now();
+
+      const waitForGoogle = () => {
+        if (window.google && google.accounts && google.accounts.oauth2) {
+          gisInited = true;
+          ensureAppInitialized();
+          return;
+        }
+
+        if (Date.now() - startedAt > 10000) {
+          setStatus("Google failed to load");
+          document.getElementById("searchMeta").textContent = "The Google sign-in script did not finish loading.";
+          setSearchMessage("Check your internet connection or browser extensions, then refresh.");
+          return;
+        }
+
+        window.setTimeout(waitForGoogle, 100);
+      };
+
+      waitForGoogle();
     }
 
     document.getElementById("backHomeBtn").addEventListener("click", () => {
@@ -686,16 +746,11 @@
     document.getElementById("connectBtn").disabled = true;
     document.getElementById("viewerFrame").src = getViewerUrl();
     setStatus("Loading Google tools…");
+    setSearchMessage("Waiting for Google Slides access…");
 
-    window.addEventListener("load", async () => {
-      try {
-        await gapiLoaded();
-        gisLoaded();
-      } catch (error) {
-        console.error(error);
-        setStatus("Setup failed");
-        document.getElementById("searchMeta").textContent = getReadableError(error);
-      }
+    window.addEventListener("load", () => {
+      initGapi();
+      initGisReadyCheck();
     });
   </script>
 </body>
