@@ -6,7 +6,7 @@
     name="viewport"
     content="width=device-width, initial-scale=1, viewport-fit=cover"
   />
-  <title>PocketSteak Family - Grocery List</title>
+  <title>PocketSteak Family - To-Do List</title>
 
   <style>
     :root {
@@ -267,7 +267,7 @@
       background: linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.05));
     }
 
-    .tile.bought {
+    .tile.done {
       opacity: 0.7;
       text-decoration: line-through;
     }
@@ -335,7 +335,7 @@
     <section class="card">
       <div class="topbar">
         <a class="btn btn-back" href="./index.html">← Back to Home</a>
-        <button id="clearAllBtn" class="btn btn-danger" type="button">Clear All Items</button>
+        <button id="clearAllBtn" class="btn btn-danger" type="button">Clear All Tasks</button>
         <div class="spacer"></div>
         <div id="statusPill" class="status-pill status-bad">
           <div class="status-label">GOOGLE</div>
@@ -347,7 +347,7 @@
       </div>
 
       <div style="margin-top: 20px;">
-        <h1>Grocery List</h1>
+        <h1>To-Do List</h1>
       </div>
     </section>
 
@@ -362,26 +362,26 @@
           autocomplete="off"
           autocapitalize="words"
           spellcheck="false"
-          placeholder="Add grocery item"
+          placeholder="Add to-do item"
         />
-        <button id="addBtn" class="btn btn-accent" type="button">Add Item</button>
+        <button id="addBtn" class="btn btn-accent" type="button">Add Task</button>
       </div>
 
-      <div class="helper">Tap a grocery tile to mark it bought.</div>
+      <div class="helper">Tap a task tile to mark it done.</div>
       <div id="message" class="message"></div>
     </section>
 
     <section class="card">
-      <h2 class="section-title">Active Items</h2>
+      <h2 class="section-title">Active Tasks</h2>
       <div id="activeList" class="tile-grid"></div>
-      <div id="activeEmpty" class="empty">No grocery items right now.</div>
+      <div id="activeEmpty" class="empty">No to-do items right now.</div>
     </section>
 
     <section class="card">
-      <h2 class="section-title">Bought Items</h2>
+      <h2 class="section-title">Done Tasks</h2>
       <div id="boughtList" class="tile-grid"></div>
-      <div id="boughtEmpty" class="empty">No bought items yet.</div>
-      <div class="subtle">Bought items stay here until you clear the list.</div>
+      <div id="boughtEmpty" class="empty">No completed tasks yet.</div>
+      <div class="subtle">Completed tasks stay here until you clear the list.</div>
     </section>
   </main>
 
@@ -393,7 +393,7 @@
     const GOOGLE_CLIENT_ID = "82204016171-ta1ipuu88gie0tkq69je3di5uifu1kki.apps.googleusercontent.com";
 
     const SPREADSHEET_ID = "1ccfVTfNqrrzMLkD4uK8fkWs3wRJENs5XQJHJfjkWmmY";
-    const SHEET_NAME = "Groceries";
+    const SHEET_NAME = "ToDo";
 
     // Session storage key for this page
     const SESSION_TOKEN_KEY = "pocketsteak_family_google_token";
@@ -474,8 +474,8 @@
       const third = String(row?.[2] || "").trim().toLowerCase();
 
       return (
-        ["item", "items", "grocery", "groceries", "name"].includes(first) ||
-        ["bought", "done", "status", "checked"].includes(second) ||
+        ["item", "items", "task", "tasks", "todo", "to-do", "name"].includes(first) ||
+        ["bought", "done", "status", "checked", "complete", "completed"].includes(second) ||
         ["created", "createdat", "timestamp", "date"].includes(third)
       );
     }
@@ -765,7 +765,7 @@
 
         itemInput.value = "";
         await loadGroceries();
-        showMessage("Item added.", "success");
+        showMessage("Task added.", "success");
         itemInput.focus();
       } catch (error) {
         console.error(error);
@@ -818,7 +818,7 @@
         });
 
         await loadGroceries();
-        showMessage(targetRow.bought ? "Item marked active." : "Item marked bought.", "success");
+        showMessage(targetRow.bought ? "Task marked active." : "Task marked done.", "success");
       } catch (error) {
         console.error(error);
         showMessage(getReadableError(error), "error");
@@ -837,7 +837,7 @@
         return;
       }
 
-      const confirmed = window.confirm("Clear all grocery items?");
+      const confirmed = window.confirm("Clear all to-do items?");
       if (!confirmed) return;
 
       setBusy(true);
@@ -860,7 +860,7 @@
         });
 
         await loadGroceries();
-        showMessage("All items cleared.", "success");
+        showMessage("All tasks cleared.", "success");
       } catch (error) {
         console.error(error);
         showMessage(getReadableError(error), "error");
@@ -893,7 +893,7 @@
       for (const row of boughtItems) {
         const button = document.createElement("button");
         button.type = "button";
-        button.className = "tile bought";
+        button.className = "tile done";
         button.innerHTML = escapeHtml(row.item);
         button.addEventListener("click", () => toggleBought(row));
         boughtListEl.appendChild(button);
