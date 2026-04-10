@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Family Cookbook</title>
+  <meta name="description" content="PocketSteak Family cookbook viewer." />
+
+  <style>
+    :root{
+      --panel:#1a1c22;
+      --panel-2:#22252d;
+      --surface:rgba(255,255,255,.045);
+      --border:rgba(255,255,255,.08);
+      --border-strong:rgba(255,255,255,.12);
+      --text:#f3f4f6;
+      --muted:#b8bcc8;
+      --accent:#ff7a18;
+      --shadow:0 16px 40px rgba(0,0,0,.35);
+      --radius:22px;
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%}
+
+    body{
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(900px 500px at 0% 0%, rgba(255,122,24,.12), transparent 55%),
+        linear-gradient(180deg,#0d0e11,#12141a 35%, #171922 100%);
+      color:var(--text);
+      padding:16px;
+    }
+
+    .page{
+      max-width:1600px;
+      margin:0 auto;
+      display:grid;
+      gap:16px;
+      min-height:calc(100vh - 32px);
+    }
+
+    .topbar,
+    .hero,
+    .viewer-shell{
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,.05), transparent 34%),
+        linear-gradient(180deg,var(--panel),var(--panel-2));
+      border:1px solid var(--border-strong);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      padding:14px 16px;
+    }
+
+    .top-actions{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .top-btn{
+      border:none;
+      color:var(--text);
+      min-height:48px;
+      padding:12px 16px;
+      font-size:15px;
+      font-weight:900;
+      cursor:pointer;
+      border-radius:16px;
+      background:rgba(255,255,255,.08);
+      transition:transform .18s ease, background .18s ease, filter .18s ease;
+    }
+
+    .top-btn:hover{
+      background:rgba(255,255,255,.14);
+      transform:translateY(-1px);
+    }
+
+    .top-btn.accent{
+      background:var(--accent);
+      color:#fff;
+    }
+
+    .top-btn.accent:hover{
+      filter:brightness(1.06);
+    }
+
+    .hero{
+      padding:18px 20px;
+      display:grid;
+      gap:8px;
+    }
+
+    .eyebrow{
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--accent);
+    }
+
+    .title{
+      font-size:clamp(1.9rem, 3vw, 2.6rem);
+      font-weight:850;
+      letter-spacing:-.02em;
+      line-height:1.03;
+    }
+
+    .meta{
+      font-size:14px;
+      color:var(--muted);
+      font-weight:700;
+      line-height:1.4;
+    }
+
+    .viewer-shell{
+      min-height:0;
+      padding:12px;
+      display:grid;
+      gap:10px;
+      flex:1 1 auto;
+    }
+
+    .viewer-frame{
+      width:100%;
+      min-height:0;
+      height:calc(100vh - 230px);
+      border:none;
+      border-radius:16px;
+      background:#111319;
+    }
+
+    .viewer-note{
+      font-size:13px;
+      color:var(--muted);
+      font-weight:700;
+    }
+
+    @media (max-width: 820px){
+      body{
+        padding:14px;
+      }
+
+      .top-actions{
+        width:100%;
+      }
+
+      .top-btn{
+        flex:1 1 0;
+      }
+
+      .viewer-frame{
+        height:calc(100vh - 250px);
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 900px){
+      body{
+        padding:12px;
+      }
+
+      .page{
+        gap:12px;
+        min-height:calc(100vh - 24px);
+      }
+
+      .topbar{
+        padding:12px 14px;
+      }
+
+      .top-btn{
+        min-height:44px;
+        padding:10px 14px;
+      }
+
+      .hero{
+        padding:14px 16px;
+      }
+
+      .viewer-frame{
+        height:calc(100vh - 200px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div class="top-actions">
+        <button class="top-btn" id="backHomeBtn" type="button">← Back to Home</button>
+      </div>
+      <div class="top-actions">
+        <button class="top-btn accent" id="openSlidesBtn" type="button">Open In Slides</button>
+      </div>
+    </div>
+
+    <section class="hero">
+      <div class="eyebrow">Family</div>
+      <div class="title">Cookbook</div>
+      <div class="meta">Your Google Slides cookbook, embedded into the family hub.</div>
+    </section>
+
+    <section class="viewer-shell">
+      <iframe
+        class="viewer-frame"
+        title="Family Cookbook"
+        src="https://docs.google.com/presentation/d/1bs7BSxqUOLhLSSHkPafRG8QOsu0nluZGeARFOKHmANU/embed?start=false&loop=false&delayms=30000"
+        allowfullscreen
+      ></iframe>
+      <div class="viewer-note">If the deck does not appear, the Google Slides file likely needs to be published to the web or shared to allow embedding.</div>
+    </section>
+  </div>
+
+  <script>
+    const SLIDES_URL = "https://docs.google.com/presentation/d/1bs7BSxqUOLhLSSHkPafRG8QOsu0nluZGeARFOKHmANU/edit?usp=sharing";
+
+    document.getElementById("backHomeBtn").addEventListener("click", () => {
+      window.location.href = "./index.html";
+    });
+
+    document.getElementById("openSlidesBtn").addEventListener("click", () => {
+      window.open(SLIDES_URL, "_blank", "noopener,noreferrer");
+    });
+  </script>
+</body>
+</html>

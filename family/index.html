@@ -952,6 +952,7 @@
     <div class="topbar">
       <div class="top-actions">
         <button class="top-btn" id="backAppsBtn" type="button">← Back to Apps</button>
+        <button class="top-btn" id="cookbookBtn" type="button">Cookbook</button>
       </div>
 
       <div class="top-right">
@@ -1588,6 +1589,9 @@
 
     document.getElementById("backAppsBtn").addEventListener("click", () => {
       window.location.href = "../index.html";
+    });
+    document.getElementById("cookbookBtn").addEventListener("click", () => {
+      window.location.href = "./cookbook.html";
     });
 
     document.getElementById("authBtn").addEventListener("click", handleAuthClick);
