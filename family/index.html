@@ -120,39 +120,115 @@
     }
 
     .weather-banner{
-      min-height:84px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:20px 24px;
-      gap:16px;
-      flex-wrap:wrap;
+      min-height:110px;
+      padding:14px 16px;
+      display:grid;
+      grid-template-columns:1.8fr repeat(6, 1fr);
+      gap:12px;
+      align-items:stretch;
+      user-select:none;
     }
 
-    .weather-left{
+    .weather-today,
+    .weather-day{
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.04);
+      border-radius:18px;
       display:flex;
       flex-direction:column;
+      justify-content:center;
+      min-width:0;
+    }
+
+    .weather-today{
+      padding:14px 16px;
       gap:6px;
     }
 
-    .weather-label{
-      font-size:14px;
-      font-weight:800;
+    .weather-day{
+      padding:10px 8px;
+      align-items:center;
+      text-align:center;
+      gap:4px;
+    }
+
+    .weather-location{
+      font-size:12px;
+      font-weight:900;
       letter-spacing:.08em;
       text-transform:uppercase;
       color:var(--muted);
     }
 
-    .weather-main{
-      font-size:28px;
+    .weather-today-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .weather-today-left{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width:0;
+    }
+
+    .weather-today-label{
+      font-size:16px;
       font-weight:900;
+      color:var(--text);
+    }
+
+    .weather-today-temp{
+      font-size:34px;
+      line-height:1;
+      font-weight:900;
+    }
+
+    .weather-today-details{
+      font-size:14px;
+      color:var(--muted);
+      font-weight:700;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .weather-icon{
+      font-size:28px;
+      line-height:1;
+      flex:0 0 auto;
+    }
+
+    .weather-day-name{
+      font-size:13px;
+      font-weight:900;
+      color:var(--text);
+      white-space:nowrap;
+    }
+
+    .weather-day-icon{
+      font-size:24px;
       line-height:1;
     }
 
-    .weather-sub{
-      font-size:16px;
+    .weather-day-temps{
+      font-size:13px;
+      font-weight:800;
+      color:var(--text);
+      white-space:nowrap;
+    }
+
+    .weather-day-condition{
+      font-size:11px;
+      font-weight:700;
       color:var(--muted);
-      font-weight:600;
+      line-height:1.15;
+      display:-webkit-box;
+      -webkit-line-clamp:2;
+      -webkit-box-orient:vertical;
+      overflow:hidden;
     }
 
     .home-layout{
@@ -336,6 +412,15 @@
       border-color:rgba(255,122,24,.45);
     }
 
+    @media (max-width: 1400px){
+      .weather-banner{
+        grid-template-columns:1.8fr repeat(3, 1fr);
+      }
+      .weather-day:nth-child(n+6){
+        display:none;
+      }
+    }
+
     @media (max-width: 1200px){
       .home-layout{
         grid-template-columns:1fr;
@@ -350,14 +435,24 @@
       }
     }
 
+    @media (max-width: 1000px){
+      .weather-banner{
+        grid-template-columns:1fr 1fr;
+      }
+      .weather-day{
+        min-height:92px;
+      }
+      .weather-today{
+        grid-column:1 / -1;
+      }
+      .weather-day:nth-child(n+5){
+        display:none;
+      }
+    }
+
     @media (max-width: 820px){
       body{
         padding:14px;
-      }
-
-      .weather-banner{
-        flex-direction:column;
-        align-items:flex-start;
       }
 
       .today-top{
@@ -389,6 +484,18 @@
       .status-pill{
         width:100%;
       }
+
+      .weather-banner{
+        grid-template-columns:1fr;
+      }
+
+      .weather-day{
+        display:none;
+      }
+
+      .weather-today{
+        grid-column:auto;
+      }
     }
 
     @media (max-width: 560px){
@@ -419,11 +526,17 @@
       </div>
     </div>
 
-    <section class="weather-banner">
-      <div class="weather-left">
-        <div class="weather-label">Weather</div>
-        <div class="weather-main" id="weatherMain">Weather banner placeholder</div>
-        <div class="weather-sub" id="weatherSub">We can hook this to a real API later.</div>
+    <section class="weather-banner" aria-label="Chardon Ohio 7 day weather" id="weatherBanner">
+      <div class="weather-today" id="weatherToday">
+        <div class="weather-location">Chardon, Ohio</div>
+        <div class="weather-today-row">
+          <div class="weather-today-left">
+            <div class="weather-today-label">Today</div>
+            <div class="weather-today-temp">--°</div>
+            <div class="weather-today-details">Loading weather…</div>
+          </div>
+          <div class="weather-icon">⛅</div>
+        </div>
       </div>
     </section>
 
@@ -463,6 +576,8 @@
 
     const TOKEN_KEY = "pocketsteak_google_access_token";
     const TOKEN_EXP_KEY = "pocketsteak_google_token_exp";
+
+    const WEATHER_URL = "https://api.open-meteo.com/v1/forecast?latitude=41.582011&longitude=-81.203217&current=temperature_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FNew_York&forecast_days=7";
 
     let tokenClient = null;
     let gapiInited = false;
@@ -639,6 +754,110 @@
       renderNextSixDays();
     }
 
+    function getWeatherMeta(code) {
+      const map = {
+        0: { icon: "☀️", text: "Clear" },
+        1: { icon: "🌤️", text: "Mostly clear" },
+        2: { icon: "⛅", text: "Partly cloudy" },
+        3: { icon: "☁️", text: "Cloudy" },
+        45: { icon: "🌫️", text: "Fog" },
+        48: { icon: "🌫️", text: "Rime fog" },
+        51: { icon: "🌦️", text: "Light drizzle" },
+        53: { icon: "🌦️", text: "Drizzle" },
+        55: { icon: "🌧️", text: "Heavy drizzle" },
+        56: { icon: "🌧️", text: "Freezing drizzle" },
+        57: { icon: "🌧️", text: "Heavy freezing drizzle" },
+        61: { icon: "🌦️", text: "Light rain" },
+        63: { icon: "🌧️", text: "Rain" },
+        65: { icon: "🌧️", text: "Heavy rain" },
+        66: { icon: "🌧️", text: "Freezing rain" },
+        67: { icon: "🌧️", text: "Heavy freezing rain" },
+        71: { icon: "🌨️", text: "Light snow" },
+        73: { icon: "❄️", text: "Snow" },
+        75: { icon: "❄️", text: "Heavy snow" },
+        77: { icon: "🌨️", text: "Snow grains" },
+        80: { icon: "🌦️", text: "Rain showers" },
+        81: { icon: "🌧️", text: "Heavy showers" },
+        82: { icon: "⛈️", text: "Violent showers" },
+        85: { icon: "🌨️", text: "Snow showers" },
+        86: { icon: "❄️", text: "Heavy snow showers" },
+        95: { icon: "⛈️", text: "Thunderstorm" },
+        96: { icon: "⛈️", text: "Storm with hail" },
+        99: { icon: "⛈️", text: "Heavy storm with hail" }
+      };
+      return map[code] || { icon: "🌤️", text: "Weather" };
+    }
+
+    function renderWeather(data) {
+      const banner = document.getElementById("weatherBanner");
+      const daily = data.daily;
+      const current = data.current;
+
+      const todayMeta = getWeatherMeta(current.weather_code);
+      const todayMax = Math.round(daily.temperature_2m_max[0]);
+      const todayMin = Math.round(daily.temperature_2m_min[0]);
+      const currentTemp = Math.round(current.temperature_2m);
+      const wind = Math.round(current.wind_speed_10m);
+
+      const todayHtml = `
+        <div class="weather-today" id="weatherToday">
+          <div class="weather-location">Chardon, Ohio</div>
+          <div class="weather-today-row">
+            <div class="weather-today-left">
+              <div class="weather-today-label">Today</div>
+              <div class="weather-today-temp">${currentTemp}°</div>
+              <div class="weather-today-details">${todayMeta.text} • H ${todayMax}° / L ${todayMin}° • Wind ${wind} mph</div>
+            </div>
+            <div class="weather-icon">${todayMeta.icon}</div>
+          </div>
+        </div>
+      `;
+
+      const nextDaysHtml = daily.time.slice(1, 7).map((dateStr, idx) => {
+        const dayIndex = idx + 1;
+        const meta = getWeatherMeta(daily.weather_code[dayIndex]);
+        const date = new Date(`${dateStr}T12:00:00`);
+        const label = idx === 0 ? "Tomorrow" : date.toLocaleDateString(undefined, { weekday: "short" });
+        const high = Math.round(daily.temperature_2m_max[dayIndex]);
+        const low = Math.round(daily.temperature_2m_min[dayIndex]);
+
+        return `
+          <div class="weather-day">
+            <div class="weather-day-name">${label}</div>
+            <div class="weather-day-icon">${meta.icon}</div>
+            <div class="weather-day-temps">${high}° / ${low}°</div>
+            <div class="weather-day-condition">${meta.text}</div>
+          </div>
+        `;
+      }).join("");
+
+      banner.innerHTML = todayHtml + nextDaysHtml;
+    }
+
+    async function loadWeather() {
+      try {
+        const resp = await fetch(WEATHER_URL);
+        if (!resp.ok) throw new Error("Weather request failed");
+        const data = await resp.json();
+        renderWeather(data);
+      } catch (err) {
+        console.error(err);
+        document.getElementById("weatherBanner").innerHTML = `
+          <div class="weather-today">
+            <div class="weather-location">Chardon, Ohio</div>
+            <div class="weather-today-row">
+              <div class="weather-today-left">
+                <div class="weather-today-label">Weather</div>
+                <div class="weather-today-temp">--</div>
+                <div class="weather-today-details">Could not load weather right now.</div>
+              </div>
+              <div class="weather-icon">🌤️</div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
     async function gapiLoaded() {
       await new Promise((resolve) => gapi.load("client", resolve));
       await gapi.client.init({
@@ -787,6 +1006,8 @@
     });
 
     renderAll();
+    loadWeather();
+
     document.getElementById("authBtn").disabled = true;
     setStatus("Loading Google tools…");
 
