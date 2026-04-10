@@ -260,6 +260,35 @@
       gap:8px;
     }
 
+    .time-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:14px;
+    }
+
+    .duration-row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .duration-btn{
+      border:none;
+      border-radius:14px;
+      padding:12px 14px;
+      min-height:48px;
+      background:rgba(255,255,255,.08);
+      color:var(--text);
+      font-size:14px;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .duration-btn.active{
+      background:var(--accent);
+      color:#fff;
+    }
+
     .field label{
       font-size:14px;
       font-weight:800;
@@ -358,6 +387,10 @@
       .status-pill{
         width:100%;
       }
+
+      .time-grid{
+        grid-template-columns:1fr;
+      }
     }
   </style>
 
@@ -415,14 +448,26 @@
           <input id="eventDate" type="date" />
         </div>
 
-        <div class="field">
-          <label for="eventStart">Start Time</label>
-          <input id="eventStart" type="time" />
+        <div class="time-grid">
+          <div class="field">
+            <label for="eventStart">Start Time</label>
+            <select id="eventStart"></select>
+          </div>
+
+          <div class="field">
+            <label for="eventEnd">End Time</label>
+            <select id="eventEnd"></select>
+          </div>
         </div>
 
         <div class="field">
-          <label for="eventEnd">End Time</label>
-          <input id="eventEnd" type="time" />
+          <label>Quick Duration</label>
+          <div class="duration-row" id="durationRow">
+            <button class="duration-btn active" data-duration="30" type="button">30 min</button>
+            <button class="duration-btn" data-duration="60" type="button">1 hour</button>
+            <button class="duration-btn" data-duration="90" type="button">90 min</button>
+            <button class="duration-btn" data-duration="120" type="button">2 hours</button>
+          </div>
         </div>
       </div>
 
@@ -463,6 +508,7 @@
     let calendarsById = new Map();
     let dayEvents = [];
     let editingEvent = null;
+    let selectedDuration = 30;
 
     function setStatus(text) {
       document.getElementById("statusText").textContent = text;
@@ -534,6 +580,65 @@
       `;
     }
 
+    function minutesToTime(minutes) {
+      const safeMinutes = Math.max(START_HOUR * 60, Math.min(minutes, END_HOUR * 60));
+      const hour = Math.floor(safeMinutes / 60);
+      const minute = safeMinutes % 60;
+      return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+    }
+
+    function populateTimeOptions() {
+      const startSelect = document.getElementById("eventStart");
+      const endSelect = document.getElementById("eventEnd");
+      const options = [];
+
+      for (let minutes = START_HOUR * 60; minutes <= END_HOUR * 60; minutes += SLOT_MINUTES) {
+        const value = minutesToTime(minutes);
+        options.push(`<option value="${value}">${formatTimeOption(value)}</option>`);
+      }
+
+      startSelect.innerHTML = `<option value="">Choose start time</option>${options.join("")}`;
+      endSelect.innerHTML = `<option value="">Choose end time</option>${options.join("")}`;
+    }
+
+    function formatTimeOption(timeStr) {
+      const [hour, minute] = timeStr.split(":").map(Number);
+      const date = new Date();
+      date.setHours(hour, minute, 0, 0);
+      return date.toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit"
+      });
+    }
+
+    function setDurationButtonsActive(duration) {
+      selectedDuration = duration;
+      document.querySelectorAll(".duration-btn").forEach((button) => {
+        button.classList.toggle("active", Number(button.dataset.duration) === duration);
+      });
+    }
+
+    function suggestEndTime(startValue, duration = selectedDuration) {
+      if (!startValue) return;
+      const startMinutes = timeToMinutes(startValue);
+      const endMinutes = Math.min(startMinutes + duration, END_HOUR * 60);
+      const endValue = minutesToTime(endMinutes);
+      document.getElementById("eventEnd").value = endValue;
+    }
+
+    function openAddModalAtTime(startValue = "", duration = 60) {
+      openAddModal();
+
+      if (!startValue) {
+        setDurationButtonsActive(duration);
+        return;
+      }
+
+      document.getElementById("eventStart").value = startValue;
+      setDurationButtonsActive(duration);
+      suggestEndTime(startValue, duration);
+    }
+
     function buildTimelineShell() {
       const timeCol = document.getElementById("timeCol");
       const eventsCol = document.getElementById("eventsCol");
@@ -543,13 +648,21 @@
 
       for (let hour = START_HOUR; hour < END_HOUR; hour++) {
         for (let half = 0; half < 2; half++) {
+          const slotMinutes = (hour * 60) + (half * SLOT_MINUTES);
+          const slotTime = minutesToTime(slotMinutes);
+
           const timeSlot = document.createElement("div");
           timeSlot.className = `time-slot ${half === 1 ? "half" : ""}`;
           timeSlot.textContent = half === 0 ? formatHour(hour) : "";
+          timeSlot.dataset.time = slotTime;
+          timeSlot.style.cursor = "pointer";
+          timeSlot.addEventListener("click", () => openAddModalAtTime(slotTime));
           timeCol.appendChild(timeSlot);
 
           const eventSlot = document.createElement("div");
           eventSlot.className = "event-slot";
+          eventSlot.dataset.time = slotTime;
+          eventSlot.addEventListener("click", () => openAddModalAtTime(slotTime));
           eventsCol.appendChild(eventSlot);
         }
       }
@@ -763,6 +876,7 @@
       document.getElementById("eventDate").value = selectedDate;
       document.getElementById("eventStart").value = "";
       document.getElementById("eventEnd").value = "";
+      setDurationButtonsActive(30);
 
       document.getElementById("eventModal").classList.add("open");
     }
@@ -790,6 +904,16 @@
         document.getElementById("eventEnd").value = `${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes()).padStart(2, "0")}`;
       } else {
         document.getElementById("eventEnd").value = "";
+      }
+
+      if (event.start?.dateTime && event.end?.dateTime) {
+        const start = new Date(event.start.dateTime);
+        const end = new Date(event.end.dateTime);
+        const duration = Math.max(SLOT_MINUTES, (end.getTime() - start.getTime()) / 60000);
+        const rounded = [30, 60, 90, 120].includes(duration) ? duration : 60;
+        setDurationButtonsActive(rounded);
+      } else {
+        setDurationButtonsActive(60);
       }
 
       document.getElementById("eventModal").classList.add("open");
@@ -931,6 +1055,27 @@
     document.getElementById("cancelBtn").addEventListener("click", closeModal);
     document.getElementById("saveBtn").addEventListener("click", saveForm);
     document.getElementById("deleteBtn").addEventListener("click", deleteEvent);
+    document.getElementById("eventStart").addEventListener("change", () => {
+      const startValue = document.getElementById("eventStart").value;
+      const endValue = document.getElementById("eventEnd").value;
+
+      if (!startValue) return;
+      if (!endValue || endValue <= startValue) {
+        suggestEndTime(startValue);
+      }
+    });
+
+    document.querySelectorAll(".duration-btn").forEach((button) => {
+      button.addEventListener("click", () => {
+        const duration = Number(button.dataset.duration);
+        setDurationButtonsActive(duration);
+
+        const startValue = document.getElementById("eventStart").value;
+        if (startValue) {
+          suggestEndTime(startValue, duration);
+        }
+      });
+    });
 
     document.getElementById("eventModal").addEventListener("click", (e) => {
       if (e.target.id === "eventModal") {
@@ -939,6 +1084,8 @@
     });
 
     renderAll();
+    populateTimeOptions();
+    setDurationButtonsActive(30);
     document.getElementById("authBtn").disabled = true;
 
     window.addEventListener("load", async () => {
