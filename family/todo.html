@@ -21,6 +21,10 @@
       --accent: #ff8a1f;
       --accent-hover: #e97812;
       --success: #16a34a;
+      --owner-andrew: #ff8a1f;
+      --owner-nichol: #8b5cf6;
+      --owner-jolie: #22c55e;
+      --owner-default: #ec4899;
       --shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
       --radius-xl: 28px;
       --radius-lg: 22px;
@@ -179,7 +183,7 @@
 
     .input-row {
       display: grid;
-      grid-template-columns: 1fr auto;
+      grid-template-columns: minmax(0, 1fr) 260px auto;
       gap: 18px;
       align-items: center;
     }
@@ -203,6 +207,26 @@
     }
 
     .item-input:focus {
+      border-color: rgba(255, 138, 31, 0.6);
+      box-shadow: 0 0 0 4px rgba(255, 138, 31, 0.14);
+    }
+
+    .owner-select {
+      width: 100%;
+      min-height: 82px;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      font-size: 1.15rem;
+      font-weight: 800;
+      padding: 0 24px;
+      outline: none;
+      appearance: none;
+      cursor: pointer;
+    }
+
+    .owner-select:focus {
       border-color: rgba(255, 138, 31, 0.6);
       box-shadow: 0 0 0 4px rgba(255, 138, 31, 0.14);
     }
@@ -257,6 +281,54 @@
       transition: transform 0.12s ease, background 0.12s ease, opacity 0.12s ease;
       -webkit-tap-highlight-color: transparent;
       word-break: break-word;
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .tile-title {
+      font-size: 1.65rem;
+      font-weight: 850;
+      line-height: 1.15;
+    }
+
+    .tile-owner {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      width: fit-content;
+      min-height: 34px;
+      padding: 0 14px;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      font-weight: 900;
+      letter-spacing: 0.03em;
+      color: #fff;
+      background: var(--owner-default);
+    }
+
+    .tile-owner.andrew {
+      background: var(--owner-andrew);
+    }
+
+    .tile-owner.nichol {
+      background: var(--owner-nichol);
+    }
+
+    .tile-owner.jolie {
+      background: var(--owner-jolie);
+    }
+
+    .tile-owner.default {
+      background: var(--owner-default);
+    }
+
+    .tile-owner-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.92);
+      flex: 0 0 auto;
     }
 
     .tile:active {
@@ -339,7 +411,8 @@
       }
 
       .btn,
-      .item-input {
+      .item-input,
+      .owner-select {
         font-size: 1.35rem;
       }
     }
@@ -358,6 +431,7 @@
 
       .btn,
       .item-input,
+      .owner-select,
       .tile {
         font-size: 1.15rem;
       }
@@ -411,6 +485,12 @@
           spellcheck="false"
           placeholder="Add to-do item"
         />
+        <select id="ownerSelect" class="owner-select" aria-label="Who added this task">
+          <option value="">Who added this? Optional</option>
+          <option value="Andrew">Andrew</option>
+          <option value="Nichol">Nichol</option>
+          <option value="Jolie">Jolie</option>
+        </select>
         <button id="addBtn" class="btn btn-accent" type="button">Add Task</button>
       </div>
 
@@ -468,6 +548,7 @@
     const clearAllBtn = document.getElementById("clearAllBtn");
     const addBtn = document.getElementById("addBtn");
     const itemInput = document.getElementById("itemInput");
+    const ownerSelect = document.getElementById("ownerSelect");
     const messageEl = document.getElementById("message");
     const activeListEl = document.getElementById("activeList");
     const activeEmptyEl = document.getElementById("activeEmpty");
@@ -484,6 +565,7 @@
       clearAllBtn.disabled = value || !isConnected;
       connectBtn.disabled = value && appReady;
       itemInput.disabled = value || !isConnected;
+      ownerSelect.disabled = value || !isConnected;
       inputCard.classList.toggle("loading", value);
     }
 
@@ -515,15 +597,36 @@
       return str === "true" || str === "yes" || str === "1" || str === "y";
     }
 
+    function normalizeOwner(value) {
+      const str = String(value || "").trim().toLowerCase();
+      if (str === "andrew") return "Andrew";
+      if (str === "nichol") return "Nichol";
+      if (str === "jolie") return "Jolie";
+      return "";
+    }
+
+    function getOwnerClassName(owner) {
+      if (owner === "Andrew") return "andrew";
+      if (owner === "Nichol") return "nichol";
+      if (owner === "Jolie") return "jolie";
+      return "default";
+    }
+
+    function getOwnerLabel(owner) {
+      return owner || "Unassigned";
+    }
+
     function isLikelyHeaderRow(row) {
       const first = String(row?.[0] || "").trim().toLowerCase();
       const second = String(row?.[1] || "").trim().toLowerCase();
       const third = String(row?.[2] || "").trim().toLowerCase();
+      const fourth = String(row?.[3] || "").trim().toLowerCase();
 
       return (
         ["item", "items", "task", "tasks", "todo", "to-do", "name"].includes(first) ||
         ["bought", "done", "status", "checked", "complete", "completed"].includes(second) ||
-        ["created", "createdat", "timestamp", "date"].includes(third)
+        ["created", "createdat", "timestamp", "date"].includes(third) ||
+        ["owner", "person", "addedby", "added by", "who"].includes(fourth)
       );
     }
 
@@ -745,7 +848,7 @@
     async function testSheetsAccess() {
       await gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!A:C`,
+        range: `${SHEET_NAME}!A:D`,
       });
     }
 
@@ -758,7 +861,7 @@
 
       const response = await gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!A:C`,
+        range: `${SHEET_NAME}!A:D`,
       });
 
       const values = response.result.values || [];
@@ -775,6 +878,7 @@
           item: String(row[0] || "").trim(),
           bought: normalizeBool(row[1]),
           createdAt: String(row[2] || "").trim(),
+          owner: normalizeOwner(row[3]),
         };
       }).filter(row => row.item);
 
@@ -784,6 +888,7 @@
 
     async function addItem() {
       const item = itemInput.value.trim();
+      const owner = normalizeOwner(ownerSelect.value);
 
       if (!isConnected) {
         showMessage("Connect Google first.", "error");
@@ -802,15 +907,16 @@
       try {
         await gapi.client.sheets.spreadsheets.values.append({
           spreadsheetId: SPREADSHEET_ID,
-          range: `${SHEET_NAME}!A:C`,
+          range: `${SHEET_NAME}!A:D`,
           valueInputOption: "USER_ENTERED",
           insertDataOption: "INSERT_ROWS",
           resource: {
-            values: [[item, "FALSE", new Date().toISOString()]],
+            values: [[item, "FALSE", new Date().toISOString(), owner]],
           },
         });
 
         itemInput.value = "";
+        ownerSelect.value = "";
         await loadGroceries();
         showMessage("Task added.", "success");
         itemInput.focus();
@@ -824,7 +930,7 @@
     async function findSheetRowNumber(targetRow) {
       const response = await gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!A:C`,
+        range: `${SHEET_NAME}!A:D`,
       });
 
       const values = response.result.values || [];
@@ -893,7 +999,7 @@
       try {
         const response = await gapi.client.sheets.spreadsheets.values.get({
           spreadsheetId: SPREADSHEET_ID,
-          range: `${SHEET_NAME}!A:C`,
+          range: `${SHEET_NAME}!A:D`,
         });
 
         const values = response.result.values || [];
@@ -903,7 +1009,7 @@
 
         await gapi.client.sheets.spreadsheets.values.clear({
           spreadsheetId: SPREADSHEET_ID,
-          range: `${SHEET_NAME}!A${startRow}:C`,
+          range: `${SHEET_NAME}!A${startRow}:D`,
         });
 
         await loadGroceries();
@@ -932,7 +1038,13 @@
         const button = document.createElement("button");
         button.type = "button";
         button.className = "tile";
-        button.innerHTML = escapeHtml(row.item);
+        button.innerHTML = `
+          <div class="tile-title">${escapeHtml(row.item)}</div>
+          <div class="tile-owner ${getOwnerClassName(row.owner)}">
+            <span class="tile-owner-dot"></span>
+            ${escapeHtml(getOwnerLabel(row.owner))}
+          </div>
+        `;
         button.addEventListener("click", () => toggleBought(row));
         activeListEl.appendChild(button);
       }
@@ -941,7 +1053,13 @@
         const button = document.createElement("button");
         button.type = "button";
         button.className = "tile done";
-        button.innerHTML = escapeHtml(row.item);
+        button.innerHTML = `
+          <div class="tile-title">${escapeHtml(row.item)}</div>
+          <div class="tile-owner ${getOwnerClassName(row.owner)}">
+            <span class="tile-owner-dot"></span>
+            ${escapeHtml(getOwnerLabel(row.owner))}
+          </div>
+        `;
         button.addEventListener("click", () => toggleBought(row));
         boughtListEl.appendChild(button);
       }

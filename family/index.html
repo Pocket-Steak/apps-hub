@@ -510,14 +510,6 @@
       gap:8px;
     }
 
-    .preview-label{
-      font-size:12px;
-      font-weight:900;
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      color:var(--accent-2);
-    }
-
     .preview-title{
       font-size:26px;
       line-height:1.02;
@@ -588,6 +580,17 @@
       font-size:12px;
       font-weight:800;
       color:var(--muted);
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .owner-dot{
+      width:10px;
+      height:10px;
+      border-radius:999px;
+      flex:0 0 auto;
     }
 
     .preview-empty{
@@ -918,7 +921,6 @@
       <article class="preview-card" id="groceryPreviewCard">
         <div class="preview-head">
           <div class="preview-heading">
-            <div class="preview-label">Family Hub</div>
             <div class="preview-title">Grocery List</div>
             <div class="preview-meta" id="groceryPreviewMeta">Connect Google to load grocery items.</div>
           </div>
@@ -932,7 +934,6 @@
         <article class="preview-card" id="todoPreviewCard">
         <div class="preview-head">
           <div class="preview-heading">
-            <div class="preview-label">Family Hub</div>
             <div class="preview-title">To-Do List</div>
             <div class="preview-meta" id="todoPreviewMeta">Connect Google to load to-do items.</div>
           </div>
@@ -1073,15 +1074,36 @@
       return str === "true" || str === "yes" || str === "1" || str === "y";
     }
 
+    function normalizeOwner(value) {
+      const str = String(value || "").trim().toLowerCase();
+      if (str === "andrew") return "Andrew";
+      if (str === "nichol") return "Nichol";
+      if (str === "jolie") return "Jolie";
+      return "";
+    }
+
+    function getOwnerColor(owner) {
+      if (owner === "Andrew") return "#ff8a1f";
+      if (owner === "Nichol") return "#8b5cf6";
+      if (owner === "Jolie") return "#22c55e";
+      return "#ec4899";
+    }
+
+    function getOwnerLabel(owner) {
+      return owner || "Unassigned";
+    }
+
     function isLikelyHeaderRow(row) {
       const first = String(row?.[0] || "").trim().toLowerCase();
       const second = String(row?.[1] || "").trim().toLowerCase();
       const third = String(row?.[2] || "").trim().toLowerCase();
+      const fourth = String(row?.[3] || "").trim().toLowerCase();
 
       return (
         ["item", "items", "task", "tasks", "todo", "to-do", "grocery", "groceries", "name"].includes(first) ||
         ["bought", "done", "status", "checked", "complete", "completed"].includes(second) ||
-        ["created", "createdat", "timestamp", "date"].includes(third)
+        ["created", "createdat", "timestamp", "date"].includes(third) ||
+        ["owner", "person", "addedby", "added by", "who"].includes(fourth)
       );
     }
 
@@ -1202,7 +1224,10 @@
         ? previewRows.map(row => `
             <div class="preview-item${row.done ? " done" : ""}">
               <div class="preview-item-title">${escapeHtml(row.title)}</div>
-              <div class="preview-item-meta">${row.done ? "Completed" : "Ready for action"}</div>
+              <div class="preview-item-meta">
+                <span class="owner-dot" style="background:${getOwnerColor(row.owner)}"></span>
+                ${row.done ? "Completed" : "Ready for action"} • ${escapeHtml(getOwnerLabel(row.owner))}
+              </div>
             </div>
           `).join("")
         : `<div class="preview-empty">Everything here is completed.</div>`;
@@ -1211,7 +1236,7 @@
     async function loadSheetPreview(sheetName) {
       const response = await gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${sheetName}!A:C`,
+        range: `${sheetName}!A:D`,
       });
 
       const values = response.result.values || [];
@@ -1222,6 +1247,7 @@
           title: String(row[0] || "").trim(),
           done: normalizeBool(row[1]),
           createdAt: String(row[2] || "").trim(),
+          owner: normalizeOwner(row[3]),
         }))
         .filter((row) => row.title);
     }
