@@ -397,6 +397,110 @@
       gap:16px;
     }
 
+    .preview-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:20px;
+    }
+
+    .preview-card{
+      min-height:320px;
+      padding:22px;
+      display:grid;
+      gap:16px;
+      cursor:pointer;
+      transition:transform .15s ease, border-color .15s ease;
+    }
+
+    .preview-card:hover{
+      transform:translateY(-3px);
+      border-color:rgba(255,122,24,.45);
+    }
+
+    .preview-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:16px;
+    }
+
+    .preview-heading{
+      display:grid;
+      gap:6px;
+    }
+
+    .preview-label{
+      font-size:14px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--accent-2);
+    }
+
+    .preview-title{
+      font-size:32px;
+      line-height:1;
+      font-weight:900;
+    }
+
+    .preview-meta{
+      font-size:14px;
+      font-weight:800;
+      color:var(--muted);
+    }
+
+    .preview-open{
+      border:none;
+      background:rgba(255,122,24,.16);
+      color:var(--accent-2);
+      padding:12px 14px;
+      border-radius:14px;
+      font-size:14px;
+      font-weight:900;
+      min-width:118px;
+      cursor:pointer;
+    }
+
+    .preview-list{
+      display:grid;
+      gap:12px;
+      align-content:start;
+    }
+
+    .preview-item{
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.05);
+      border-left:5px solid var(--accent);
+      border-radius:16px;
+      padding:12px 14px;
+      display:grid;
+      gap:4px;
+    }
+
+    .preview-item.done{
+      opacity:.72;
+      border-left-color:rgba(255,255,255,.18);
+    }
+
+    .preview-item-title{
+      font-size:18px;
+      font-weight:850;
+      line-height:1.2;
+      word-break:break-word;
+    }
+
+    .preview-item-meta{
+      font-size:12px;
+      font-weight:800;
+      color:var(--muted);
+    }
+
+    .preview-empty{
+      color:var(--muted);
+      font-weight:700;
+      padding:6px 2px;
+    }
+
     .nav-btn{
       border:none;
       color:var(--text);
@@ -451,6 +555,10 @@
 
       .days-grid{
         grid-template-columns:repeat(3, 1fr);
+      }
+
+      .preview-grid{
+        grid-template-columns:1fr;
       }
 
       .nav-row{
@@ -554,6 +662,10 @@
         grid-template-columns:repeat(2, 1fr);
       }
 
+      .preview-title{
+        font-size:28px;
+      }
+
       .today-date{
         font-size:36px;
       }
@@ -601,6 +713,20 @@
       .days-grid,
       .nav-row{
         grid-template-columns:1fr;
+      }
+
+      .preview-card{
+        min-height:auto;
+        padding:18px;
+      }
+
+      .preview-head{
+        flex-direction:column;
+        align-items:stretch;
+      }
+
+      .preview-open{
+        width:100%;
       }
 
       .weather-banner{
@@ -670,6 +796,36 @@
       <section class="days-grid" id="daysGrid"></section>
     </section>
 
+    <section class="preview-grid">
+      <article class="today-card preview-card" id="groceryPreviewCard">
+        <div class="preview-head">
+          <div class="preview-heading">
+            <div class="preview-label">Family Hub</div>
+            <div class="preview-title">Grocery List</div>
+            <div class="preview-meta" id="groceryPreviewMeta">Connect Google to load grocery items.</div>
+          </div>
+          <button class="preview-open" id="groceryPreviewBtn" type="button">Open List</button>
+        </div>
+        <div class="preview-list" id="groceryPreviewList">
+          <div class="preview-empty">Waiting for Google Sheets…</div>
+        </div>
+      </article>
+
+      <article class="today-card preview-card" id="todoPreviewCard">
+        <div class="preview-head">
+          <div class="preview-heading">
+            <div class="preview-label">Family Hub</div>
+            <div class="preview-title">To-Do List</div>
+            <div class="preview-meta" id="todoPreviewMeta">Connect Google to load to-do items.</div>
+          </div>
+          <button class="preview-open" id="todoPreviewBtn" type="button">Open List</button>
+        </div>
+        <div class="preview-list" id="todoPreviewList">
+          <div class="preview-empty">Waiting for Google Sheets…</div>
+        </div>
+      </article>
+    </section>
+
     <section class="nav-row">
       <button class="nav-btn" data-target="Calendar" type="button">Calendar</button>
       <button class="nav-btn" data-target="Grocery List" type="button">Grocery List</button>
@@ -684,7 +840,14 @@
     const CLIENT_ID = "82204016171-ta1ipuu88gie0tkq69je3di5uifu1kki.apps.googleusercontent.com";
     const API_KEY = "AIzaSyBPZEeYB8IaheJPJA2Y44msGfDwIhJMpGU";
     const DISCOVERY_DOC = "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest";
-    const SCOPES = "https://www.googleapis.com/auth/calendar";
+    const SHEETS_DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
+    const SPREADSHEET_ID = "1ccfVTfNqrrzMLkD4uK8fkWs3wRJENs5XQJHJfjkWmmY";
+    const GROCERY_SHEET_NAME = "Groceries";
+    const TODO_SHEET_NAME = "ToDo";
+    const SCOPES = [
+      "https://www.googleapis.com/auth/calendar",
+      "https://www.googleapis.com/auth/spreadsheets.readonly",
+    ].join(" ");
 
     const TOKEN_KEY = "pocketsteak_google_access_token";
     const TOKEN_EXP_KEY = "pocketsteak_google_token_exp";
@@ -696,6 +859,8 @@
     let gisInited = false;
     let calendarsById = new Map();
     let weekEvents = [];
+    let groceryPreviewRows = [];
+    let todoPreviewRows = [];
 
     function setStatus(text) {
       document.getElementById("statusText").textContent = text;
@@ -793,6 +958,32 @@
         });
     }
 
+    function normalizeBool(value) {
+      const str = String(value || "").trim().toLowerCase();
+      return str === "true" || str === "yes" || str === "1" || str === "y";
+    }
+
+    function isLikelyHeaderRow(row) {
+      const first = String(row?.[0] || "").trim().toLowerCase();
+      const second = String(row?.[1] || "").trim().toLowerCase();
+      const third = String(row?.[2] || "").trim().toLowerCase();
+
+      return (
+        ["item", "items", "task", "tasks", "todo", "to-do", "grocery", "groceries", "name"].includes(first) ||
+        ["bought", "done", "status", "checked", "complete", "completed"].includes(second) ||
+        ["created", "createdat", "timestamp", "date"].includes(third)
+      );
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
     function renderToday() {
       const today = new Date();
       const todayKey = formatDateKey(today);
@@ -864,6 +1055,88 @@
     function renderAll() {
       renderToday();
       renderNextSixDays();
+      renderPreviewCard({
+        rows: groceryPreviewRows,
+        listId: "groceryPreviewList",
+        metaId: "groceryPreviewMeta",
+        emptyText: "No grocery items right now.",
+        activeLabel: "items to grab",
+        doneLabel: "bought",
+      });
+      renderPreviewCard({
+        rows: todoPreviewRows,
+        listId: "todoPreviewList",
+        metaId: "todoPreviewMeta",
+        emptyText: "No to-do items right now.",
+        activeLabel: "active tasks",
+        doneLabel: "done",
+      });
+    }
+
+    function renderPreviewCard({ rows, listId, metaId, emptyText, activeLabel, doneLabel }) {
+      const listEl = document.getElementById(listId);
+      const metaEl = document.getElementById(metaId);
+
+      const activeRows = rows.filter(row => !row.done);
+      const doneRows = rows.filter(row => row.done);
+      const previewRows = activeRows.slice(0, 4);
+
+      if (rows.length === 0) {
+        metaEl.textContent = emptyText;
+        listEl.innerHTML = `<div class="preview-empty">${emptyText}</div>`;
+        return;
+      }
+
+      metaEl.textContent = `${activeRows.length} ${activeLabel} • ${doneRows.length} ${doneLabel}`;
+      listEl.innerHTML = previewRows.length
+        ? previewRows.map(row => `
+            <div class="preview-item${row.done ? " done" : ""}">
+              <div class="preview-item-title">${escapeHtml(row.title)}</div>
+              <div class="preview-item-meta">${row.done ? "Completed" : "Ready for action"}</div>
+            </div>
+          `).join("")
+        : `<div class="preview-empty">Everything here is completed.</div>`;
+    }
+
+    async function loadSheetPreview(sheetName) {
+      const response = await gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${sheetName}!A:C`,
+      });
+
+      const values = response.result.values || [];
+      const startIndex = values.length > 0 && isLikelyHeaderRow(values[0]) ? 1 : 0;
+
+      return values.slice(startIndex)
+        .map((row) => ({
+          title: String(row[0] || "").trim(),
+          done: normalizeBool(row[1]),
+          createdAt: String(row[2] || "").trim(),
+        }))
+        .filter((row) => row.title);
+    }
+
+    async function loadDashboardLists() {
+      try {
+        const [groceryRows, todoRows] = await Promise.all([
+          loadSheetPreview(GROCERY_SHEET_NAME),
+          loadSheetPreview(TODO_SHEET_NAME),
+        ]);
+
+        groceryPreviewRows = groceryRows;
+        todoPreviewRows = todoRows;
+      } catch (err) {
+        console.error(err);
+        groceryPreviewRows = [];
+        todoPreviewRows = [];
+        document.getElementById("groceryPreviewMeta").textContent = "Could not load grocery preview.";
+        document.getElementById("todoPreviewMeta").textContent = "Could not load to-do preview.";
+        document.getElementById("groceryPreviewList").innerHTML = `<div class="preview-empty">Refresh Google access to load this list.</div>`;
+        document.getElementById("todoPreviewList").innerHTML = `<div class="preview-empty">Refresh Google access to load this list.</div>`;
+        return;
+      }
+
+      renderAll();
     }
 
     function getWeatherMeta(code) {
@@ -974,7 +1247,7 @@
       await new Promise((resolve) => gapi.load("client", resolve));
       await gapi.client.init({
         apiKey: API_KEY,
-        discoveryDocs: [DISCOVERY_DOC],
+        discoveryDocs: [DISCOVERY_DOC, SHEETS_DISCOVERY_DOC],
       });
       gapiInited = true;
       maybeReady();
@@ -1040,6 +1313,8 @@
       clearSavedToken();
       calendarsById = new Map();
       weekEvents = [];
+      groceryPreviewRows = [];
+      todoPreviewRows = [];
       document.getElementById("authBtn").textContent = "Connect";
       document.getElementById("signOutBtn").style.display = "none";
       setStatus("Not connected");
@@ -1085,6 +1360,7 @@
         );
 
         weekEvents = responses.flat();
+        await loadDashboardLists();
         renderAll();
         setStatus(`Loaded ${weekEvents.length} events`);
       } catch (err) {
@@ -1122,6 +1398,20 @@
     document.getElementById("quickAddBtn").addEventListener("click", () => {
       const todayKey = formatDateKey(new Date());
       window.location.href = `./day.html?date=${todayKey}&add=1`;
+    });
+    document.getElementById("groceryPreviewCard").addEventListener("click", () => {
+      window.location.href = "./grocery.html";
+    });
+    document.getElementById("todoPreviewCard").addEventListener("click", () => {
+      window.location.href = "./todo.html";
+    });
+    document.getElementById("groceryPreviewBtn").addEventListener("click", (event) => {
+      event.stopPropagation();
+      window.location.href = "./grocery.html";
+    });
+    document.getElementById("todoPreviewBtn").addEventListener("click", (event) => {
+      event.stopPropagation();
+      window.location.href = "./todo.html";
     });
 
     document.querySelectorAll(".nav-btn").forEach(btn => {
