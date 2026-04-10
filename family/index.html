@@ -47,6 +47,7 @@
     .today-card,
     .preview-card,
     .day-card,
+    .overlay-shell,
     .nav-btn,
     .top-btn,
     .status-pill{
@@ -624,6 +625,108 @@
       line-height:1.4;
     }
 
+    .overlay-backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(9,11,16,.74);
+      backdrop-filter:blur(10px);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+      z-index:1000;
+    }
+
+    .overlay-backdrop.open{
+      display:flex;
+    }
+
+    .overlay-shell{
+      width:min(1380px, 100%);
+      height:min(88vh, 920px);
+      padding:14px;
+      display:grid;
+      grid-template-rows:auto minmax(0, 1fr);
+      gap:12px;
+      border-color:var(--border-strong);
+      overflow:hidden;
+    }
+
+    .overlay-top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .overlay-heading{
+      display:grid;
+      gap:4px;
+      min-width:0;
+    }
+
+    .overlay-label{
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--accent-2);
+    }
+
+    .overlay-title{
+      font-size:28px;
+      line-height:1.02;
+      font-weight:900;
+      letter-spacing:-.02em;
+    }
+
+    .overlay-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .overlay-btn{
+      border:none;
+      min-height:44px;
+      padding:10px 14px;
+      border-radius:14px;
+      background:rgba(255,255,255,.08);
+      color:var(--text);
+      font-size:14px;
+      font-weight:900;
+      cursor:pointer;
+      transition:transform .18s ease, background .18s ease, filter .18s ease;
+    }
+
+    .overlay-btn:hover{
+      background:rgba(255,255,255,.14);
+      transform:translateY(-1px);
+    }
+
+    .overlay-btn.accent{
+      background:var(--accent);
+      color:#fff;
+    }
+
+    .overlay-btn.accent:hover{
+      filter:brightness(1.06);
+    }
+
+    .overlay-frame{
+      width:100%;
+      height:100%;
+      border:none;
+      border-radius:18px;
+      background:#111319;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+    }
+
+    body.modal-open{
+      overflow:hidden;
+    }
+
     .nav-btn{
       border:none;
       color:var(--text);
@@ -847,6 +950,27 @@
         width:100%;
       }
 
+      .overlay-backdrop{
+        padding:14px;
+      }
+
+      .overlay-shell{
+        height:min(92vh, 920px);
+      }
+
+      .overlay-top{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+
+      .overlay-actions{
+        width:100%;
+      }
+
+      .overlay-btn{
+        flex:1 1 0;
+      }
+
       .weather-banner{
         grid-template-columns:1.5fr repeat(3, minmax(0, .74fr));
         gap:8px;
@@ -1037,6 +1161,22 @@
     </section>
   </div>
 
+  <div class="overlay-backdrop" id="listOverlay" aria-hidden="true">
+    <section class="overlay-shell" role="dialog" aria-modal="true" aria-labelledby="overlayTitle">
+      <div class="overlay-top">
+        <div class="overlay-heading">
+          <div class="overlay-label">Family</div>
+          <div class="overlay-title" id="overlayTitle">List</div>
+        </div>
+        <div class="overlay-actions">
+          <button class="overlay-btn" id="overlayOpenPageBtn" type="button">Open Full Page</button>
+          <button class="overlay-btn accent" id="overlayCloseBtn" type="button">Close</button>
+        </div>
+      </div>
+      <iframe class="overlay-frame" id="overlayFrame" src="" title="Family list overlay"></iframe>
+    </section>
+  </div>
+
   <script>
     const CLIENT_ID = "82204016171-ta1ipuu88gie0tkq69je3di5uifu1kki.apps.googleusercontent.com";
     const API_KEY = "AIzaSyBPZEeYB8IaheJPJA2Y44msGfDwIhJMpGU";
@@ -1062,6 +1202,7 @@
     let weekEvents = [];
     let groceryPreviewRows = [];
     let todoPreviewRows = [];
+    let activeOverlayPath = "";
 
     function setStatus(text) {
       document.getElementById("statusText").textContent = text;
@@ -1321,6 +1462,22 @@
             </div>
           `).join("")
         : `<div class="preview-empty">Everything here is completed.</div>`;
+    }
+
+    function openListOverlay(title, path) {
+      activeOverlayPath = path;
+      document.getElementById("overlayTitle").textContent = title;
+      document.getElementById("overlayFrame").src = path;
+      document.getElementById("listOverlay").classList.add("open");
+      document.getElementById("listOverlay").setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+    }
+
+    function closeListOverlay() {
+      document.getElementById("listOverlay").classList.remove("open");
+      document.getElementById("listOverlay").setAttribute("aria-hidden", "true");
+      document.getElementById("overlayFrame").src = "";
+      document.body.classList.remove("modal-open");
     }
 
     async function loadSheetPreview(sheetName) {
@@ -1619,18 +1776,34 @@
       window.location.href = `./day.html?date=${todayKey}&add=1`;
     });
     document.getElementById("groceryPreviewCard").addEventListener("click", () => {
-      window.location.href = "./grocery.html";
+      openListOverlay("Grocery List", "./grocery.html");
     });
     document.getElementById("todoPreviewCard").addEventListener("click", () => {
-      window.location.href = "./todo.html";
+      openListOverlay("To-Do List", "./todo.html");
     });
     document.getElementById("groceryPreviewBtn").addEventListener("click", (event) => {
       event.stopPropagation();
-      window.location.href = "./grocery.html";
+      openListOverlay("Grocery List", "./grocery.html");
     });
     document.getElementById("todoPreviewBtn").addEventListener("click", (event) => {
       event.stopPropagation();
-      window.location.href = "./todo.html";
+      openListOverlay("To-Do List", "./todo.html");
+    });
+    document.getElementById("overlayCloseBtn").addEventListener("click", closeListOverlay);
+    document.getElementById("overlayOpenPageBtn").addEventListener("click", () => {
+      if (activeOverlayPath) {
+        window.location.href = activeOverlayPath;
+      }
+    });
+    document.getElementById("listOverlay").addEventListener("click", (event) => {
+      if (event.target === event.currentTarget) {
+        closeListOverlay();
+      }
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && document.getElementById("listOverlay").classList.contains("open")) {
+        closeListOverlay();
+      }
     });
 
     renderAll();
