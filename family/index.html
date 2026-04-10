@@ -41,6 +41,7 @@
 
     .weather-banner,
     .today-card,
+    .preview-card,
     .day-card,
     .nav-btn,
     .top-btn,
@@ -233,17 +234,28 @@
 
     .home-layout{
       display:grid;
-      grid-template-columns:minmax(380px, 1.15fr) minmax(540px, 1fr);
-      gap:20px;
+      grid-template-columns:minmax(380px, 1.12fr) minmax(420px, 1fr);
+      grid-template-areas:
+        "today days"
+        "today previews";
+      gap:16px;
       align-items:stretch;
     }
 
     .today-card{
-      padding:24px;
+      grid-area:today;
+      padding:20px;
       display:flex;
       flex-direction:column;
-      gap:18px;
-      min-height:520px;
+      gap:16px;
+      min-height:0;
+      cursor:pointer;
+      transition:transform .15s ease, border-color .15s ease;
+    }
+
+    .today-card:hover{
+      transform:translateY(-3px);
+      border-color:rgba(255,122,24,.45);
     }
 
     .today-top{
@@ -295,6 +307,29 @@
       filter:brightness(1.06);
     }
 
+    .today-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .month-btn{
+      border:none;
+      background:rgba(255,255,255,.08);
+      color:var(--text);
+      padding:14px 18px;
+      border-radius:16px;
+      font-size:16px;
+      font-weight:900;
+      cursor:pointer;
+      min-width:132px;
+    }
+
+    .month-btn:hover{
+      background:rgba(255,255,255,.14);
+    }
+
     .time-blocks{
       display:grid;
       gap:14px;
@@ -332,19 +367,20 @@
     }
 
     .days-grid{
+      grid-area:days;
       display:grid;
       grid-template-columns:repeat(3, 1fr);
-      gap:16px;
+      gap:12px;
       align-content:stretch;
     }
 
     .day-card{
-      min-height:250px;
-      padding:16px;
+      min-height:180px;
+      padding:14px;
       cursor:pointer;
       display:flex;
       flex-direction:column;
-      gap:12px;
+      gap:10px;
       transition:transform .15s ease;
     }
 
@@ -398,16 +434,17 @@
     }
 
     .preview-grid{
+      grid-area:previews;
       display:grid;
-      grid-template-columns:repeat(2, minmax(0, 1fr));
-      gap:20px;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
     }
 
     .preview-card{
-      min-height:320px;
-      padding:22px;
+      min-height:180px;
+      padding:18px;
       display:grid;
-      gap:16px;
+      gap:14px;
       cursor:pointer;
       transition:transform .15s ease, border-color .15s ease;
     }
@@ -438,7 +475,7 @@
     }
 
     .preview-title{
-      font-size:32px;
+      font-size:24px;
       line-height:1;
       font-weight:900;
     }
@@ -483,7 +520,7 @@
     }
 
     .preview-item-title{
-      font-size:18px;
+      font-size:16px;
       font-weight:850;
       line-height:1.2;
       word-break:break-word;
@@ -551,6 +588,10 @@
     @media (max-width: 1200px){
       .home-layout{
         grid-template-columns:1fr;
+        grid-template-areas:
+          "today"
+          "days"
+          "previews";
       }
 
       .days-grid{
@@ -558,7 +599,7 @@
       }
 
       .preview-grid{
-        grid-template-columns:1fr;
+        grid-template-columns:1fr 1fr;
       }
 
       .nav-row{
@@ -654,6 +695,10 @@
         align-items:flex-start;
       }
 
+      .today-actions{
+        width:100%;
+      }
+
       .days-grid{
         grid-template-columns:repeat(2, 1fr);
       }
@@ -664,6 +709,10 @@
 
       .preview-title{
         font-size:28px;
+      }
+
+      .preview-grid{
+        grid-template-columns:1fr;
       }
 
       .today-date{
@@ -720,11 +769,17 @@
         padding:18px;
       }
 
+      .today-actions{
+        width:100%;
+      }
+
       .preview-head{
         flex-direction:column;
         align-items:stretch;
       }
 
+      .month-btn,
+      .quick-add-btn,
       .preview-open{
         width:100%;
       }
@@ -779,7 +834,7 @@
     </section>
 
     <section class="home-layout">
-      <article class="today-card">
+      <article class="today-card" id="todayCard">
         <div class="today-top">
           <div class="today-heading">
             <div class="today-label">Today</div>
@@ -787,17 +842,19 @@
             <div class="today-full-date" id="todayFullDate">--</div>
           </div>
 
-          <button class="quick-add-btn" id="quickAddBtn" type="button">Quick Add</button>
+          <div class="today-actions">
+            <button class="month-btn" id="monthBtn" type="button">Open Month</button>
+            <button class="quick-add-btn" id="quickAddBtn" type="button">Quick Add</button>
+          </div>
         </div>
 
         <div class="time-blocks" id="todayTimeBlocks"></div>
       </article>
 
       <section class="days-grid" id="daysGrid"></section>
-    </section>
 
-    <section class="preview-grid">
-      <article class="today-card preview-card" id="groceryPreviewCard">
+      <section class="preview-grid">
+      <article class="preview-card" id="groceryPreviewCard">
         <div class="preview-head">
           <div class="preview-heading">
             <div class="preview-label">Family Hub</div>
@@ -809,9 +866,9 @@
         <div class="preview-list" id="groceryPreviewList">
           <div class="preview-empty">Waiting for Google Sheets…</div>
         </div>
-      </article>
+        </article>
 
-      <article class="today-card preview-card" id="todoPreviewCard">
+        <article class="preview-card" id="todoPreviewCard">
         <div class="preview-head">
           <div class="preview-heading">
             <div class="preview-label">Family Hub</div>
@@ -823,16 +880,8 @@
         <div class="preview-list" id="todoPreviewList">
           <div class="preview-empty">Waiting for Google Sheets…</div>
         </div>
-      </article>
-    </section>
-
-    <section class="nav-row">
-      <button class="nav-btn" data-target="Calendar" type="button">Calendar</button>
-      <button class="nav-btn" data-target="Grocery List" type="button">Grocery List</button>
-      <button class="nav-btn" data-target="To-Do List" type="button">To-Do List</button>
-      <button class="nav-btn" data-target="Nichol" type="button">Nichol</button>
-      <button class="nav-btn" data-target="Jolie" type="button">Jolie</button>
-      <button class="nav-btn" data-target="Andrew" type="button">Andrew</button>
+        </article>
+      </section>
     </section>
   </div>
 
@@ -1369,33 +1418,23 @@
       }
     }
 
-    function handleNavClick(label) {
-      if (label === "Calendar") {
-        window.location.href = "./calendar.html";
-        return;
-      }
-
-      if (label === "Grocery List") {
-        window.location.href = "./grocery.html";
-        return;
-      }
-
-      if (label === "To-Do List") {
-        window.location.href = "./todo.html";
-        return;
-      }
-
-      alert(`${label} page is next to build.`);
-    }
-
     document.getElementById("backAppsBtn").addEventListener("click", () => {
       window.location.href = "../index.html";
     });
 
     document.getElementById("authBtn").addEventListener("click", handleAuthClick);
     document.getElementById("signOutBtn").addEventListener("click", handleSignoutClick);
+    document.getElementById("todayCard").addEventListener("click", () => {
+      const todayKey = formatDateKey(new Date());
+      window.location.href = `./day.html?date=${todayKey}`;
+    });
+    document.getElementById("monthBtn").addEventListener("click", (event) => {
+      event.stopPropagation();
+      window.location.href = "./calendar.html";
+    });
 
-    document.getElementById("quickAddBtn").addEventListener("click", () => {
+    document.getElementById("quickAddBtn").addEventListener("click", (event) => {
+      event.stopPropagation();
       const todayKey = formatDateKey(new Date());
       window.location.href = `./day.html?date=${todayKey}&add=1`;
     });
@@ -1412,10 +1451,6 @@
     document.getElementById("todoPreviewBtn").addEventListener("click", (event) => {
       event.stopPropagation();
       window.location.href = "./todo.html";
-    });
-
-    document.querySelectorAll(".nav-btn").forEach(btn => {
-      btn.addEventListener("click", () => handleNavClick(btn.dataset.target));
     });
 
     renderAll();
