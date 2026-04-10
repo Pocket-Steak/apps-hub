@@ -56,7 +56,9 @@
       font-weight:700;
     }
 
-    .back-link:hover{color:#fff}
+    .back-link:hover{
+      color:#fff;
+    }
 
     .month-bar,
     .legend,
@@ -72,11 +74,14 @@
       align-items:center;
       justify-content:space-between;
       padding:18px 22px;
+      gap:12px;
     }
 
     .month-title{
       font-size:34px;
       font-weight:900;
+      text-align:center;
+      flex:1;
     }
 
     .icon-btn{
@@ -88,6 +93,7 @@
       font-size:18px;
       font-weight:900;
       cursor:pointer;
+      min-width:56px;
     }
 
     .icon-btn:hover{
@@ -151,6 +157,7 @@
       flex-direction:column;
       gap:8px;
       cursor:pointer;
+      transition:background .15s ease;
     }
 
     .day-cell:nth-child(7n){
@@ -247,6 +254,8 @@
   </div>
 
   <script>
+    const STORAGE_KEY = "pocketsteak-family-events";
+
     const CALENDARS = [
       { id: "family-main", name: "Family", color: "#ff7a18" },
       { id: "nichol", name: "Nichol", color: "#4dabf7" },
@@ -255,15 +264,26 @@
       { id: "other", name: "Other", color: "#ffd43b" }
     ];
 
-    const STORAGE_KEY = "pocketsteak-family-events";
     let currentDate = new Date();
 
-    function getStoredEvents() {
+    function getEvents() {
       try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-      } catch (e) {
-        return {};
+        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
       }
+    }
+
+    function sortEvents(events) {
+      return [...events].sort((a, b) => {
+        if (a.date !== b.date) return a.date.localeCompare(b.date);
+        return a.start.localeCompare(b.start);
+      });
+    }
+
+    function getEventsForDate(dateKey) {
+      return sortEvents(getEvents().filter(event => event.date === dateKey));
     }
 
     function formatDateKey(date) {
@@ -293,6 +313,11 @@
       return day === 0 ? 6 : day - 1;
     }
 
+    function getCalendarColor(calendarId) {
+      const found = CALENDARS.find(c => c.id === calendarId);
+      return found ? found.color : "#ff7a18";
+    }
+
     function buildLegend() {
       const legend = document.getElementById("legend");
       legend.innerHTML = CALENDARS.map(cal => `
@@ -308,11 +333,6 @@
       document.getElementById("weekdayRow").innerHTML = names
         .map(name => `<div class="weekday">${name}</div>`)
         .join("");
-    }
-
-    function getCalendarColor(calendarId) {
-      const found = CALENDARS.find(c => c.id === calendarId);
-      return found ? found.color : "#ff7a18";
     }
 
     function getMonthCells(viewDate) {
@@ -337,20 +357,17 @@
       document.getElementById("monthTitle").textContent = formatMonthTitle(currentDate);
 
       const monthGrid = document.getElementById("monthGrid");
-      const eventsByDate = getStoredEvents();
       const today = new Date();
       const currentMonth = currentDate.getMonth();
-
       const cells = getMonthCells(currentDate);
 
       monthGrid.innerHTML = cells.map(date => {
         const key = formatDateKey(date);
-        const events = (eventsByDate[key] || []).sort((a, b) => a.start.localeCompare(b.start));
+        const events = getEventsForDate(key);
         const faded = date.getMonth() !== currentMonth ? "faded" : "";
         const todayClass = isSameDate(date, today) ? "today" : "";
 
-        const visibleCount = 4;
-        const visibleEvents = events.slice(0, visibleCount);
+        const visibleEvents = events.slice(0, 4);
         const remaining = events.length - visibleEvents.length;
 
         return `
@@ -370,8 +387,7 @@
 
       document.querySelectorAll(".day-cell").forEach(cell => {
         cell.addEventListener("click", () => {
-          const date = cell.dataset.date;
-          window.location.href = `./day.html?date=${date}`;
+          window.location.href = `./day.html?date=${cell.dataset.date}`;
         });
       });
     }
