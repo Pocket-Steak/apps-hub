@@ -42,11 +42,49 @@
     .weather-banner,
     .today-card,
     .day-card,
-    .nav-btn{
+    .nav-btn,
+    .top-btn{
       background:linear-gradient(180deg,var(--panel),var(--panel-2));
       border:1px solid var(--border);
       border-radius:var(--radius);
       box-shadow:var(--shadow);
+    }
+
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+
+    .top-actions{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .top-btn{
+      border:none;
+      color:var(--text);
+      min-height:54px;
+      padding:14px 18px;
+      font-size:15px;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .top-btn:hover{
+      background:linear-gradient(180deg,#24272f,#2c3039);
+    }
+
+    .top-btn.accent{
+      background:var(--accent);
+      border-color:transparent;
+    }
+
+    .top-btn.accent:hover{
+      filter:brightness(1.06);
     }
 
     .weather-banner{
@@ -56,6 +94,7 @@
       justify-content:space-between;
       padding:20px 24px;
       gap:16px;
+      flex-wrap:wrap;
     }
 
     .weather-left{
@@ -157,6 +196,7 @@
     .time-block{
       background:rgba(255,255,255,.05);
       border:1px solid rgba(255,255,255,.05);
+      border-left:6px solid var(--accent);
       border-radius:20px;
       padding:18px 18px 16px;
       min-height:90px;
@@ -175,6 +215,12 @@
       font-size:24px;
       font-weight:900;
       line-height:1.1;
+    }
+
+    .empty-state{
+      color:var(--muted);
+      font-weight:700;
+      padding:8px 2px;
     }
 
     .days-grid{
@@ -219,6 +265,7 @@
     .mini-event{
       background:rgba(255,255,255,.05);
       border-radius:14px;
+      border-left:5px solid var(--accent);
       padding:10px 12px;
       display:grid;
       gap:4px;
@@ -255,19 +302,6 @@
     .nav-btn:hover{
       transform:translateY(-2px);
       border-color:rgba(255,122,24,.45);
-    }
-
-    .back-link{
-      color:var(--muted);
-      font-size:14px;
-      font-weight:700;
-      text-decoration:none;
-      justify-self:start;
-      padding:0 4px;
-    }
-
-    .back-link:hover{
-      color:#fff;
     }
 
     @media (max-width: 1200px){
@@ -310,6 +344,14 @@
       .today-date{
         font-size:36px;
       }
+
+      .top-actions{
+        width:100%;
+      }
+
+      .top-btn{
+        flex:1 1 0;
+      }
     }
 
     @media (max-width: 560px){
@@ -319,16 +361,27 @@
       }
     }
   </style>
+
+  <script async defer src="https://apis.google.com/js/api.js"></script>
+  <script async defer src="https://accounts.google.com/gsi/client"></script>
 </head>
 <body>
   <div class="page">
-    <a class="back-link" href="../index.html">← Back to PocketSteak Apps</a>
+    <div class="topbar">
+      <div class="top-actions">
+        <button class="top-btn" id="backAppsBtn" type="button">← Back to Apps</button>
+      </div>
+      <div class="top-actions">
+        <button class="top-btn accent" id="authBtn" type="button">Connect Google Calendar</button>
+        <button class="top-btn" id="signOutBtn" type="button" style="display:none;">Sign Out</button>
+      </div>
+    </div>
 
     <section class="weather-banner">
       <div class="weather-left">
-        <div class="weather-label">Weather</div>
-        <div class="weather-main" id="weatherMain">Weather banner placeholder</div>
-        <div class="weather-sub" id="weatherSub">We can hook this to a real API later.</div>
+        <div class="weather-label">Status</div>
+        <div class="weather-main" id="weatherMain">Not connected</div>
+        <div class="weather-sub" id="weatherSub">Connect Google Calendar to load your real events.</div>
       </div>
     </section>
 
@@ -341,7 +394,7 @@
             <div class="today-full-date" id="todayFullDate">--</div>
           </div>
 
-          <button class="quick-add-btn" id="quickAddBtn">Quick Add</button>
+          <button class="quick-add-btn" id="quickAddBtn" type="button">Quick Add</button>
         </div>
 
         <div class="time-blocks" id="todayTimeBlocks"></div>
@@ -351,17 +404,26 @@
     </section>
 
     <section class="nav-row">
-      <button class="nav-btn" data-target="Calendar">Calendar</button>
-      <button class="nav-btn" data-target="Grocery List">Grocery List</button>
-      <button class="nav-btn" data-target="To-Do List">To-Do List</button>
-      <button class="nav-btn" data-target="Nichol">Nichol</button>
-      <button class="nav-btn" data-target="Jolie">Jolie</button>
-      <button class="nav-btn" data-target="Andrew">Andrew</button>
+      <button class="nav-btn" data-target="Calendar" type="button">Calendar</button>
+      <button class="nav-btn" data-target="Grocery List" type="button">Grocery List</button>
+      <button class="nav-btn" data-target="To-Do List" type="button">To-Do List</button>
+      <button class="nav-btn" data-target="Nichol" type="button">Nichol</button>
+      <button class="nav-btn" data-target="Jolie" type="button">Jolie</button>
+      <button class="nav-btn" data-target="Andrew" type="button">Andrew</button>
     </section>
   </div>
 
   <script>
-    const STORAGE_KEY = "pocketsteak-family-events";
+    const CLIENT_ID = "82204016171-ta1ipuu88gie0tkq69je3di5uifu1kki.apps.googleusercontent.com";
+    const API_KEY = "AIzaSyBPZEeYB8IaheJPJA2Y44msGfDwIhJMpGU";
+    const DISCOVERY_DOC = "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest";
+    const SCOPES = "https://www.googleapis.com/auth/calendar";
+
+    let tokenClient = null;
+    let gapiInited = false;
+    let gisInited = false;
+    let calendarsById = new Map();
+    let weekEvents = [];
 
     function formatDateKey(date) {
       const year = date.getFullYear();
@@ -397,69 +459,42 @@
       return date.toLocaleDateString(undefined, { weekday: "short" });
     }
 
-    function getEvents() {
-      try {
-        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
-        return Array.isArray(parsed) ? parsed : [];
-      } catch {
-        return [];
+    function isAllDayEvent(event) {
+      return !!event.start.date;
+    }
+
+    function getEventDateKey(event) {
+      if (event.start.date) {
+        return event.start.date;
       }
+      return formatDateKey(new Date(event.start.dateTime));
     }
 
-    function saveEvents(events) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+    function getEventTimeLabel(event) {
+      if (isAllDayEvent(event)) return "All day";
+
+      const start = new Date(event.start.dateTime);
+      const end = new Date(event.end.dateTime);
+
+      const startLabel = start.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+      const endLabel = end.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+
+      return `${startLabel} - ${endLabel}`;
     }
 
-    function makeId() {
-      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
-      return "evt-" + Date.now() + "-" + Math.random().toString(16).slice(2);
-    }
-
-    function sortEvents(events) {
-      return [...events].sort((a, b) => {
-        if (a.date !== b.date) return a.date.localeCompare(b.date);
-        return a.start.localeCompare(b.start);
-      });
+    function getCalendarColor(calendarId) {
+      const cal = calendarsById.get(calendarId);
+      return cal?.backgroundColor || "#ff7a18";
     }
 
     function getEventsForDate(dateKey) {
-      return sortEvents(getEvents().filter(event => event.date === dateKey));
-    }
-
-    function seedSampleEventsIfEmpty() {
-      const events = getEvents();
-      if (events.length > 0) return;
-
-      const today = new Date();
-      const tomorrow = new Date();
-      tomorrow.setDate(today.getDate() + 1);
-
-      saveEvents([
-        {
-          id: makeId(),
-          calendarId: "family-main",
-          title: "Sample Event",
-          date: formatDateKey(today),
-          start: "09:00",
-          end: "10:00"
-        },
-        {
-          id: makeId(),
-          calendarId: "andrew",
-          title: "Another Event",
-          date: formatDateKey(today),
-          start: "15:30",
-          end: "16:15"
-        },
-        {
-          id: makeId(),
-          calendarId: "jolie",
-          title: "Tomorrow Item",
-          date: formatDateKey(tomorrow),
-          start: "11:00",
-          end: "11:30"
-        }
-      ]);
+      return weekEvents
+        .filter(event => getEventDateKey(event) === dateKey)
+        .sort((a, b) => {
+          const aStart = a.start.dateTime || `${a.start.date}T00:00:00`;
+          const bStart = b.start.dateTime || `${b.start.date}T00:00:00`;
+          return aStart.localeCompare(bStart);
+        });
     }
 
     function renderToday() {
@@ -473,12 +508,18 @@
       const container = document.getElementById("todayTimeBlocks");
       container.innerHTML = "";
 
+      if (todayEvents.length === 0) {
+        container.innerHTML = `<div class="empty-state">No events today.</div>`;
+        return;
+      }
+
       todayEvents.forEach(event => {
         const block = document.createElement("div");
         block.className = "time-block";
+        block.style.borderLeftColor = getCalendarColor(event.calendarId);
         block.innerHTML = `
-          <div class="time-range">${event.start} - ${event.end}</div>
-          <div class="time-title">${event.title}</div>
+          <div class="time-range">${getEventTimeLabel(event)}</div>
+          <div class="time-title">${event.summary || "(Untitled event)"}</div>
         `;
         container.appendChild(block);
       });
@@ -498,12 +539,15 @@
         const card = document.createElement("article");
         card.className = "day-card";
 
-        const eventsHtml = events.map(event => `
-          <div class="mini-event">
-            <div class="mini-time">${event.start} - ${event.end}</div>
-            <div class="mini-title">${event.title}</div>
-          </div>
-        `).join("");
+        let eventsHtml = "";
+        if (events.length > 0) {
+          eventsHtml = events.map(event => `
+            <div class="mini-event" style="border-left-color:${getCalendarColor(event.calendarId)}">
+              <div class="mini-time">${getEventTimeLabel(event)}</div>
+              <div class="mini-title">${event.summary || "(Untitled event)"}</div>
+            </div>
+          `).join("");
+        }
 
         card.innerHTML = `
           <div>
@@ -521,9 +565,123 @@
       }
     }
 
-    function addTodayEvent() {
-      const todayKey = formatDateKey(new Date());
-      window.location.href = `./day.html?date=${todayKey}&add=1`;
+    function renderAll() {
+      renderToday();
+      renderNextSixDays();
+    }
+
+    function setStatus(title, subtitle) {
+      document.getElementById("weatherMain").textContent = title;
+      document.getElementById("weatherSub").textContent = subtitle;
+    }
+
+    async function gapiLoaded() {
+      await new Promise((resolve) => gapi.load("client", resolve));
+      await gapi.client.init({
+        apiKey: API_KEY,
+        discoveryDocs: [DISCOVERY_DOC],
+      });
+      gapiInited = true;
+      maybeEnableAuth();
+    }
+
+    function gisLoaded() {
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: async (resp) => {
+          if (resp.error) {
+            setStatus("Connection failed", "Google returned an auth error.");
+            return;
+          }
+          document.getElementById("authBtn").textContent = "Refresh Calendar";
+          document.getElementById("signOutBtn").style.display = "inline-flex";
+          await loadGoogleCalendarData();
+        },
+      });
+
+      gisInited = true;
+      maybeEnableAuth();
+    }
+
+    function maybeEnableAuth() {
+      if (gapiInited && gisInited) {
+        document.getElementById("authBtn").disabled = false;
+        setStatus("Ready to connect", "Tap Connect Google Calendar to load your events.");
+      }
+    }
+
+    async function handleAuthClick() {
+      if (!tokenClient) return;
+      setStatus("Connecting…", "Waiting for Google sign-in.");
+      tokenClient.requestAccessToken({ prompt: "consent" });
+    }
+
+    function handleSignoutClick() {
+      const token = gapi.client.getToken();
+      if (token !== null) {
+        google.accounts.oauth2.revoke(token.access_token);
+        gapi.client.setToken("");
+      }
+
+      calendarsById = new Map();
+      weekEvents = [];
+      document.getElementById("authBtn").textContent = "Connect Google Calendar";
+      document.getElementById("signOutBtn").style.display = "none";
+      setStatus("Not connected", "Connect Google Calendar to load your real events.");
+      renderAll();
+    }
+
+    async function loadGoogleCalendarData() {
+      try {
+        setStatus("Loading calendars…", "Pulling your calendars and events from Google.");
+
+        const calendarResp = await gapi.client.calendar.calendarList.list();
+        const calendars = calendarResp.result.items || [];
+
+        calendarsById = new Map(
+          calendars.map(cal => [cal.id, cal])
+        );
+
+        const start = new Date();
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(start);
+        end.setDate(end.getDate() + 7);
+
+        const visibleCalendars = calendars.filter(cal => cal.selected !== false);
+
+        const responses = await Promise.all(
+          visibleCalendars.map(cal =>
+            gapi.client.calendar.events.list({
+              calendarId: cal.id,
+              timeMin: start.toISOString(),
+              timeMax: end.toISOString(),
+              showDeleted: false,
+              singleEvents: true,
+              orderBy: "startTime",
+              maxResults: 250,
+            }).then(resp => {
+              const items = resp.result.items || [];
+              return items.map(event => ({
+                ...event,
+                calendarId: cal.id,
+              }));
+            })
+          )
+        );
+
+        weekEvents = responses.flat();
+        renderAll();
+
+        setStatus(
+          "Google Calendar connected",
+          `Loaded ${weekEvents.length} events from ${visibleCalendars.length} calendars.`
+        );
+      } catch (err) {
+        console.error(err);
+        setStatus("Load failed", "Something went wrong loading Google Calendar data.");
+      }
     }
 
     function handleNavClick(label) {
@@ -531,22 +689,37 @@
         window.location.href = "./calendar.html";
         return;
       }
-
       alert(`${label} page is next to build.`);
     }
 
-    function renderAll() {
-      renderToday();
-      renderNextSixDays();
-    }
+    document.getElementById("backAppsBtn").addEventListener("click", () => {
+      window.location.href = "../index.html";
+    });
 
-    seedSampleEventsIfEmpty();
-    renderAll();
+    document.getElementById("authBtn").addEventListener("click", handleAuthClick);
+    document.getElementById("signOutBtn").addEventListener("click", handleSignoutClick);
 
-    document.getElementById("quickAddBtn").addEventListener("click", addTodayEvent);
+    document.getElementById("quickAddBtn").addEventListener("click", () => {
+      const todayKey = formatDateKey(new Date());
+      window.location.href = `./day.html?date=${todayKey}&add=1`;
+    });
 
     document.querySelectorAll(".nav-btn").forEach(btn => {
       btn.addEventListener("click", () => handleNavClick(btn.dataset.target));
+    });
+
+    renderAll();
+    document.getElementById("authBtn").disabled = true;
+    setStatus("Loading Google tools…", "Please wait a moment.");
+
+    window.addEventListener("load", async () => {
+      try {
+        await gapiLoaded();
+        gisLoaded();
+      } catch (err) {
+        console.error(err);
+        setStatus("Setup failed", "Google libraries did not load correctly.");
+      }
     });
   </script>
 </body>
