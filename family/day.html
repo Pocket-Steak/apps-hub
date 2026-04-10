@@ -1,4 +1,4 @@
-    <!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -16,12 +16,6 @@
       --accent:#ff7a18;
       --shadow:0 18px 50px rgba(0,0,0,.35);
       --radius:24px;
-
-      --cal-1:#ff7a18;
-      --cal-2:#4dabf7;
-      --cal-3:#51cf66;
-      --cal-4:#f783ac;
-      --cal-5:#ffd43b;
     }
 
     *{box-sizing:border-box;margin:0;padding:0}
@@ -120,6 +114,7 @@
       position:relative;
       display:grid;
       grid-template-columns:100px 1fr;
+      min-height:1280px;
     }
 
     .time-col,
@@ -306,7 +301,7 @@
       <div class="form-grid">
         <div class="field">
           <label for="eventCalendar">Calendar</label>
-          <select id="eventCalendar" required>
+          <select id="eventCalendar">
             <option value="">Select a calendar</option>
           </select>
         </div>
@@ -365,13 +360,6 @@
     let selectedDate = getDateFromQuery();
     let editingEventId = null;
 
-    function getDateFromQuery() {
-      const params = new URLSearchParams(window.location.search);
-      const date = params.get("date");
-      if (date) return date;
-      return formatDateKey(new Date());
-    }
-
     function formatDateKey(date) {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -394,36 +382,40 @@
       });
     }
 
-    function getStoredEvents() {
+    function getDateFromQuery() {
+      const params = new URLSearchParams(window.location.search);
+      const date = params.get("date");
+      if (date) return date;
+      return formatDateKey(new Date());
+    }
+
+    function getEvents() {
       try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        return Array.isArray(parsed) ? parsed : [];
       } catch {
-        return {};
+        return [];
       }
     }
 
-    function saveEvents(eventsByDate) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(eventsByDate));
+    function saveEvents(events) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
     }
 
-    function ensureEventIds(eventsByDate) {
-      let changed = false;
+    function makeId() {
+      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+      return "evt-" + Date.now() + "-" + Math.random().toString(16).slice(2);
+    }
 
-      Object.keys(eventsByDate).forEach(dateKey => {
-        eventsByDate[dateKey] = (eventsByDate[dateKey] || []).map(event => {
-          if (!event.id) {
-            changed = true;
-            return { ...event, id: crypto.randomUUID() };
-          }
-          return event;
-        });
+    function sortEvents(events) {
+      return [...events].sort((a, b) => {
+        if (a.date !== b.date) return a.date.localeCompare(b.date);
+        return a.start.localeCompare(b.start);
       });
+    }
 
-      if (changed) {
-        saveEvents(eventsByDate);
-      }
-
-      return eventsByDate;
+    function getEventsForDate(dateKey) {
+      return sortEvents(getEvents().filter(event => event.date === dateKey));
     }
 
     function getCalendarColor(calendarId) {
@@ -471,12 +463,6 @@
       return (hour * 60) + minute;
     }
 
-    function getDayEvents() {
-      const eventsByDate = ensureEventIds(getStoredEvents());
-      const dayEvents = eventsByDate[selectedDate] || [];
-      return [...dayEvents].sort((a, b) => a.start.localeCompare(b.start));
-    }
-
     function renderHeader() {
       document.getElementById("dayTitle").textContent = formatLongDate(selectedDate);
     }
@@ -486,7 +472,7 @@
       const existingBlocks = eventsCol.querySelectorAll(".event-block");
       existingBlocks.forEach(block => block.remove());
 
-      const dayEvents = getDayEvents();
+      const dayEvents = getEventsForDate(selectedDate);
 
       dayEvents.forEach(event => {
         const startMinutes = timeToMinutes(event.start);
@@ -528,8 +514,7 @@
     }
 
     function openEditModal(eventId) {
-      const eventsByDate = ensureEventIds(getStoredEvents());
-      const event = (eventsByDate[selectedDate] || []).find(e => e.id === eventId);
+      const event = getEvents().find(e => e.id === eventId);
       if (!event) return;
 
       editingEventId = eventId;
@@ -539,7 +524,7 @@
 
       document.getElementById("eventCalendar").value = event.calendarId || "";
       document.getElementById("eventName").value = event.title || "";
-      document.getElementById("eventDate").value = selectedDate;
+      document.getElementById("eventDate").value = event.date || selectedDate;
       document.getElementById("eventStart").value = event.start || "";
       document.getElementById("eventEnd").value = event.end || "";
 
@@ -584,24 +569,18 @@
       const start = document.getElementById("eventStart").value;
       const end = document.getElementById("eventEnd").value;
 
-      const eventsByDate = ensureEventIds(getStoredEvents());
+      const events = getEvents().filter(event => event.id !== editingEventId);
 
-      Object.keys(eventsByDate).forEach(dateKey => {
-        eventsByDate[dateKey] = (eventsByDate[dateKey] || []).filter(event => event.id !== editingEventId);
-      });
-
-      const targetDateEvents = eventsByDate[date] || [];
-
-      targetDateEvents.push({
-        id: editingEventId || crypto.randomUUID(),
+      events.push({
+        id: editingEventId || makeId(),
         calendarId,
         title,
+        date,
         start,
         end
       });
 
-      eventsByDate[date] = targetDateEvents.sort((a, b) => a.start.localeCompare(b.start));
-      saveEvents(eventsByDate);
+      saveEvents(sortEvents(events));
 
       selectedDate = date;
       history.replaceState({}, "", `./day.html?date=${date}`);
@@ -612,12 +591,12 @@
 
     function deleteEvent() {
       if (!editingEventId) return;
+
       const confirmed = window.confirm("Delete this event?");
       if (!confirmed) return;
 
-      const eventsByDate = ensureEventIds(getStoredEvents());
-      eventsByDate[selectedDate] = (eventsByDate[selectedDate] || []).filter(event => event.id !== editingEventId);
-      saveEvents(eventsByDate);
+      const events = getEvents().filter(event => event.id !== editingEventId);
+      saveEvents(events);
 
       closeModal();
       renderAll();
@@ -642,6 +621,11 @@
         closeModal();
       }
     });
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("add") === "1") {
+      openAddModal();
+    }
   </script>
 </body>
 </html>
