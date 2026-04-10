@@ -17,9 +17,9 @@
       --muted:#b8bcc8;
       --accent:#ff7a18;
       --accent-2:#ffb26f;
-      --shadow:0 18px 50px rgba(0,0,0,.35);
-      --shadow-soft:0 10px 26px rgba(0,0,0,.22);
-      --radius:24px;
+      --shadow:0 16px 40px rgba(0,0,0,.35);
+      --shadow-soft:0 8px 20px rgba(0,0,0,.22);
+      --radius:22px;
     }
 
     *{box-sizing:border-box;margin:0;padding:0}
@@ -31,14 +31,14 @@
         radial-gradient(900px 500px at 0% 0%, rgba(255,122,24,.12), transparent 55%),
         linear-gradient(180deg,#0d0e11,#12141a 35%, #171922 100%);
       color:var(--text);
-      padding:20px;
+      padding:16px;
     }
 
     .page{
       max-width:1400px;
       margin:0 auto;
       display:grid;
-      gap:18px;
+      gap:14px;
     }
 
     .topbar,
@@ -54,18 +54,18 @@
     }
 
     .topbar{
-      padding:20px 22px;
+      padding:16px 18px;
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:16px;
+      gap:12px;
       flex-wrap:wrap;
     }
 
     .top-left{
       display:flex;
       flex-direction:column;
-      gap:12px;
+      gap:10px;
     }
 
     .top-actions{
@@ -83,11 +83,11 @@
     .top-btn{
       border:none;
       border-radius:16px;
-      padding:14px 18px;
+      padding:12px 16px;
       font-size:15px;
       font-weight:900;
       cursor:pointer;
-      min-height:52px;
+      min-height:48px;
       transition:transform .18s ease, background .18s ease, filter .18s ease;
     }
 
@@ -133,19 +133,19 @@
     }
 
     .day-title{
-      font-size:34px;
+      font-size:30px;
       font-weight:900;
       line-height:1.1;
     }
 
     .status-pill{
-      min-height:52px;
-      padding:10px 16px;
+      min-height:48px;
+      padding:8px 14px;
       display:flex;
       flex-direction:column;
       justify-content:center;
       gap:2px;
-      min-width:240px;
+      min-width:220px;
     }
 
     .status-label{
@@ -169,8 +169,8 @@
     .timeline{
       position:relative;
       display:grid;
-      grid-template-columns:100px 1fr;
-      min-height:1280px;
+      grid-template-columns:88px 1fr;
+      min-height:1120px;
     }
 
     .time-col,
@@ -180,7 +180,7 @@
 
     .time-slot,
     .event-slot{
-      height:40px;
+      height:36px;
       border-bottom:1px solid var(--border);
     }
 
@@ -208,10 +208,10 @@
 
     .event-block{
       position:absolute;
-      left:12px;
-      right:12px;
-      border-radius:16px;
-      padding:10px 12px;
+      left:10px;
+      right:10px;
+      border-radius:14px;
+      padding:8px 10px;
       color:#fff;
       font-weight:800;
       overflow:hidden;
@@ -227,12 +227,12 @@
     }
 
     .event-title{
-      font-size:15px;
+      font-size:14px;
       line-height:1.2;
     }
 
     .empty-note{
-      padding:18px;
+      padding:14px;
       color:var(--muted);
       font-weight:700;
     }
@@ -253,20 +253,20 @@
     }
 
     .modal-card{
-      width:min(520px, 100%);
-      padding:22px;
+      width:min(500px, 100%);
+      padding:18px;
       display:grid;
       gap:16px;
     }
 
     .modal-title{
-      font-size:24px;
+      font-size:22px;
       font-weight:900;
     }
 
     .form-grid{
       display:grid;
-      gap:14px;
+      gap:12px;
     }
 
     .field{
@@ -277,23 +277,23 @@
     .time-grid{
       display:grid;
       grid-template-columns:repeat(2, minmax(0, 1fr));
-      gap:14px;
+      gap:12px;
     }
 
     .duration-row{
       display:flex;
-      gap:10px;
+      gap:8px;
       flex-wrap:wrap;
     }
 
     .duration-btn{
       border:none;
       border-radius:14px;
-      padding:12px 14px;
-      min-height:48px;
+      padding:10px 12px;
+      min-height:44px;
       background:rgba(255,255,255,.08);
       color:var(--text);
-      font-size:14px;
+      font-size:13px;
       font-weight:900;
       cursor:pointer;
       transition:transform .18s ease, background .18s ease;
@@ -309,7 +309,7 @@
     }
 
     .field label{
-      font-size:14px;
+      font-size:13px;
       font-weight:800;
       color:var(--muted);
     }
@@ -317,12 +317,12 @@
     .field input,
     .field select{
       width:100%;
-      border-radius:14px;
+      border-radius:12px;
       border:1px solid var(--border);
       background:var(--surface);
       color:var(--text);
-      padding:12px 14px;
-      font-size:15px;
+      padding:10px 12px;
+      font-size:14px;
       outline:none;
     }
 
@@ -409,6 +409,58 @@
 
       .time-grid{
         grid-template-columns:1fr;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 900px){
+      body{
+        padding:12px;
+      }
+
+      .page{
+        gap:12px;
+      }
+
+      .topbar{
+        padding:14px 16px;
+      }
+
+      .day-title{
+        font-size:26px;
+      }
+
+      .nav-btn,
+      .quick-add-btn,
+      .save-btn,
+      .delete-btn,
+      .cancel-btn,
+      .top-btn{
+        min-height:44px;
+        padding:10px 14px;
+      }
+
+      .status-pill{
+        min-height:44px;
+        padding:8px 12px;
+      }
+
+      .timeline{
+        min-height:940px;
+        grid-template-columns:76px 1fr;
+      }
+
+      .time-slot,
+      .event-slot{
+        height:32px;
+      }
+
+      .modal{
+        padding:12px;
+      }
+
+      .modal-card{
+        padding:16px;
+        gap:12px;
       }
     }
   </style>
