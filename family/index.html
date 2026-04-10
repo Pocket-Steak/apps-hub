@@ -11,13 +11,17 @@
       --bg:#0e0f12;
       --panel:#1a1c22;
       --panel-2:#22252d;
+      --surface:rgba(255,255,255,.045);
       --border:rgba(255,255,255,.08);
+      --border-strong:rgba(255,255,255,.12);
       --text:#f3f4f6;
       --muted:#b8bcc8;
       --accent:#ff7a18;
       --accent-2:#ff9c4d;
       --shadow:0 18px 50px rgba(0,0,0,.35);
+      --shadow-soft:0 10px 26px rgba(0,0,0,.22);
       --radius:24px;
+      --card-pad:20px;
     }
 
     *{box-sizing:border-box;margin:0;padding:0}
@@ -46,7 +50,9 @@
     .nav-btn,
     .top-btn,
     .status-pill{
-      background:linear-gradient(180deg,var(--panel),var(--panel-2));
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,.05), transparent 34%),
+        linear-gradient(180deg,var(--panel),var(--panel-2));
       border:1px solid var(--border);
       border-radius:var(--radius);
       box-shadow:var(--shadow);
@@ -81,10 +87,12 @@
       font-size:15px;
       font-weight:900;
       cursor:pointer;
+      transition:transform .18s ease, background .18s ease, border-color .18s ease, filter .18s ease;
     }
 
     .top-btn:hover{
       background:linear-gradient(180deg,#24272f,#2c3039);
+      transform:translateY(-1px);
     }
 
     .top-btn.accent{
@@ -132,13 +140,14 @@
 
     .weather-today,
     .weather-day{
-      background:rgba(255,255,255,.04);
-      border:1px solid rgba(255,255,255,.04);
+      background:var(--surface);
+      border:1px solid rgba(255,255,255,.05);
       border-radius:18px;
       display:flex;
       flex-direction:column;
       justify-content:center;
       min-width:0;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
     }
 
     .weather-today{
@@ -243,18 +252,32 @@
     }
 
     .today-card{
-      padding:20px;
+      padding:var(--card-pad);
       display:flex;
       flex-direction:column;
-      gap:16px;
+      gap:18px;
       min-height:0;
       cursor:pointer;
-      transition:transform .15s ease, border-color .15s ease;
+      border-color:var(--border-strong);
+      box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.04);
+      position:relative;
+      overflow:hidden;
+      transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease;
     }
 
     .today-card:hover{
-      transform:translateY(-3px);
+      transform:translateY(-4px);
       border-color:rgba(255,122,24,.45);
+      box-shadow:0 22px 56px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.05);
+    }
+
+    .today-card::before{
+      content:"";
+      position:absolute;
+      inset:0 0 auto 0;
+      height:4px;
+      background:linear-gradient(90deg, var(--accent), #ffb26f);
+      opacity:.95;
     }
 
     #todayCard{
@@ -271,25 +294,26 @@
     .today-heading{
       display:flex;
       flex-direction:column;
-      gap:8px;
+      gap:10px;
     }
 
     .today-label{
-      font-size:15px;
+      font-size:13px;
       font-weight:900;
-      letter-spacing:.08em;
+      letter-spacing:.12em;
       text-transform:uppercase;
       color:var(--accent-2);
     }
 
     .today-date{
-      font-size:44px;
+      font-size:52px;
       line-height:1;
       font-weight:900;
+      letter-spacing:-.04em;
     }
 
     .today-full-date{
-      font-size:18px;
+      font-size:16px;
       color:var(--muted);
       font-weight:700;
     }
@@ -304,10 +328,12 @@
       font-weight:900;
       cursor:pointer;
       min-width:120px;
+      transition:transform .18s ease, filter .18s ease;
     }
 
     .quick-add-btn:hover{
       filter:brightness(1.06);
+      transform:translateY(-1px);
     }
 
     .today-actions{
@@ -327,10 +353,12 @@
       font-weight:900;
       cursor:pointer;
       min-width:132px;
+      transition:transform .18s ease, background .18s ease;
     }
 
     .month-btn:hover{
       background:rgba(255,255,255,.14);
+      transform:translateY(-1px);
     }
 
     .time-blocks{
@@ -340,14 +368,15 @@
     }
 
     .time-block{
-      background:rgba(255,255,255,.05);
-      border:1px solid rgba(255,255,255,.05);
+      background:var(--surface);
+      border:1px solid rgba(255,255,255,.06);
       border-left:6px solid var(--accent);
       border-radius:20px;
       padding:18px 18px 16px;
       min-height:90px;
       display:grid;
       gap:8px;
+      box-shadow:var(--shadow-soft);
     }
 
     .time-range{
@@ -379,26 +408,31 @@
 
     .day-card{
       min-height:180px;
-      padding:14px;
+      padding:18px;
       cursor:pointer;
       display:flex;
       flex-direction:column;
-      gap:10px;
-      transition:transform .15s ease;
+      gap:12px;
+      border-color:rgba(255,255,255,.1);
+      box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.04);
+      transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease;
     }
 
     .day-card:hover{
-      transform:translateY(-3px);
+      transform:translateY(-4px);
+      border-color:rgba(255,122,24,.28);
+      box-shadow:0 20px 48px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.05);
     }
 
     .day-name{
-      font-size:22px;
+      font-size:20px;
       font-weight:900;
-      line-height:1;
+      line-height:1.05;
+      letter-spacing:-.02em;
     }
 
     .day-date{
-      font-size:14px;
+      font-size:13px;
       color:var(--muted);
       font-weight:700;
     }
@@ -410,12 +444,13 @@
     }
 
     .mini-event{
-      background:rgba(255,255,255,.05);
+      background:var(--surface);
       border-radius:14px;
       border-left:5px solid var(--accent);
       padding:10px 12px;
       display:grid;
       gap:4px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
     }
 
     .mini-time{
@@ -447,17 +482,20 @@
 
     .preview-card{
       min-height:0;
-      padding:18px;
+      padding:var(--card-pad);
       display:grid;
       grid-template-rows:auto minmax(0, 1fr);
-      gap:14px;
+      gap:16px;
       cursor:pointer;
-      transition:transform .15s ease, border-color .15s ease;
+      border-color:rgba(255,255,255,.1);
+      box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.04);
+      transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease;
     }
 
     .preview-card:hover{
-      transform:translateY(-3px);
+      transform:translateY(-4px);
       border-color:rgba(255,122,24,.45);
+      box-shadow:0 20px 48px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.05);
     }
 
     .preview-head{
@@ -469,27 +507,29 @@
 
     .preview-heading{
       display:grid;
-      gap:6px;
+      gap:8px;
     }
 
     .preview-label{
-      font-size:14px;
+      font-size:12px;
       font-weight:900;
-      letter-spacing:.08em;
+      letter-spacing:.12em;
       text-transform:uppercase;
       color:var(--accent-2);
     }
 
     .preview-title{
-      font-size:24px;
-      line-height:1;
+      font-size:26px;
+      line-height:1.02;
       font-weight:900;
+      letter-spacing:-.03em;
     }
 
     .preview-meta{
-      font-size:14px;
+      font-size:13px;
       font-weight:800;
       color:var(--muted);
+      line-height:1.35;
     }
 
     .preview-open{
@@ -502,25 +542,34 @@
       font-weight:900;
       min-width:118px;
       cursor:pointer;
+      transition:transform .18s ease, background .18s ease;
+    }
+
+    .preview-open:hover{
+      transform:translateY(-1px);
+      background:rgba(255,122,24,.22);
     }
 
     .preview-list{
       display:grid;
-      gap:12px;
+      gap:10px;
       align-content:start;
       min-height:0;
       overflow:auto;
       padding-right:4px;
+      scrollbar-width:thin;
+      scrollbar-color:rgba(255,255,255,.18) transparent;
     }
 
     .preview-item{
-      background:rgba(255,255,255,.05);
+      background:var(--surface);
       border:1px solid rgba(255,255,255,.05);
       border-left:5px solid var(--accent);
       border-radius:16px;
       padding:12px 14px;
       display:grid;
       gap:4px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
     }
 
     .preview-item.done{
@@ -529,7 +578,7 @@
     }
 
     .preview-item-title{
-      font-size:16px;
+      font-size:15px;
       font-weight:850;
       line-height:1.2;
       word-break:break-word;
@@ -544,7 +593,8 @@
     .preview-empty{
       color:var(--muted);
       font-weight:700;
-      padding:6px 2px;
+      padding:10px 2px;
+      line-height:1.4;
     }
 
     .nav-btn{
