@@ -39,7 +39,8 @@
 
     .topbar,
     .timeline-shell,
-    .modal-card{
+    .modal-card,
+    .status-pill{
       background:linear-gradient(180deg,var(--panel),var(--panel-2));
       border:1px solid var(--border);
       border-radius:var(--radius);
@@ -65,13 +66,15 @@
       display:flex;
       gap:12px;
       flex-wrap:wrap;
+      align-items:center;
     }
 
     .nav-btn,
     .quick-add-btn,
     .save-btn,
     .delete-btn,
-    .cancel-btn{
+    .cancel-btn,
+    .top-btn{
       border:none;
       border-radius:16px;
       padding:14px 18px;
@@ -81,23 +84,28 @@
       min-height:52px;
     }
 
-    .nav-btn{
+    .nav-btn,
+    .top-btn{
       background:rgba(255,255,255,.08);
       color:var(--text);
-      text-decoration:none;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
     }
 
-    .nav-btn:hover{
+    .nav-btn:hover,
+    .top-btn:hover{
       background:rgba(255,255,255,.14);
     }
 
+    .top-btn.accent,
     .quick-add-btn,
     .save-btn{
       background:var(--accent);
       color:#fff;
+    }
+
+    .top-btn.accent:hover,
+    .quick-add-btn:hover,
+    .save-btn:hover{
+      filter:brightness(1.06);
     }
 
     .cancel-btn{
@@ -114,6 +122,30 @@
       font-size:34px;
       font-weight:900;
       line-height:1.1;
+    }
+
+    .status-pill{
+      min-height:52px;
+      padding:10px 16px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:2px;
+      min-width:240px;
+    }
+
+    .status-label{
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+
+    .status-text{
+      font-size:14px;
+      font-weight:800;
+      color:var(--text);
     }
 
     .timeline-shell{
@@ -185,6 +217,12 @@
       line-height:1.2;
     }
 
+    .empty-note{
+      padding:18px;
+      color:var(--muted);
+      font-weight:700;
+    }
+
     .modal{
       position:fixed;
       inset:0;
@@ -240,10 +278,6 @@
       outline:none;
     }
 
-    .field input::placeholder{
-      color:#98a0b3;
-    }
-
     .modal-actions{
       display:flex;
       justify-content:space-between;
@@ -292,11 +326,19 @@
       }
 
       .top-actions .nav-btn,
+      .top-actions .top-btn,
       .top-actions .quick-add-btn{
         flex:1 1 0;
       }
+
+      .status-pill{
+        width:100%;
+      }
     }
   </style>
+
+  <script async defer src="https://apis.google.com/js/api.js"></script>
+  <script async defer src="https://accounts.google.com/gsi/client"></script>
 </head>
 <body>
   <div class="page">
@@ -308,7 +350,15 @@
         <div class="day-title" id="dayTitle">Day View</div>
       </div>
 
-      <button class="quick-add-btn" id="quickAddBtn" type="button">Quick Add</button>
+      <div class="top-actions">
+        <div class="status-pill">
+          <div class="status-label">Google</div>
+          <div class="status-text" id="statusText">Loading…</div>
+        </div>
+        <button class="top-btn accent" id="authBtn" type="button">Connect</button>
+        <button class="top-btn" id="signOutBtn" type="button" style="display:none;">Sign Out</button>
+        <button class="quick-add-btn" id="quickAddBtn" type="button">Quick Add</button>
+      </div>
     </section>
 
     <section class="timeline-shell">
@@ -368,22 +418,53 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "pocketsteak-family-events";
+    const CLIENT_ID = "82204016171-ta1ipuu88gie0tkq69je3di5uifu1kki.apps.googleusercontent.com";
+    const API_KEY = "AIzaSyBPZEeYB8IaheJPJA2Y44msGfDwIhJMpGU";
+    const DISCOVERY_DOC = "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest";
+    const SCOPES = "https://www.googleapis.com/auth/calendar";
+
+    const TOKEN_KEY = "pocketsteak_google_access_token";
+    const TOKEN_EXP_KEY = "pocketsteak_google_token_exp";
+
     const START_HOUR = 6;
     const END_HOUR = 22;
     const SLOT_MINUTES = 30;
     const SLOT_HEIGHT = 40;
 
-    const CALENDARS = [
-      { id: "family-main", name: "Family", color: "#ff7a18" },
-      { id: "nichol", name: "Nichol", color: "#4dabf7" },
-      { id: "jolie", name: "Jolie", color: "#51cf66" },
-      { id: "andrew", name: "Andrew", color: "#f783ac" },
-      { id: "other", name: "Other", color: "#ffd43b" }
-    ];
+    let tokenClient = null;
+    let gapiInited = false;
+    let gisInited = false;
 
     let selectedDate = getDateFromQuery();
-    let editingEventId = null;
+    let calendarsById = new Map();
+    let dayEvents = [];
+    let editingEvent = null;
+
+    function setStatus(text) {
+      document.getElementById("statusText").textContent = text;
+    }
+
+    function saveToken(accessToken, expiresInSeconds = 3600) {
+      const expiresAt = Date.now() + (expiresInSeconds * 1000);
+      sessionStorage.setItem(TOKEN_KEY, accessToken);
+      sessionStorage.setItem(TOKEN_EXP_KEY, String(expiresAt));
+    }
+
+    function getSavedToken() {
+      const token = sessionStorage.getItem(TOKEN_KEY);
+      const exp = Number(sessionStorage.getItem(TOKEN_EXP_KEY) || "0");
+      if (!token || !exp) return null;
+      if (Date.now() >= exp) {
+        clearSavedToken();
+        return null;
+      }
+      return token;
+    }
+
+    function clearSavedToken() {
+      sessionStorage.removeItem(TOKEN_KEY);
+      sessionStorage.removeItem(TOKEN_EXP_KEY);
+    }
 
     function formatDateKey(date) {
       const year = date.getFullYear();
@@ -414,45 +495,18 @@
       return formatDateKey(new Date());
     }
 
-    function getEvents() {
-      try {
-        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
-        return Array.isArray(parsed) ? parsed : [];
-      } catch {
-        return [];
-      }
-    }
-
-    function saveEvents(events) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
-    }
-
-    function makeId() {
-      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
-      return "evt-" + Date.now() + "-" + Math.random().toString(16).slice(2);
-    }
-
-    function sortEvents(events) {
-      return [...events].sort((a, b) => {
-        if (a.date !== b.date) return a.date.localeCompare(b.date);
-        return a.start.localeCompare(b.start);
-      });
-    }
-
-    function getEventsForDate(dateKey) {
-      return sortEvents(getEvents().filter(event => event.date === dateKey));
-    }
-
     function getCalendarColor(calendarId) {
-      const found = CALENDARS.find(c => c.id === calendarId);
-      return found ? found.color : "#ff7a18";
+      const found = calendarsById.get(calendarId);
+      return found?.backgroundColor || "#ff7a18";
     }
 
     function getCalendarOptions() {
       const select = document.getElementById("eventCalendar");
+      const calendars = [...calendarsById.values()].filter(cal => cal.selected !== false);
+
       select.innerHTML = `
         <option value="">Select a calendar</option>
-        ${CALENDARS.map(cal => `<option value="${cal.id}">${cal.name}</option>`).join("")}
+        ${calendars.map(cal => `<option value="${cal.id}">${cal.summary}</option>`).join("")}
       `;
     }
 
@@ -488,21 +542,41 @@
       return (hour * 60) + minute;
     }
 
+    function formatTimeLabel(dateTimeString) {
+      const date = new Date(dateTimeString);
+      return date.toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit"
+      });
+    }
+
     function renderHeader() {
       document.getElementById("dayTitle").textContent = formatLongDate(selectedDate);
     }
 
     function renderEvents() {
       const eventsCol = document.getElementById("eventsCol");
-      const existingBlocks = eventsCol.querySelectorAll(".event-block");
+      const existingBlocks = eventsCol.querySelectorAll(".event-block, .empty-note");
       existingBlocks.forEach(block => block.remove());
 
-      const dayEvents = getEventsForDate(selectedDate);
+      const timedEvents = dayEvents.filter(event => !!event.start?.dateTime && !!event.end?.dateTime);
 
-      dayEvents.forEach(event => {
-        const startMinutes = timeToMinutes(event.start);
-        const endMinutes = timeToMinutes(event.end);
+      if (timedEvents.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty-note";
+        empty.textContent = "No timed events for this day.";
+        eventsCol.appendChild(empty);
+        return;
+      }
+
+      timedEvents.forEach(event => {
+        const startDate = new Date(event.start.dateTime);
+        const endDate = new Date(event.end.dateTime);
+
+        const startMinutes = (startDate.getHours() * 60) + startDate.getMinutes();
+        const endMinutes = (endDate.getHours() * 60) + endDate.getMinutes();
         const baseMinutes = START_HOUR * 60;
+
         const top = ((startMinutes - baseMinutes) / SLOT_MINUTES) * SLOT_HEIGHT;
         const height = Math.max(((endMinutes - startMinutes) / SLOT_MINUTES) * SLOT_HEIGHT, SLOT_HEIGHT);
 
@@ -511,24 +585,155 @@
         block.style.top = `${top}px`;
         block.style.height = `${height - 4}px`;
         block.style.background = getCalendarColor(event.calendarId);
-        block.dataset.eventId = event.id;
 
         block.innerHTML = `
-          <div class="event-time">${event.start} - ${event.end}</div>
-          <div class="event-title">${event.title}</div>
+          <div class="event-time">${formatTimeLabel(event.start.dateTime)} - ${formatTimeLabel(event.end.dateTime)}</div>
+          <div class="event-title">${event.summary || "(Untitled event)"}</div>
         `;
 
-        block.addEventListener("click", () => openEditModal(event.id));
+        block.addEventListener("click", () => openEditModal(event));
         eventsCol.appendChild(block);
       });
     }
 
+    async function loadGoogleDayData() {
+      try {
+        setStatus("Loading day…");
+
+        const calendarResp = await gapi.client.calendar.calendarList.list();
+        const calendars = calendarResp.result.items || [];
+        const visibleCalendars = calendars.filter(cal => cal.selected !== false);
+
+        calendarsById = new Map(visibleCalendars.map(cal => [cal.id, cal]));
+        getCalendarOptions();
+
+        const dayStart = new Date(`${selectedDate}T00:00:00`);
+        const dayEnd = new Date(`${selectedDate}T23:59:59`);
+
+        const responses = await Promise.all(
+          visibleCalendars.map(cal =>
+            gapi.client.calendar.events.list({
+              calendarId: cal.id,
+              timeMin: dayStart.toISOString(),
+              timeMax: dayEnd.toISOString(),
+              showDeleted: false,
+              singleEvents: true,
+              orderBy: "startTime",
+              maxResults: 250,
+            }).then(resp => {
+              const items = resp.result.items || [];
+              return items.map(event => ({
+                ...event,
+                calendarId: cal.id,
+              }));
+            })
+          )
+        );
+
+        dayEvents = responses
+          .flat()
+          .sort((a, b) => {
+            const aStart = a.start.dateTime || `${a.start.date}T00:00:00`;
+            const bStart = b.start.dateTime || `${b.start.date}T00:00:00`;
+            return aStart.localeCompare(bStart);
+          });
+
+        renderAll();
+        setStatus(`Loaded ${dayEvents.length} events`);
+      } catch (err) {
+        console.error(err);
+        setStatus("Load failed");
+      }
+    }
+
+    async function gapiLoaded() {
+      await new Promise((resolve) => gapi.load("client", resolve));
+      await gapi.client.init({
+        apiKey: API_KEY,
+        discoveryDocs: [DISCOVERY_DOC],
+      });
+      gapiInited = true;
+      maybeReady();
+    }
+
+    function gisLoaded() {
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: async (resp) => {
+          if (resp.error) {
+            console.error(resp);
+            setStatus("Connection failed");
+            return;
+          }
+
+          const token = gapi.client.getToken();
+          if (token?.access_token) {
+            saveToken(token.access_token, resp.expires_in || 3600);
+          }
+
+          document.getElementById("authBtn").textContent = "Refresh";
+          document.getElementById("signOutBtn").style.display = "inline-flex";
+
+          await loadGoogleDayData();
+        },
+      });
+
+      gisInited = true;
+      maybeReady();
+    }
+
+    async function maybeReady() {
+      if (!gapiInited || !gisInited) return;
+
+      document.getElementById("authBtn").disabled = false;
+
+      const savedToken = getSavedToken();
+      if (savedToken) {
+        gapi.client.setToken({ access_token: savedToken });
+        document.getElementById("authBtn").textContent = "Refresh";
+        document.getElementById("signOutBtn").style.display = "inline-flex";
+        setStatus("Restoring connection…");
+        await loadGoogleDayData();
+      } else {
+        setStatus("Not connected");
+      }
+    }
+
+    async function handleAuthClick() {
+      if (!tokenClient) return;
+      setStatus("Connecting…");
+      tokenClient.requestAccessToken({ prompt: "consent" });
+    }
+
+    function handleSignoutClick() {
+      const token = gapi.client.getToken();
+      if (token?.access_token) {
+        google.accounts.oauth2.revoke(token.access_token);
+      }
+
+      gapi.client.setToken("");
+      clearSavedToken();
+      calendarsById = new Map();
+      dayEvents = [];
+      document.getElementById("authBtn").textContent = "Connect";
+      document.getElementById("signOutBtn").style.display = "none";
+      setStatus("Not connected");
+      renderAll();
+    }
+
     function openAddModal() {
-      editingEventId = null;
+      if (calendarsById.size === 0) {
+        alert("Connect Google Calendar first.");
+        return;
+      }
+
+      editingEvent = null;
       document.getElementById("modalTitle").textContent = "Add Event";
       document.getElementById("deleteBtn").style.display = "none";
       document.getElementById("errorText").textContent = "";
 
+      getCalendarOptions();
       document.getElementById("eventCalendar").value = "";
       document.getElementById("eventName").value = "";
       document.getElementById("eventDate").value = selectedDate;
@@ -538,20 +743,30 @@
       document.getElementById("eventModal").classList.add("open");
     }
 
-    function openEditModal(eventId) {
-      const event = getEvents().find(e => e.id === eventId);
-      if (!event) return;
-
-      editingEventId = eventId;
+    function openEditModal(event) {
+      editingEvent = event;
       document.getElementById("modalTitle").textContent = "Edit Event";
       document.getElementById("deleteBtn").style.display = "inline-block";
       document.getElementById("errorText").textContent = "";
 
+      getCalendarOptions();
       document.getElementById("eventCalendar").value = event.calendarId || "";
-      document.getElementById("eventName").value = event.title || "";
-      document.getElementById("eventDate").value = event.date || selectedDate;
-      document.getElementById("eventStart").value = event.start || "";
-      document.getElementById("eventEnd").value = event.end || "";
+      document.getElementById("eventName").value = event.summary || "";
+      document.getElementById("eventDate").value = selectedDate;
+
+      if (event.start?.dateTime) {
+        const start = new Date(event.start.dateTime);
+        document.getElementById("eventStart").value = `${String(start.getHours()).padStart(2, "0")}:${String(start.getMinutes()).padStart(2, "0")}`;
+      } else {
+        document.getElementById("eventStart").value = "";
+      }
+
+      if (event.end?.dateTime) {
+        const end = new Date(event.end.dateTime);
+        document.getElementById("eventEnd").value = `${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes()).padStart(2, "0")}`;
+      } else {
+        document.getElementById("eventEnd").value = "";
+      }
 
       document.getElementById("eventModal").classList.add("open");
     }
@@ -583,7 +798,11 @@
       return "";
     }
 
-    function saveForm() {
+    function buildDateTime(dateStr, timeStr) {
+      return new Date(`${dateStr}T${timeStr}:00`);
+    }
+
+    async function saveForm() {
       const error = validateForm();
       document.getElementById("errorText").textContent = error;
       if (error) return;
@@ -594,37 +813,82 @@
       const start = document.getElementById("eventStart").value;
       const end = document.getElementById("eventEnd").value;
 
-      const events = getEvents().filter(event => event.id !== editingEventId);
+      const startDateTime = buildDateTime(date, start).toISOString();
+      const endDateTime = buildDateTime(date, end).toISOString();
 
-      events.push({
-        id: editingEventId || makeId(),
-        calendarId,
-        title,
-        date,
-        start,
-        end
-      });
+      const resource = {
+        summary: title,
+        start: { dateTime: startDateTime },
+        end: { dateTime: endDateTime }
+      };
 
-      saveEvents(sortEvents(events));
+      try {
+        document.getElementById("saveBtn").disabled = true;
 
-      selectedDate = date;
-      history.replaceState({}, "", `./day.html?date=${date}`);
+        if (!editingEvent) {
+          await gapi.client.calendar.events.insert({
+            calendarId,
+            resource
+          });
+        } else {
+          const originalCalendarId = editingEvent.calendarId;
 
-      closeModal();
-      renderAll();
+          if (originalCalendarId === calendarId) {
+            await gapi.client.calendar.events.update({
+              calendarId,
+              eventId: editingEvent.id,
+              resource: {
+                ...editingEvent,
+                ...resource
+              }
+            });
+          } else {
+            await gapi.client.calendar.events.insert({
+              calendarId,
+              resource
+            });
+
+            await gapi.client.calendar.events.delete({
+              calendarId: originalCalendarId,
+              eventId: editingEvent.id
+            });
+          }
+        }
+
+        selectedDate = date;
+        history.replaceState({}, "", `./day.html?date=${date}`);
+        closeModal();
+        await loadGoogleDayData();
+      } catch (err) {
+        console.error(err);
+        document.getElementById("errorText").textContent = "Could not save the event.";
+      } finally {
+        document.getElementById("saveBtn").disabled = false;
+      }
     }
 
-    function deleteEvent() {
-      if (!editingEventId) return;
+    async function deleteEvent() {
+      if (!editingEvent) return;
 
       const confirmed = window.confirm("Delete this event?");
       if (!confirmed) return;
 
-      const events = getEvents().filter(event => event.id !== editingEventId);
-      saveEvents(events);
+      try {
+        document.getElementById("deleteBtn").disabled = true;
 
-      closeModal();
-      renderAll();
+        await gapi.client.calendar.events.delete({
+          calendarId: editingEvent.calendarId,
+          eventId: editingEvent.id
+        });
+
+        closeModal();
+        await loadGoogleDayData();
+      } catch (err) {
+        console.error(err);
+        document.getElementById("errorText").textContent = "Could not delete the event.";
+      } finally {
+        document.getElementById("deleteBtn").disabled = false;
+      }
     }
 
     function renderAll() {
@@ -633,13 +897,12 @@
       renderEvents();
     }
 
-    getCalendarOptions();
-    renderAll();
-
     document.getElementById("backHomeBtn").addEventListener("click", () => {
       window.location.href = "./index.html";
     });
 
+    document.getElementById("authBtn").addEventListener("click", handleAuthClick);
+    document.getElementById("signOutBtn").addEventListener("click", handleSignoutClick);
     document.getElementById("quickAddBtn").addEventListener("click", openAddModal);
     document.getElementById("cancelBtn").addEventListener("click", closeModal);
     document.getElementById("saveBtn").addEventListener("click", saveForm);
@@ -651,10 +914,23 @@
       }
     });
 
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("add") === "1") {
-      openAddModal();
-    }
+    renderAll();
+    document.getElementById("authBtn").disabled = true;
+
+    window.addEventListener("load", async () => {
+      try {
+        await gapiLoaded();
+        gisLoaded();
+
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("add") === "1" && getSavedToken()) {
+          setTimeout(openAddModal, 300);
+        }
+      } catch (err) {
+        console.error(err);
+        setStatus("Setup failed");
+      }
+    });
   </script>
 </body>
 </html>
