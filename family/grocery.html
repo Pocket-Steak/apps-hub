@@ -554,31 +554,64 @@
     // GOOGLE INIT
     // =========================
     function initGapi() {
-      gapi.load("client", async () => {
-        try {
-          await gapi.client.init({
-            apiKey: GOOGLE_API_KEY,
-            discoveryDocs: [DISCOVERY_DOC],
+      const startedAt = Date.now();
+
+      const waitForGapi = () => {
+        if (window.gapi && typeof window.gapi.load === "function") {
+          window.gapi.load("client", async () => {
+            try {
+              await window.gapi.client.init({
+                apiKey: GOOGLE_API_KEY,
+                discoveryDocs: [DISCOVERY_DOC],
+              });
+              gapiReady = true;
+              ensureAppInitialized();
+            } catch (error) {
+              console.error("gapi init error:", error);
+              setStatus("Setup failed", false);
+              showMessage(getReadableError(error), "error");
+            }
           });
-          gapiReady = true;
-          ensureAppInitialized();
-        } catch (error) {
-          console.error("gapi init error:", error);
-          setStatus("Setup failed", false);
-          showMessage(getReadableError(error), "error");
+          return;
         }
-      });
+
+        if (Date.now() - startedAt > 10000) {
+          setStatus("Google failed to load", false);
+          showMessage(
+            "The Google API script did not finish loading. Check your internet connection and browser extensions, then refresh.",
+            "error"
+          );
+          return;
+        }
+
+        window.setTimeout(waitForGapi, 100);
+      };
+
+      waitForGapi();
     }
 
     function initGisReadyCheck() {
+      const startedAt = Date.now();
+
       const waitForGoogle = () => {
         if (window.google && google.accounts && google.accounts.oauth2) {
           gisReady = true;
           ensureAppInitialized();
           return;
         }
+
+        if (Date.now() - startedAt > 10000) {
+          setStatus("Google failed to load", false);
+          showMessage(
+            "The Google sign-in script did not finish loading. Check your internet connection and browser extensions, then refresh.",
+            "error"
+          );
+          return;
+        }
+
         window.setTimeout(waitForGoogle, 100);
       };
+
       waitForGoogle();
     }
 
