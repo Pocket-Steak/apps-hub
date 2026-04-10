@@ -58,36 +58,40 @@
     .top-left{
       display:flex;
       flex-direction:column;
-      gap:8px;
+      gap:12px;
     }
 
-    .back-link{
-      color:var(--muted);
-      text-decoration:none;
-      font-weight:700;
-      font-size:14px;
+    .top-actions{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
     }
 
-    .back-link:hover{
-      color:#fff;
-    }
-
-    .day-title{
-      font-size:34px;
-      font-weight:900;
-      line-height:1.1;
-    }
-
+    .nav-btn,
     .quick-add-btn,
     .save-btn,
     .delete-btn,
     .cancel-btn{
       border:none;
       border-radius:16px;
-      padding:12px 16px;
+      padding:14px 18px;
       font-size:15px;
       font-weight:900;
       cursor:pointer;
+      min-height:52px;
+    }
+
+    .nav-btn{
+      background:rgba(255,255,255,.08);
+      color:var(--text);
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .nav-btn:hover{
+      background:rgba(255,255,255,.14);
     }
 
     .quick-add-btn,
@@ -104,6 +108,12 @@
     .delete-btn{
       background:#b42318;
       color:#fff;
+    }
+
+    .day-title{
+      font-size:34px;
+      font-weight:900;
+      line-height:1.1;
     }
 
     .timeline-shell{
@@ -272,6 +282,19 @@
         left:8px;
         right:8px;
       }
+
+      .topbar{
+        align-items:stretch;
+      }
+
+      .top-actions{
+        width:100%;
+      }
+
+      .top-actions .nav-btn,
+      .top-actions .quick-add-btn{
+        flex:1 1 0;
+      }
     }
   </style>
 </head>
@@ -279,11 +302,13 @@
   <div class="page">
     <section class="topbar">
       <div class="top-left">
-        <a class="back-link" href="./index.html">← Back to Home</a>
+        <div class="top-actions">
+          <button class="nav-btn" id="backHomeBtn" type="button">← Back to Home</button>
+        </div>
         <div class="day-title" id="dayTitle">Day View</div>
       </div>
 
-      <button class="quick-add-btn" id="quickAddBtn">Quick Add</button>
+      <button class="quick-add-btn" id="quickAddBtn" type="button">Quick Add</button>
     </section>
 
     <section class="timeline-shell">
@@ -331,12 +356,12 @@
 
       <div class="modal-actions">
         <div class="modal-actions-left">
-          <button class="delete-btn" id="deleteBtn" style="display:none;">Delete</button>
+          <button class="delete-btn" id="deleteBtn" type="button" style="display:none;">Delete</button>
         </div>
 
         <div class="modal-actions-right">
-          <button class="cancel-btn" id="cancelBtn">Cancel</button>
-          <button class="save-btn" id="saveBtn">Save</button>
+          <button class="cancel-btn" id="cancelBtn" type="button">Cancel</button>
+          <button class="save-btn" id="saveBtn" type="button">Save</button>
         </div>
       </div>
     </div>
@@ -610,6 +635,10 @@
 
     getCalendarOptions();
     renderAll();
+
+    document.getElementById("backHomeBtn").addEventListener("click", () => {
+      window.location.href = "./index.html";
+    });
 
     document.getElementById("quickAddBtn").addEventListener("click", openAddModal);
     document.getElementById("cancelBtn").addEventListener("click", closeModal);
