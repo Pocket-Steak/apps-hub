@@ -38,8 +38,9 @@
       max-width:1600px;
       margin:0 auto;
       display:grid;
+      grid-template-rows:auto auto auto minmax(0, 1fr);
       gap:14px;
-      min-height:calc(100dvh - 32px);
+      height:calc(100dvh - 32px);
     }
 
     .topbar{
@@ -177,13 +178,21 @@
     }
 
     .calendar-shell{
+      min-height:0;
       overflow:hidden;
+      display:grid;
+      grid-template-rows:auto minmax(0, 1fr);
     }
 
     .weekday-row,
     .month-grid{
       display:grid;
       grid-template-columns:repeat(7, minmax(0, 1fr));
+    }
+
+    .month-grid{
+      min-height:0;
+      overflow:auto;
     }
 
     .weekday-row{
@@ -387,7 +396,7 @@
 
       .page{
         gap:12px;
-        min-height:calc(100dvh - 24px);
+        height:calc(100dvh - 24px);
       }
 
       .top-actions{
@@ -438,7 +447,7 @@
 
       .page{
         gap:10px;
-        min-height:calc(100dvh - 20px);
+        height:calc(100dvh - 20px);
       }
 
       .top-actions{
