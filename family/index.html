@@ -1483,6 +1483,12 @@
       document.getElementById("dashboardOverlay").setAttribute("aria-hidden", "true");
       document.getElementById("overlayFrame").src = "";
       document.body.classList.remove("modal-open");
+
+      if (gapiInited && gisInited && gapi.client.getToken()) {
+        loadDashboardLists().catch((err) => {
+          console.error(err);
+        });
+      }
     }
 
     async function loadSheetPreview(range, hasOwner = false) {
