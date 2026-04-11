@@ -274,6 +274,9 @@
       cursor:pointer;
       box-shadow:var(--shadow-soft);
       align-content:start;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.025)),
+        var(--surface);
     }
 
     .note-card:hover{
@@ -287,8 +290,10 @@
     .note-card.active{
       border-left-color:var(--accent);
       background:
-        radial-gradient(circle at top left, rgba(255,255,255,.06), transparent 34%),
+        linear-gradient(90deg, rgba(255,122,24,.12), transparent 42%),
+        radial-gradient(circle at top left, rgba(255,255,255,.08), transparent 34%),
         linear-gradient(180deg,#20242d,#292e38);
+      box-shadow:0 16px 28px rgba(0,0,0,.24);
     }
 
     .note-card-title{
@@ -297,6 +302,7 @@
       line-height:1.2;
       word-break:break-word;
       color:var(--text);
+      letter-spacing:-.01em;
     }
 
     .note-card-preview{
