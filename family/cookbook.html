@@ -37,6 +37,7 @@
       max-width:1600px;
       margin:0 auto;
       display:grid;
+      grid-template-rows:auto auto minmax(0, 1fr);
       gap:16px;
       min-height:calc(100vh - 32px);
     }
@@ -156,15 +157,20 @@
       grid-template-columns:minmax(300px, .7fr) minmax(0, 1.3fr);
       gap:16px;
       min-height:0;
+      height:100%;
       flex:1 1 auto;
+      overflow:hidden;
     }
 
     .search-shell,
     .viewer-shell{
       min-height:0;
+      height:100%;
       padding:14px;
       display:grid;
+      grid-template-rows:auto auto minmax(0, 1fr);
       gap:12px;
+      overflow:hidden;
     }
 
     .search-head{
@@ -297,6 +303,8 @@
     @media (max-width: 980px){
       .cookbook-layout{
         grid-template-columns:1fr;
+        height:auto;
+        overflow:visible;
       }
 
       .viewer-frame{
