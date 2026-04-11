@@ -1958,15 +1958,10 @@
 
     const WEATHER_URL = "https://api.open-meteo.com/v1/forecast?latitude=41.582011&longitude=-81.203217&current=temperature_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FNew_York&forecast_days=7";
     const DISNEY_COUNTDOWN_TARGET = new Date(2026, 7, 15, 0, 0, 0);
-    const QUEUE_TIMES_PARK_URLS = {
-      epcot: "https://queue-times.com/parks/5/queue_times.json",
-      animalKingdom: "https://queue-times.com/parks/8/queue_times.json",
-      hollywoodStudios: "https://queue-times.com/parks/7/queue_times.json",
-    };
     const DISNEY_RIDES = [
-      { parkKey: "epcot", rideId: 159, label: "Spaceship Earth" },
-      { parkKey: "animalKingdom", rideId: 110, label: "Expedition Everest" },
-      { parkKey: "hollywoodStudios", rideId: 123, label: "Tower of Terror" },
+      { rideId: 159, label: "Spaceship Earth" },
+      { rideId: 110, label: "Expedition Everest" },
+      { rideId: 123, label: "Tower of Terror" },
     ];
 
     let tokenClient = null;
@@ -2040,21 +2035,6 @@
 
     function padNumber(num) {
       return String(num).padStart(2, "0");
-    }
-
-    function flattenParkRides(data) {
-      const topLevelRides = Array.isArray(data?.rides) ? data.rides : [];
-      const landRides = Array.isArray(data?.lands)
-        ? data.lands.flatMap(land => Array.isArray(land?.rides) ? land.rides : [])
-        : [];
-      return [...topLevelRides, ...landRides];
-    }
-
-    function formatRideWait(ride) {
-      if (!ride) return "--";
-      if (ride.is_open === false) return "Closed";
-      if (typeof ride.wait_time === "number") return `${ride.wait_time} min`;
-      return "--";
     }
 
     function renderRideWaits(values) {
@@ -2465,26 +2445,15 @@
 
     async function loadDisneyWaits() {
       try {
-        const parkEntries = await Promise.all(
-          Object.entries(QUEUE_TIMES_PARK_URLS).map(async ([parkKey, url]) => {
-            const resp = await fetch(url);
-            if (!resp.ok) throw new Error(`Wait time request failed for ${parkKey}`);
-            const data = await resp.json();
-            return [parkKey, flattenParkRides(data)];
-          })
-        );
-
-        const ridesByPark = new Map(parkEntries);
-        const rideValues = DISNEY_RIDES.map((rideConfig) => {
-          const parkRides = ridesByPark.get(rideConfig.parkKey) || [];
-          const ride = parkRides.find((entry) => Number(entry.id) === rideConfig.rideId);
-          return {
-            label: rideConfig.label,
-            wait: formatRideWait(ride),
-          };
-        });
-
-        renderRideWaits(rideValues);
+        const resp = await fetch("/api/disney-waits");
+        if (!resp.ok) throw new Error("Wait time proxy request failed");
+        const data = await resp.json();
+        const rides = Array.isArray(data?.rides) ? data.rides : [];
+        const waitById = new Map(rides.map((ride) => [Number(ride.rideId), ride.wait]));
+        renderRideWaits(DISNEY_RIDES.map((ride) => ({
+          label: ride.label,
+          wait: waitById.get(ride.rideId) || "--",
+        })));
       } catch (err) {
         console.error(err);
         renderRideWaits(DISNEY_RIDES.map((ride) => ({
