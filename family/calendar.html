@@ -39,6 +39,7 @@
       margin:0 auto;
       display:grid;
       gap:14px;
+      min-height:calc(100dvh - 32px);
     }
 
     .topbar{
@@ -376,6 +377,117 @@
       .day-cell{
         min-height:108px;
         padding:7px;
+      }
+    }
+
+    @media (max-height: 960px){
+      body{
+        padding:12px;
+      }
+
+      .page{
+        gap:12px;
+        min-height:calc(100dvh - 24px);
+      }
+
+      .top-actions{
+        gap:10px;
+      }
+
+      .nav-btn,
+      .top-btn,
+      .icon-btn{
+        min-height:42px;
+        padding:10px 14px;
+        font-size:14px;
+      }
+
+      .status-pill{
+        min-height:42px;
+        padding:7px 12px;
+      }
+
+      .month-bar{
+        padding:12px 14px;
+      }
+
+      .month-title{
+        font-size:22px;
+      }
+
+      .legend{
+        padding:10px 12px;
+      }
+
+      .weekday{
+        padding:10px 6px;
+        font-size:12px;
+      }
+
+      .day-cell{
+        min-height:114px;
+        padding:7px;
+        gap:5px;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 820px){
+      body{
+        padding:10px;
+      }
+
+      .page{
+        gap:10px;
+        min-height:calc(100dvh - 20px);
+      }
+
+      .top-actions{
+        gap:8px;
+      }
+
+      .nav-btn,
+      .top-btn,
+      .icon-btn{
+        min-height:38px;
+        padding:8px 12px;
+        font-size:13px;
+      }
+
+      .status-pill{
+        min-height:38px;
+        padding:6px 10px;
+      }
+
+      .month-bar{
+        padding:10px 12px;
+      }
+
+      .month-title{
+        font-size:20px;
+      }
+
+      .legend{
+        gap:10px;
+        padding:9px 10px;
+      }
+
+      .legend-item{
+        font-size:12px;
+      }
+
+      .day-cell{
+        min-height:98px;
+        padding:6px;
+        gap:4px;
+      }
+
+      .day-number{
+        font-size:13px;
+      }
+
+      .event-chip,
+      .more{
+        font-size:10px;
       }
     }
   </style>

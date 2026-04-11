@@ -39,7 +39,7 @@
       display:grid;
       grid-template-rows:auto auto minmax(0, 1fr);
       gap:16px;
-      min-height:calc(100vh - 32px);
+      min-height:calc(100dvh - 32px);
     }
 
     .topbar,
@@ -157,7 +157,7 @@
       grid-template-columns:minmax(300px, .7fr) minmax(0, 1.3fr);
       gap:16px;
       min-height:0;
-      height:calc(100vh - 260px);
+      height:calc(100dvh - 260px);
       overflow:hidden;
     }
 
@@ -317,7 +317,7 @@
       }
 
       .viewer-frame{
-        height:calc(100vh - 440px);
+        height:calc(100dvh - 440px);
       }
 
       .viewer-shell{
@@ -346,7 +346,7 @@
 
       .page{
         gap:12px;
-        min-height:calc(100vh - 24px);
+        min-height:calc(100dvh - 24px);
       }
 
       .topbar{
@@ -365,11 +365,114 @@
       .cookbook-layout{
         grid-template-columns:minmax(280px, .68fr) minmax(0, 1.32fr);
         gap:12px;
-        height:calc(100vh - 220px);
+        height:calc(100dvh - 220px);
       }
 
       .viewer-frame{
         height:100%;
+      }
+    }
+
+    @media (max-height: 960px){
+      body{
+        padding:12px;
+      }
+
+      .page{
+        gap:12px;
+        min-height:calc(100dvh - 24px);
+      }
+
+      .topbar{
+        padding:10px 12px;
+      }
+
+      .top-actions{
+        gap:10px;
+      }
+
+      .top-btn{
+        min-height:42px;
+        padding:10px 14px;
+        font-size:14px;
+      }
+
+      .status-pill{
+        min-height:42px;
+        padding:7px 12px;
+      }
+
+      .hero{
+        padding:16px 18px;
+      }
+
+      .title{
+        font-size:clamp(1.7rem, 2.5vw, 2.3rem);
+      }
+
+      .meta{
+        font-size:13px;
+      }
+
+      .cookbook-layout{
+        gap:12px;
+        height:calc(100dvh - 222px);
+      }
+
+      .search-shell,
+      .viewer-shell{
+        padding:12px;
+        gap:10px;
+      }
+
+      .search-input{
+        min-height:46px;
+        font-size:14px;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 820px){
+      body{
+        padding:10px;
+      }
+
+      .page{
+        gap:10px;
+        min-height:calc(100dvh - 20px);
+      }
+
+      .topbar{
+        padding:8px 10px;
+      }
+
+      .top-btn{
+        min-height:38px;
+        padding:8px 12px;
+        font-size:13px;
+      }
+
+      .status-pill{
+        min-height:38px;
+        padding:6px 10px;
+      }
+
+      .hero{
+        padding:14px 16px;
+      }
+
+      .cookbook-layout{
+        gap:10px;
+        height:calc(100dvh - 196px);
+      }
+
+      .search-shell,
+      .viewer-shell{
+        padding:10px;
+        gap:8px;
+      }
+
+      .result-card{
+        padding:10px;
       }
     }
   </style>

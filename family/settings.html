@@ -37,6 +37,7 @@
       margin:0 auto;
       display:grid;
       gap:16px;
+      min-height:calc(100dvh - 32px);
     }
 
     .topbar,
@@ -242,6 +243,91 @@
 
       .action-btn{
         width:100%;
+      }
+    }
+
+    @media (max-height: 960px){
+      body{
+        padding:12px;
+      }
+
+      .page{
+        gap:12px;
+        min-height:calc(100dvh - 24px);
+      }
+
+      .topbar{
+        padding:10px 12px;
+      }
+
+      .top-actions{
+        gap:10px;
+      }
+
+      .top-btn,
+      .nav-link,
+      .action-btn{
+        min-height:42px;
+        padding:10px 14px;
+        font-size:14px;
+      }
+
+      .hero{
+        padding:16px 18px;
+      }
+
+      .title{
+        font-size:clamp(1.8rem, 2.7vw, 2.4rem);
+      }
+
+      .panel{
+        padding:16px;
+        gap:14px;
+      }
+
+      .nav-grid{
+        gap:10px;
+      }
+
+      .status-pill{
+        min-height:50px;
+        padding:8px 12px;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 820px){
+      body{
+        padding:10px;
+      }
+
+      .page{
+        gap:10px;
+        min-height:calc(100dvh - 20px);
+      }
+
+      .topbar{
+        padding:8px 10px;
+      }
+
+      .top-actions{
+        gap:8px;
+      }
+
+      .top-btn,
+      .nav-link,
+      .action-btn{
+        min-height:38px;
+        padding:8px 12px;
+        font-size:13px;
+      }
+
+      .hero{
+        padding:14px 16px;
+      }
+
+      .panel{
+        padding:14px;
+        gap:12px;
       }
     }
   </style>
