@@ -107,18 +107,20 @@
     }
 
     .brand-copy{
-      display:grid;
-      gap:2px;
+      display:flex;
+      align-items:baseline;
+      gap:10px;
       min-width:0;
     }
 
     .brand-eyebrow{
-      font-size:10px;
+      font-size:11px;
       font-weight:900;
       letter-spacing:.14em;
       text-transform:uppercase;
       color:var(--muted);
       line-height:1;
+      white-space:nowrap;
     }
 
     .brand-title{
@@ -1286,6 +1288,10 @@
 
       .brand-title{
         font-size:18px;
+      }
+
+      .brand-copy{
+        gap:8px;
       }
 
       .today-top{
