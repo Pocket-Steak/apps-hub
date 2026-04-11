@@ -21,13 +21,143 @@
       "permanent": false
     },
     {
+      "source": "/family/cookbook.html",
+      "destination": "/cookbook/",
+      "permanent": false
+    },
+    {
+      "source": "/family/notes.html",
+      "destination": "/notes/",
+      "permanent": false
+    },
+    {
+      "source": "/family/settings.html",
+      "destination": "/settings/",
+      "permanent": false
+    },
+    {
+      "source": "/family/calendar.html",
+      "destination": "/calendar/",
+      "permanent": false
+    },
+    {
+      "source": "/family/day.html",
+      "destination": "/day/",
+      "permanent": false
+    },
+    {
+      "source": "/family/grocery.html",
+      "destination": "/grocery/",
+      "permanent": false
+    },
+    {
+      "source": "/family/todo.html",
+      "destination": "/todo/",
+      "permanent": false
+    },
+    {
+      "source": "/family-tst/cookbook.html",
+      "destination": "/tst-cookbook/",
+      "permanent": false
+    },
+    {
+      "source": "/family-tst/notes.html",
+      "destination": "/tst-notes/",
+      "permanent": false
+    },
+    {
+      "source": "/family-tst/settings.html",
+      "destination": "/tst-settings/",
+      "permanent": false
+    },
+    {
+      "source": "/family-tst/calendar.html",
+      "destination": "/tst-calendar/",
+      "permanent": false
+    },
+    {
+      "source": "/family-tst/day.html",
+      "destination": "/tst-day/",
+      "permanent": false
+    },
+    {
+      "source": "/family-tst/grocery.html",
+      "destination": "/tst-grocery/",
+      "permanent": false
+    },
+    {
+      "source": "/family-tst/todo.html",
+      "destination": "/tst-todo/",
+      "permanent": false
+    },
+    {
       "source": "/countdown",
       "destination": "/countdown/",
       "permanent": false
     },
     {
+      "source": "/cookbook",
+      "destination": "/cookbook/",
+      "permanent": false
+    },
+    {
+      "source": "/notes",
+      "destination": "/notes/",
+      "permanent": false
+    },
+    {
+      "source": "/calendar",
+      "destination": "/calendar/",
+      "permanent": false
+    },
+    {
+      "source": "/day",
+      "destination": "/day/",
+      "permanent": false
+    },
+    {
+      "source": "/grocery",
+      "destination": "/grocery/",
+      "permanent": false
+    },
+    {
+      "source": "/todo",
+      "destination": "/todo/",
+      "permanent": false
+    },
+    {
       "source": "/settings",
       "destination": "/settings/",
+      "permanent": false
+    },
+    {
+      "source": "/tst-cookbook",
+      "destination": "/tst-cookbook/",
+      "permanent": false
+    },
+    {
+      "source": "/tst-notes",
+      "destination": "/tst-notes/",
+      "permanent": false
+    },
+    {
+      "source": "/tst-calendar",
+      "destination": "/tst-calendar/",
+      "permanent": false
+    },
+    {
+      "source": "/tst-day",
+      "destination": "/tst-day/",
+      "permanent": false
+    },
+    {
+      "source": "/tst-grocery",
+      "destination": "/tst-grocery/",
+      "permanent": false
+    },
+    {
+      "source": "/tst-todo",
+      "destination": "/tst-todo/",
       "permanent": false
     },
     {

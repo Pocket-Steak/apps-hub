@@ -1,0 +1,1205 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Command Center TST Notes</title>
+  <meta name="description" content="PocketSteak Command Center TST notes workspace." />
+
+  <style>
+    :root{
+      --panel:#1a1c22;
+      --panel-2:#22252d;
+      --surface:rgba(255,255,255,.045);
+      --border:rgba(255,255,255,.08);
+      --border-strong:rgba(255,255,255,.12);
+      --text:#f3f4f6;
+      --muted:#b8bcc8;
+      --accent:#ff7a18;
+      --accent-2:#ffb26f;
+      --danger:#d93025;
+      --danger-hover:#b3261e;
+      --shadow:0 16px 40px rgba(0,0,0,.35);
+      --shadow-soft:0 8px 20px rgba(0,0,0,.22);
+      --radius:22px;
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%}
+
+    body{
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(900px 500px at 0% 0%, rgba(255,122,24,.12), transparent 55%),
+        linear-gradient(180deg,#0d0e11,#12141a 35%, #171922 100%);
+      color:var(--text);
+      padding:16px;
+    }
+
+    .page{
+      max-width:1600px;
+      margin:0 auto;
+      display:grid;
+      grid-template-rows:auto auto minmax(0, 1fr);
+      gap:16px;
+      height:calc(100dvh - 32px);
+    }
+
+    .topbar,
+    .hero,
+    .notes-panel,
+    .editor-panel,
+    .status-pill,
+    .note-card{
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,.05), transparent 34%),
+        linear-gradient(180deg,var(--panel),var(--panel-2));
+      border:1px solid var(--border-strong);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      padding:14px 16px;
+    }
+
+    .top-actions{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .top-btn,
+    .action-btn{
+      border:none;
+      color:var(--text);
+      min-height:48px;
+      padding:12px 16px;
+      font-size:15px;
+      font-weight:900;
+      cursor:pointer;
+      border-radius:16px;
+      background:rgba(255,255,255,.08);
+      transition:transform .18s ease, background .18s ease, filter .18s ease;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .top-btn:hover,
+    .action-btn:hover{
+      background:rgba(255,255,255,.14);
+      transform:translateY(-1px);
+    }
+
+    .top-btn.accent,
+    .action-btn.accent{
+      background:var(--accent);
+      color:#fff;
+    }
+
+    .top-btn.accent:hover,
+    .action-btn.accent:hover{
+      filter:brightness(1.06);
+    }
+
+    .action-btn.danger{
+      background:var(--danger);
+      color:#fff;
+    }
+
+    .action-btn.danger:hover{
+      background:var(--danger-hover);
+    }
+
+    .status-pill{
+      min-height:48px;
+      min-width:240px;
+      padding:8px 14px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:2px;
+      line-height:1;
+    }
+
+    .status-label{
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+
+    .status-text{
+      font-size:14px;
+      font-weight:800;
+      color:var(--text);
+    }
+
+    .hero{
+      padding:18px 20px;
+      display:grid;
+      gap:8px;
+    }
+
+    .eyebrow{
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--accent);
+    }
+
+    .title{
+      font-size:clamp(1.9rem, 3vw, 2.6rem);
+      font-weight:850;
+      letter-spacing:-.02em;
+      line-height:1.03;
+    }
+
+    .meta{
+      font-size:14px;
+      color:var(--muted);
+      font-weight:700;
+      line-height:1.4;
+      max-width:880px;
+    }
+
+    .notes-layout{
+      display:grid;
+      grid-template-columns:minmax(320px, .78fr) minmax(0, 1.22fr);
+      gap:16px;
+      min-height:0;
+      height:100%;
+      overflow:hidden;
+    }
+
+    .notes-panel,
+    .editor-panel{
+      min-height:0;
+      height:100%;
+      padding:14px;
+      overflow:hidden;
+    }
+
+    .notes-panel{
+      display:grid;
+      grid-template-rows:auto auto auto minmax(0, 1fr);
+      gap:12px;
+    }
+
+    .editor-panel{
+      display:grid;
+      grid-template-rows:auto auto minmax(0, 1fr) auto;
+      gap:12px;
+    }
+
+    .panel-head{
+      display:grid;
+      gap:6px;
+    }
+
+    .panel-title{
+      font-size:18px;
+      font-weight:850;
+      letter-spacing:-.02em;
+    }
+
+    .panel-meta{
+      font-size:13px;
+      color:var(--muted);
+      font-weight:700;
+      line-height:1.4;
+    }
+
+    .search-input,
+    .title-input,
+    .note-textarea{
+      width:100%;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.1);
+      background:var(--surface);
+      color:var(--text);
+      font-size:15px;
+      font-weight:700;
+      outline:none;
+    }
+
+    .search-input,
+    .title-input{
+      min-height:52px;
+      padding:0 16px;
+    }
+
+    .note-textarea{
+      min-height:100%;
+      resize:none;
+      padding:16px;
+      line-height:1.55;
+    }
+
+    .search-input:focus,
+    .title-input:focus,
+    .note-textarea:focus{
+      border-color:rgba(255,122,24,.55);
+      box-shadow:0 0 0 4px rgba(255,122,24,.14);
+    }
+
+    .notes-list{
+      display:grid;
+      gap:8px;
+      grid-auto-rows:max-content;
+      align-content:start;
+      min-height:0;
+      overflow:auto;
+      padding-right:4px;
+      scrollbar-width:thin;
+      scrollbar-color:rgba(255,255,255,.18) transparent;
+    }
+
+    .note-card{
+      padding:10px 12px;
+      display:grid;
+      gap:6px;
+      border-left:4px solid transparent;
+      transition:transform .18s ease, border-color .18s ease, background .18s ease;
+      cursor:pointer;
+      box-shadow:var(--shadow-soft);
+      align-content:start;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.025)),
+        var(--surface);
+    }
+
+    .note-card:hover{
+      transform:translateY(-1px);
+      border-left-color:rgba(255,122,24,.55);
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,.055), transparent 34%),
+        linear-gradient(180deg,#20232b,#272b35);
+    }
+
+    .note-card.active{
+      border-left-color:var(--accent);
+      background:
+        linear-gradient(90deg, rgba(255,122,24,.12), transparent 42%),
+        radial-gradient(circle at top left, rgba(255,255,255,.08), transparent 34%),
+        linear-gradient(180deg,#20242d,#292e38);
+      box-shadow:0 16px 28px rgba(0,0,0,.24);
+    }
+
+    .note-card-title{
+      font-size:15px;
+      font-weight:850;
+      line-height:1.2;
+      word-break:break-word;
+      color:var(--text);
+      letter-spacing:-.01em;
+    }
+
+    .note-card-preview{
+      font-size:12px;
+      color:var(--muted);
+      font-weight:700;
+      line-height:1.4;
+      display:-webkit-box;
+      -webkit-line-clamp:2;
+      -webkit-box-orient:vertical;
+      overflow:hidden;
+      white-space:pre-wrap;
+    }
+
+    .note-card-meta,
+    .editor-meta,
+    .message{
+      font-size:11px;
+      font-weight:800;
+      color:var(--muted);
+    }
+
+    .message{
+      min-height:18px;
+    }
+
+    .message.error{
+      color:#ffb4ab;
+    }
+
+    .message.success{
+      color:#b9f8c8;
+    }
+
+    .empty-state{
+      color:var(--muted);
+      font-size:14px;
+      font-weight:700;
+      padding:8px 2px;
+      line-height:1.5;
+    }
+
+    .editor-actions{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    .editor-actions-left,
+    .editor-actions-right{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .editor-meta{
+      line-height:1.4;
+    }
+
+    @media (max-width: 1080px){
+      .notes-layout{
+        grid-template-columns:1fr;
+        height:auto;
+      }
+
+      .notes-panel,
+      .editor-panel{
+        height:auto;
+        min-height:420px;
+      }
+    }
+
+    @media (max-width: 720px){
+      body{
+        padding:14px;
+      }
+
+      .top-actions,
+      .editor-actions-left,
+      .editor-actions-right{
+        width:100%;
+      }
+
+      .top-btn,
+      .action-btn{
+        flex:1 1 0;
+      }
+
+      .status-pill{
+        width:100%;
+      }
+
+      .editor-actions{
+        justify-content:flex-start;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 900px){
+      body{
+        padding:12px;
+      }
+
+      .page{
+        gap:12px;
+      }
+
+      .topbar{
+        padding:14px 16px;
+      }
+
+      .notes-layout{
+        height:calc(100dvh - 226px);
+      }
+
+      .search-input,
+      .title-input,
+      .top-btn,
+      .action-btn{
+        min-height:46px;
+      }
+    }
+
+    @media (max-height: 960px){
+      body{
+        padding:12px;
+      }
+
+      .page{
+        gap:12px;
+        height:calc(100dvh - 24px);
+      }
+
+      .topbar{
+        padding:10px 12px;
+      }
+
+      .top-actions{
+        gap:10px;
+      }
+
+      .top-btn,
+      .action-btn{
+        min-height:42px;
+        padding:10px 14px;
+        font-size:14px;
+      }
+
+      .status-pill{
+        min-height:42px;
+        padding:7px 12px;
+      }
+
+      .hero{
+        padding:16px 18px;
+      }
+
+      .title{
+        font-size:clamp(1.7rem, 2.5vw, 2.3rem);
+      }
+
+      .notes-layout{
+        gap:12px;
+        height:100%;
+      }
+
+      .notes-panel,
+      .editor-panel{
+        padding:12px;
+        gap:10px;
+      }
+
+      .search-input,
+      .title-input{
+        min-height:46px;
+        font-size:14px;
+      }
+
+      .note-textarea{
+        padding:14px;
+        font-size:14px;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 820px){
+      body{
+        padding:10px;
+      }
+
+      .page{
+        gap:10px;
+        height:calc(100dvh - 20px);
+      }
+
+      .topbar{
+        padding:8px 10px;
+      }
+
+      .top-btn,
+      .action-btn{
+        min-height:38px;
+        padding:8px 12px;
+        font-size:13px;
+      }
+
+      .status-pill{
+        min-height:38px;
+        padding:6px 10px;
+      }
+
+      .hero{
+        padding:14px 16px;
+      }
+
+      .notes-layout{
+        gap:10px;
+        height:100%;
+      }
+
+      .notes-panel,
+      .editor-panel{
+        padding:10px;
+        gap:8px;
+      }
+
+      .note-card{
+        padding:10px;
+      }
+    }
+  </style>
+
+  <script async defer src="https://apis.google.com/js/api.js"></script>
+  <script async defer src="https://accounts.google.com/gsi/client"></script>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div class="top-actions">
+        <img src="./pocket_steak_logo.png" alt="PocketSteak logo" style="width:34px;height:34px;object-fit:contain;filter:drop-shadow(0 6px 14px rgba(0,0,0,.28));" />
+        <button class="top-btn" id="backHomeBtn" type="button">← Back to Home</button>
+        <button class="top-btn" type="button" onclick="window.location.href='/tst-cookbook/'">Cookbook</button>
+      </div>
+      <div class="top-actions">
+        <button class="top-btn" type="button" onclick="window.location.href='/tst-settings/'">Settings</button>
+        <div class="status-pill">
+          <div class="status-label">Google</div>
+          <div class="status-text" id="statusText">Loading…</div>
+        </div>
+        <button class="top-btn accent" id="connectBtn" type="button">Connect</button>
+      </div>
+    </div>
+
+    <section class="hero">
+      <div class="eyebrow">Command Center TST</div>
+      <div class="title">Notes</div>
+      <div class="meta">This gives the command center a clean brain-dump space: quick capture on the left, full writing space on the right, and everything stays synced to your <strong>CM Notes</strong> Google Sheets tab.</div>
+    </section>
+
+    <section class="notes-layout">
+      <section class="notes-panel">
+        <div class="panel-head">
+          <div class="panel-title">Note Library</div>
+          <div class="panel-meta" id="notesMeta">Connect Google to load your notes.</div>
+        </div>
+
+        <input
+          id="searchInput"
+          class="search-input"
+          type="search"
+          placeholder="Search titles or note text"
+          autocomplete="off"
+        />
+
+        <button class="action-btn accent" id="newNoteBtn" type="button">New Note</button>
+
+        <div class="notes-list" id="notesList"></div>
+      </section>
+
+      <section class="editor-panel">
+        <div class="panel-head">
+          <div class="panel-title">Editor</div>
+          <div class="panel-meta">Use short titles so the list stays easy to scan. The body is where the full details live.</div>
+        </div>
+
+        <input
+          id="titleInput"
+          class="title-input"
+          type="text"
+          placeholder="Note title"
+          autocomplete="off"
+        />
+
+        <textarea
+          id="noteInput"
+          class="note-textarea"
+          placeholder="Write the note here..."
+          spellcheck="true"
+        ></textarea>
+
+        <div class="editor-actions">
+          <div class="editor-actions-left">
+            <button class="action-btn accent" id="saveBtn" type="button">Save Note</button>
+            <button class="action-btn danger" id="deleteBtn" type="button">Delete Note</button>
+          </div>
+          <div class="editor-actions-right">
+            <div class="editor-meta" id="editorMeta">No note selected yet.</div>
+            <div class="message" id="message"></div>
+          </div>
+        </div>
+      </section>
+    </section>
+  </div>
+
+  <script>
+    const GOOGLE_API_KEY = "AIzaSyBPZEeYB8IaheJPJA2Y44msGfDwIhJMpGU";
+    const GOOGLE_CLIENT_ID = "82204016171-ta1ipuu88gie0tkq69je3di5uifu1kki.apps.googleusercontent.com";
+    const DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
+    const SCOPES = "https://www.googleapis.com/auth/spreadsheets";
+
+    const SPREADSHEET_ID = "1ccfVTfNqrrzMLkD4uK8fkWs3wRJENs5XQJHJfjkWmmY";
+    const SHEET_NAME = "CM Notes";
+    const SHEET_RANGE = "A:D";
+
+    const SHARED_TOKEN_KEY = "pocketsteak_google_access_token";
+    const SHARED_TOKEN_EXP_KEY = "pocketsteak_google_token_exp";
+
+    let tokenClient = null;
+    let gapiReady = false;
+    let gisReady = false;
+    let appReady = false;
+    let isConnected = false;
+    let isBusy = false;
+    let notesRows = [];
+    let filteredNotes = [];
+    let activeNoteId = "";
+
+    const statusText = document.getElementById("statusText");
+    const connectBtn = document.getElementById("connectBtn");
+    const notesMeta = document.getElementById("notesMeta");
+    const notesList = document.getElementById("notesList");
+    const searchInput = document.getElementById("searchInput");
+    const newNoteBtn = document.getElementById("newNoteBtn");
+    const titleInput = document.getElementById("titleInput");
+    const noteInput = document.getElementById("noteInput");
+    const saveBtn = document.getElementById("saveBtn");
+    const deleteBtn = document.getElementById("deleteBtn");
+    const editorMeta = document.getElementById("editorMeta");
+    const messageEl = document.getElementById("message");
+    const backHomeBtn = document.getElementById("backHomeBtn");
+
+    function setStatus(text) {
+      statusText.textContent = text;
+    }
+
+    function setBusy(value) {
+      isBusy = value;
+      connectBtn.disabled = value && appReady;
+      saveBtn.disabled = value || !isConnected;
+      deleteBtn.disabled = value || !isConnected || !activeNoteId;
+      newNoteBtn.disabled = value || !isConnected;
+      titleInput.disabled = value || !isConnected;
+      noteInput.disabled = value || !isConnected;
+      searchInput.disabled = value || !isConnected;
+    }
+
+    function showMessage(text = "", type = "") {
+      messageEl.textContent = text;
+      messageEl.className = "message";
+      if (type) {
+        messageEl.classList.add(type);
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function normalizeId(value) {
+      return String(value || "").trim();
+    }
+
+    function normalizeTitle(value) {
+      const title = String(value || "").trim();
+      return title || "Untitled Note";
+    }
+
+    function formatDateTime(value) {
+      if (!value) return "Not saved yet";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return date.toLocaleString(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      });
+    }
+
+    function createNoteId() {
+      return `note_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    }
+
+    function getSearchValue() {
+      return String(searchInput.value || "").trim().toLowerCase();
+    }
+
+    function isLikelyHeaderRow(row) {
+      const first = String(row?.[0] || "").trim().toLowerCase();
+      const second = String(row?.[1] || "").trim().toLowerCase();
+      const third = String(row?.[2] || "").trim().toLowerCase();
+      const fourth = String(row?.[3] || "").trim().toLowerCase();
+
+      return (
+        ["id", "note id", "noteid"].includes(first) ||
+        ["title", "note title", "name"].includes(second) ||
+        ["body", "note", "content", "text"].includes(third) ||
+        ["updated", "updated at", "modified", "modified at", "timestamp"].includes(fourth)
+      );
+    }
+
+    function getAccessTokenFromSession() {
+      const sharedToken = localStorage.getItem(SHARED_TOKEN_KEY);
+      const sharedExp = Number(localStorage.getItem(SHARED_TOKEN_EXP_KEY) || "0");
+
+      if (!sharedToken || !sharedExp) return null;
+      if (Date.now() >= sharedExp) {
+        localStorage.removeItem(SHARED_TOKEN_KEY);
+        localStorage.removeItem(SHARED_TOKEN_EXP_KEY);
+        return null;
+      }
+      return sharedToken;
+    }
+
+    function saveAccessTokenToSession(token, expiresInSeconds = 3600) {
+      if (!token) return;
+      localStorage.setItem(SHARED_TOKEN_KEY, token);
+      localStorage.setItem(
+        SHARED_TOKEN_EXP_KEY,
+        String(Date.now() + (Number(expiresInSeconds || 3600) * 1000))
+      );
+    }
+
+    function clearAccessTokenFromSession() {
+      localStorage.removeItem(SHARED_TOKEN_KEY);
+      localStorage.removeItem(SHARED_TOKEN_EXP_KEY);
+    }
+
+    function getReadableError(error) {
+      const message =
+        error?.result?.error?.message ||
+        error?.details ||
+        error?.message ||
+        error?.error ||
+        "Something went wrong with Google Sheets.";
+      const code = error?.code || error?.result?.error?.code;
+      const status = error?.status || error?.result?.error?.status;
+      const suffix = [code, status].filter(Boolean).join(" / ");
+      return suffix ? `${message} (${suffix})` : message;
+    }
+
+    function updateNotesMeta() {
+      const count = notesRows.length;
+      const query = getSearchValue();
+      if (!isConnected) {
+        notesMeta.textContent = "Connect Google to load your notes.";
+        return;
+      }
+      if (!count) {
+        notesMeta.textContent = "No notes yet. Start with a quick family note or shopping reminder.";
+        return;
+      }
+      notesMeta.textContent = query
+        ? `${filteredNotes.length} of ${count} notes showing`
+        : `${count} notes synced`;
+    }
+
+    function applyFilter() {
+      const query = getSearchValue();
+      filteredNotes = notesRows.filter((note) => {
+        if (!query) return true;
+        return `${note.title}\n${note.body}`.toLowerCase().includes(query);
+      });
+
+      if (activeNoteId && !filteredNotes.some((note) => note.id === activeNoteId)) {
+        activeNoteId = "";
+      }
+
+      updateNotesMeta();
+      renderNotesList();
+    }
+
+    function renderNotesList() {
+      if (!isConnected) {
+        notesList.innerHTML = `<div class="empty-state">Connect Google to use notes.</div>`;
+        return;
+      }
+
+      if (!filteredNotes.length) {
+        notesList.innerHTML = `<div class="empty-state">No notes match this search yet.</div>`;
+        return;
+      }
+
+      notesList.innerHTML = filteredNotes.map((note) => `
+        <button class="note-card${note.id === activeNoteId ? " active" : ""}" data-note-id="${escapeHtml(note.id)}" type="button">
+          <div class="note-card-title">${escapeHtml(note.title)}</div>
+          <div class="note-card-preview">${escapeHtml(note.body || "No note text yet.")}</div>
+          <div class="note-card-meta">Updated ${escapeHtml(formatDateTime(note.updatedAt))}</div>
+        </button>
+      `).join("");
+
+      notesList.querySelectorAll("[data-note-id]").forEach((button) => {
+        button.addEventListener("click", () => selectNote(button.dataset.noteId));
+      });
+    }
+
+    function renderEditor() {
+      const note = notesRows.find((entry) => entry.id === activeNoteId);
+      deleteBtn.disabled = isBusy || !isConnected || !note;
+
+      if (!note) {
+        titleInput.value = "";
+        noteInput.value = "";
+        editorMeta.textContent = isConnected
+          ? "New note draft. Give it a title and save when you are ready."
+          : "No note selected yet.";
+        return;
+      }
+
+      titleInput.value = note.title;
+      noteInput.value = note.body;
+      editorMeta.textContent = `Updated ${formatDateTime(note.updatedAt)}`;
+    }
+
+    function selectNote(noteId) {
+      activeNoteId = noteId;
+      showMessage("", "");
+      renderEditor();
+      renderNotesList();
+    }
+
+    function createNewNoteDraft() {
+      activeNoteId = "";
+      showMessage("", "");
+      renderEditor();
+      renderNotesList();
+      titleInput.focus();
+    }
+
+    async function ensureHeaders() {
+      const response = await gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${SHEET_NAME}!A1:D2`,
+      });
+
+      const values = response.result.values || [];
+      if (values.length && isLikelyHeaderRow(values[0])) {
+        return;
+      }
+
+      await gapi.client.sheets.spreadsheets.values.update({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${SHEET_NAME}!A1`,
+        valueInputOption: "USER_ENTERED",
+        resource: {
+          values: [["Note ID", "Title", "Body", "Updated At"]],
+        },
+      });
+    }
+
+    async function testSheetsAccess() {
+      await gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${SHEET_NAME}!A:D`,
+      });
+    }
+
+    async function loadNotes() {
+      setBusy(true);
+      showMessage("", "");
+
+      try {
+        await ensureHeaders();
+        const response = await gapi.client.sheets.spreadsheets.values.get({
+          spreadsheetId: SPREADSHEET_ID,
+          range: `${SHEET_NAME}!A:D`,
+        });
+
+        const values = response.result.values || [];
+        const startIndex = values.length > 0 && isLikelyHeaderRow(values[0]) ? 1 : 0;
+
+        notesRows = values.slice(startIndex).map((row, index) => ({
+          rowNumber: startIndex + index + 1,
+          id: normalizeId(row[0]),
+          title: normalizeTitle(row[1]),
+          body: String(row[2] || ""),
+          updatedAt: String(row[3] || ""),
+        })).filter((row) => row.id);
+
+        notesRows.sort((a, b) => {
+          const aTime = new Date(a.updatedAt).getTime() || 0;
+          const bTime = new Date(b.updatedAt).getTime() || 0;
+          return bTime - aTime;
+        });
+
+        if (activeNoteId && !notesRows.some((note) => note.id === activeNoteId)) {
+          activeNoteId = "";
+        }
+
+        applyFilter();
+        renderEditor();
+      } catch (error) {
+        console.error(error);
+        notesRows = [];
+        filteredNotes = [];
+        notesList.innerHTML = `<div class="empty-state">Could not load notes. ${escapeHtml(getReadableError(error))}</div>`;
+        notesMeta.textContent = "Could not load your notes.";
+        renderEditor();
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function saveCurrentNote() {
+      if (!isConnected) {
+        showMessage("Connect Google first.", "error");
+        return;
+      }
+
+      const body = String(noteInput.value || "");
+      let title = String(titleInput.value || "").trim();
+
+      if (!title && !body.trim()) {
+        showMessage("Write something before saving.", "error");
+        titleInput.focus();
+        return;
+      }
+
+      title = title || "Untitled Note";
+      const updatedAt = new Date().toISOString();
+
+      setBusy(true);
+      showMessage("", "");
+
+      try {
+        await ensureHeaders();
+
+        if (!activeNoteId) {
+          const newId = createNoteId();
+          await gapi.client.sheets.spreadsheets.values.append({
+            spreadsheetId: SPREADSHEET_ID,
+            range: `${SHEET_NAME}!A:D`,
+            valueInputOption: "USER_ENTERED",
+            insertDataOption: "INSERT_ROWS",
+            resource: {
+              values: [[newId, title, body, updatedAt]],
+            },
+          });
+          activeNoteId = newId;
+          showMessage("Note saved.", "success");
+        } else {
+          const current = notesRows.find((note) => note.id === activeNoteId);
+          if (!current) {
+            throw new Error("That note could not be found. Try reloading the page.");
+          }
+
+          await gapi.client.sheets.spreadsheets.values.update({
+            spreadsheetId: SPREADSHEET_ID,
+            range: `${SHEET_NAME}!A${current.rowNumber}:D${current.rowNumber}`,
+            valueInputOption: "USER_ENTERED",
+            resource: {
+              values: [[current.id, title, body, updatedAt]],
+            },
+          });
+          showMessage("Note updated.", "success");
+        }
+
+        await loadNotes();
+      } catch (error) {
+        console.error(error);
+        showMessage(getReadableError(error), "error");
+        setBusy(false);
+      }
+    }
+
+    async function deleteCurrentNote() {
+      if (!isConnected || !activeNoteId) return;
+
+      const current = notesRows.find((note) => note.id === activeNoteId);
+      if (!current) return;
+
+      const confirmed = window.confirm(`Delete "${current.title}"?`);
+      if (!confirmed) return;
+
+      setBusy(true);
+      showMessage("", "");
+
+      try {
+        await gapi.client.sheets.spreadsheets.values.clear({
+          spreadsheetId: SPREADSHEET_ID,
+          range: `${SHEET_NAME}!A${current.rowNumber}:D${current.rowNumber}`,
+        });
+
+        activeNoteId = "";
+        await loadNotes();
+        showMessage("Note deleted.", "success");
+      } catch (error) {
+        console.error(error);
+        showMessage(getReadableError(error), "error");
+        setBusy(false);
+      }
+    }
+
+    function restoreSessionIfPossible() {
+      const savedToken = getAccessTokenFromSession();
+      if (!savedToken) {
+        setStatus("Not connected");
+        setBusy(false);
+        updateNotesMeta();
+        renderNotesList();
+        renderEditor();
+        return;
+      }
+
+      gapi.client.setToken({ access_token: savedToken });
+      testSheetsAccess()
+        .then(async () => {
+          isConnected = true;
+          setStatus("Connected");
+          connectBtn.textContent = "Reconnect";
+          await loadNotes();
+        })
+        .catch((error) => {
+          console.warn("Saved token no longer valid:", error);
+          gapi.client.setToken(null);
+          clearAccessTokenFromSession();
+          isConnected = false;
+          setStatus("Not connected");
+          connectBtn.textContent = "Connect";
+          setBusy(false);
+          updateNotesMeta();
+          renderNotesList();
+          renderEditor();
+        });
+    }
+
+    function ensureAppInitialized() {
+      if (appReady || !gapiReady || !gisReady) return;
+
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID,
+        scope: SCOPES,
+        callback: async (response) => {
+          if (response.error) {
+            console.error("OAuth token error:", response);
+            setStatus("Setup failed");
+            showMessage(getReadableError(response), "error");
+            setBusy(false);
+            return;
+          }
+
+          const token = gapi.client.getToken()?.access_token;
+          if (token) {
+            saveAccessTokenToSession(token, response.expires_in || 3600);
+          }
+
+          isConnected = true;
+          setStatus("Connected");
+          connectBtn.textContent = "Reconnect";
+
+          try {
+            await loadNotes();
+          } catch (error) {
+            console.error(error);
+            setStatus("Setup failed");
+            showMessage(getReadableError(error), "error");
+          } finally {
+            setBusy(false);
+          }
+        },
+      });
+
+      appReady = true;
+      restoreSessionIfPossible();
+    }
+
+    function initGapi() {
+      const startedAt = Date.now();
+
+      const waitForGapi = () => {
+        if (window.gapi && typeof window.gapi.load === "function") {
+          window.gapi.load("client", async () => {
+            try {
+              await window.gapi.client.init({
+                apiKey: GOOGLE_API_KEY,
+                discoveryDocs: [DISCOVERY_DOC],
+              });
+              gapiReady = true;
+              ensureAppInitialized();
+            } catch (error) {
+              console.error("gapi init error:", error);
+              setStatus("Setup failed");
+              showMessage(getReadableError(error), "error");
+            }
+          });
+          return;
+        }
+
+        if (Date.now() - startedAt > 10000) {
+          setStatus("Google failed to load");
+          showMessage("The Google API script did not finish loading. Refresh and try again.", "error");
+          return;
+        }
+
+        window.setTimeout(waitForGapi, 100);
+      };
+
+      waitForGapi();
+    }
+
+    function initGisReadyCheck() {
+      const startedAt = Date.now();
+
+      const waitForGoogle = () => {
+        if (window.google && google.accounts && google.accounts.oauth2) {
+          gisReady = true;
+          ensureAppInitialized();
+          return;
+        }
+
+        if (Date.now() - startedAt > 10000) {
+          setStatus("Google failed to load");
+          showMessage("The Google sign-in script did not finish loading. Refresh and try again.", "error");
+          return;
+        }
+
+        window.setTimeout(waitForGoogle, 100);
+      };
+
+      waitForGoogle();
+    }
+
+    function connectGoogle(forceConsent = false) {
+      if (!appReady || !tokenClient) {
+        showMessage("Google is still loading. Try again in a second.", "error");
+        return;
+      }
+
+      setBusy(true);
+      showMessage("", "");
+
+      try {
+        const existingToken = gapi.client.getToken();
+        tokenClient.requestAccessToken({
+          prompt: forceConsent || !existingToken ? "consent" : "",
+        });
+      } catch (error) {
+        console.error(error);
+        showMessage(getReadableError(error), "error");
+        setBusy(false);
+      }
+    }
+
+    connectBtn.addEventListener("click", () => connectGoogle(true));
+    newNoteBtn.addEventListener("click", createNewNoteDraft);
+    saveBtn.addEventListener("click", saveCurrentNote);
+    deleteBtn.addEventListener("click", deleteCurrentNote);
+    searchInput.addEventListener("input", applyFilter);
+
+    backHomeBtn.addEventListener("click", () => {
+      if (window.location.search.includes("overlay=")) {
+        window.parent.postMessage({ type: "family-overlay-close" }, "*");
+        return;
+      }
+      window.location.href = "/family-tst/";
+    });
+
+    window.addEventListener("message", (event) => {
+      if (event.data?.type === "family-overlay-mode") {
+        backHomeBtn.textContent = "Close";
+      }
+    });
+
+    window.addEventListener("load", () => {
+      setBusy(true);
+      renderNotesList();
+      renderEditor();
+      initGapi();
+      initGisReadyCheck();
+    });
+  </script>
+</body>
+</html>

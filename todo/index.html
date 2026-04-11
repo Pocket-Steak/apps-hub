@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  />
+  <title>PocketSteak Family - To-Do List</title>
+
+  <style>
+    :root {
+      --bg: #0e0f12;
+      --panel: #1a1c22;
+      --panel-2: #22252d;
+      --surface: rgba(255, 255, 255, 0.045);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.12);
+      --text: #f5f7fb;
+      --muted: #b7bfd3;
+      --danger: #d93025;
+      --danger-hover: #b3261e;
+      --accent: #ff8a1f;
+      --accent-2: #ffb26f;
+      --accent-hover: #e97812;
+      --success: #16a34a;
+      --owner-andrew: #ff8a1f;
+      --owner-nichol: #8b5cf6;
+      --owner-jolie: #22c55e;
+      --owner-default: #ec4899;
+      --shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+      --shadow-soft: 0 8px 20px rgba(0, 0, 0, 0.22);
+      --radius-xl: 22px;
+      --radius-lg: 16px;
+      --radius-md: 14px;
+      --tap: 54px;
+      --maxw: 1600px;
+      --card-pad: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+
+    body {
+      padding: 16px;
+      background:
+        radial-gradient(900px 500px at 0% 0%, rgba(255, 122, 24, 0.12), transparent 55%),
+        linear-gradient(180deg, #0d0e11 0%, #12141a 35%, #171922 100%);
+    }
+
+    .app {
+      max-width: var(--maxw);
+      margin: 0 auto;
+      display: grid;
+      gap: 16px;
+      min-height: calc(100dvh - 32px);
+    }
+
+    .card {
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.05), transparent 34%),
+        linear-gradient(180deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      padding: var(--card-pad);
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.95rem, 2.8vw, 2.65rem);
+      line-height: 1.02;
+      font-weight: 850;
+      letter-spacing: -0.025em;
+    }
+
+    .toolbar-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .toolbar-group.right {
+      margin-left: auto;
+    }
+
+    .btn {
+      min-height: var(--tap);
+      border: none;
+      border-radius: 16px;
+      padding: 14px 18px;
+      font-size: 15px;
+      font-weight: 900;
+      cursor: pointer;
+      color: white;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      transition: transform 0.18s ease, opacity 0.18s ease, background 0.18s ease, filter 0.18s ease;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    .btn:active {
+      transform: scale(0.985);
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .btn-back {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+    }
+
+    .btn-back:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-1px);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+    }
+
+    .btn-danger:hover {
+      background: var(--danger-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-accent {
+      background: var(--accent);
+    }
+
+    .btn-accent:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .connect-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .status-pill {
+      min-height: 54px;
+      min-width: 260px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      padding: 10px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 2px;
+      line-height: 1;
+    }
+
+    .status-label {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      font-weight: 900;
+      color: var(--muted);
+    }
+
+    .status-text {
+      margin-top: 0;
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .status-ok .status-text {
+      color: #b9f8c8;
+    }
+
+    .status-bad .status-text {
+      color: #ffb4ab;
+    }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 240px auto;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .item-input {
+      width: 100%;
+      min-height: 54px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 800;
+      padding: 0 24px;
+      outline: none;
+    }
+
+    .item-input::placeholder {
+      color: rgba(255, 255, 255, 0.48);
+      font-weight: 700;
+    }
+
+    .item-input:focus {
+      border-color: rgba(255, 138, 31, 0.6);
+      box-shadow: 0 0 0 4px rgba(255, 138, 31, 0.14);
+    }
+
+    .owner-select {
+      width: 100%;
+      min-height: 54px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 800;
+      padding: 0 24px;
+      outline: none;
+      appearance: none;
+      cursor: pointer;
+    }
+
+    .owner-select:focus {
+      border-color: rgba(255, 138, 31, 0.6);
+      box-shadow: 0 0 0 4px rgba(255, 138, 31, 0.14);
+    }
+
+    .helper {
+      margin-top: 16px;
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .message {
+      margin-top: 10px;
+      min-height: 28px;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .message.error {
+      color: #ffb4ab;
+    }
+
+    .message.success {
+      color: #b9f8c8;
+    }
+
+    .section-title {
+      margin: 0 0 14px;
+      font-size: clamp(1.6rem, 2.1vw, 2.1rem);
+      font-weight: 850;
+      letter-spacing: -0.015em;
+    }
+
+    .tile-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 12px;
+    }
+
+    .tile {
+      min-height: 124px;
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-left: 6px solid var(--owner-default);
+      border-radius: 18px;
+      background: linear-gradient(180deg, var(--surface), rgba(255,255,255,0.03));
+      color: var(--text);
+      padding: 16px;
+      text-align: left;
+      font-size: 15px;
+      font-weight: 850;
+      cursor: pointer;
+      transition: transform 0.18s ease, background 0.18s ease, opacity 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+      -webkit-tap-highlight-color: transparent;
+      word-break: break-word;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .tile-title {
+      font-size: 16px;
+      font-weight: 850;
+      line-height: 1.2;
+    }
+
+    .tile-owner {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      width: fit-content;
+      min-height: 30px;
+      padding: 0 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      color: #fff;
+      background: var(--owner-default);
+    }
+
+    .tile-owner.andrew {
+      background: var(--owner-andrew);
+    }
+
+    .tile-owner.nichol {
+      background: var(--owner-nichol);
+    }
+
+    .tile-owner.jolie {
+      background: var(--owner-jolie);
+    }
+
+    .tile-owner.default {
+      background: var(--owner-default);
+    }
+
+    .tile-owner-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.92);
+      flex: 0 0 auto;
+    }
+
+    .tile:active {
+      transform: scale(0.985);
+    }
+
+    .tile:hover {
+      background: linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.05));
+      transform: translateY(-2px);
+    }
+
+    .tile.done {
+      opacity: 0.7;
+      text-decoration: line-through;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 800;
+      padding-top: 8px;
+    }
+
+    .subtle {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 8px;
+      font-weight: 700;
+    }
+
+    .loading {
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    @media (max-width: 1180px) {
+      .status-pill {
+        min-width: min(100%, 320px);
+        flex: 1 1 280px;
+      }
+
+      .toolbar-group,
+      .toolbar-group.right,
+      .connect-wrap {
+        width: 100%;
+      }
+
+      .toolbar-group.right {
+        margin-left: 0;
+        justify-content: space-between;
+      }
+
+      .connect-wrap .btn,
+      .toolbar-group .btn {
+        flex: 1 1 220px;
+      }
+    }
+
+    @media (max-width: 980px) {
+      .input-row {
+        grid-template-columns: 1fr;
+      }
+
+      .tile-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      }
+
+      .btn,
+      .item-input,
+      .owner-select {
+        font-size: 15px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 14px;
+      }
+
+      .toolbar-group,
+      .toolbar-group.right,
+      .connect-wrap,
+      .connect-wrap .btn,
+      .toolbar-group .btn {
+        width: 100%;
+        flex: 1 1 100%;
+      }
+
+      .btn,
+      .item-input,
+      .owner-select,
+      .tile {
+        font-size: 15px;
+      }
+
+      .btn {
+        min-height: 54px;
+      }
+
+      .tile {
+        min-height: 116px;
+        padding: 16px;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 900px) {
+      body {
+        padding: 12px;
+      }
+
+      .app {
+        gap: 12px;
+      }
+
+      .card {
+        padding: 14px;
+      }
+
+      h1 {
+        font-size: clamp(1.8rem, 2.6vw, 2.3rem);
+      }
+
+      .input-row {
+        grid-template-columns: minmax(0, 1fr) 220px auto;
+        gap: 12px;
+      }
+
+      .item-input,
+      .owner-select,
+      .btn {
+        min-height: 46px;
+      }
+
+      .section-title {
+        margin-bottom: 12px;
+        font-size: clamp(1.4rem, 1.8vw, 1.8rem);
+      }
+
+      .tile-grid {
+        grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+        gap: 10px;
+      }
+
+      .tile {
+        min-height: 96px;
+        padding: 14px;
+        gap: 8px;
+      }
+
+      .tile-title {
+        font-size: 15px;
+      }
+
+      .helper,
+      .message,
+      .empty,
+      .subtle {
+        font-size: 12px;
+      }
+    }
+
+    @media (max-height: 960px) {
+      body {
+        padding: 12px;
+      }
+
+      .app {
+        gap: 12px;
+        min-height: calc(100dvh - 24px);
+      }
+
+      .card {
+        padding: 14px;
+      }
+
+      .topbar,
+      .toolbar-group,
+      .connect-wrap {
+        gap: 12px;
+      }
+
+      h1 {
+        font-size: clamp(1.8rem, 2.6vw, 2.35rem);
+      }
+
+      .btn,
+      .item-input,
+      .owner-select {
+        min-height: 48px;
+        padding: 10px 16px;
+        font-size: 14px;
+      }
+
+      .status-pill {
+        min-height: 48px;
+        padding: 8px 14px;
+      }
+
+      .input-row {
+        gap: 12px;
+      }
+    }
+  </style>
+
+  <!-- Google APIs -->
+  <script async defer src="https://apis.google.com/js/api.js"></script>
+  <script async defer src="https://accounts.google.com/gsi/client"></script>
+</head>
+<body>
+  <main class="app">
+    <section class="card">
+      <div class="topbar">
+        <div class="toolbar-group">
+          <img src="./pocket_steak_logo.png" alt="PocketSteak logo" style="width:34px;height:34px;object-fit:contain;filter:drop-shadow(0 6px 14px rgba(0,0,0,.28));" />
+          <a class="btn btn-back" id="backHomeBtn" href="/family/">← Back to Home</a>
+          <button id="clearAllBtn" class="btn btn-danger" type="button">Clear Completed Tasks</button>
+        </div>
+
+        <div class="toolbar-group right">
+          <button class="btn" type="button" onclick="window.location.href='/settings/'">Settings</button>
+          <div id="statusPill" class="status-pill status-bad">
+            <div class="status-label">GOOGLE</div>
+            <div id="statusText" class="status-text">Not connected</div>
+          </div>
+          <div class="connect-wrap">
+            <button id="connectBtn" class="btn btn-accent" type="button">Connect</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <h1>To-Do List</h1>
+      </div>
+    </section>
+
+    <section id="inputCard" class="card">
+      <div class="input-row">
+        <input
+          id="itemInput"
+          class="item-input"
+          type="text"
+          inputmode="text"
+          enterkeyhint="done"
+          autocomplete="off"
+          autocapitalize="words"
+          spellcheck="false"
+          placeholder="Add to-do item"
+        />
+        <select id="ownerSelect" class="owner-select" aria-label="Owner">
+          <option value="">Owner</option>
+          <option value="Andrew">Andrew</option>
+          <option value="Nichol">Nichol</option>
+          <option value="Jolie">Jolie</option>
+        </select>
+        <button id="addBtn" class="btn btn-accent" type="button">Add Task</button>
+      </div>
+
+      <div class="helper">Tap a task tile to mark it done.</div>
+      <div id="message" class="message"></div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">Active Tasks</h2>
+      <div id="activeList" class="tile-grid"></div>
+      <div id="activeEmpty" class="empty">No to-do items right now.</div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">Completed Tasks</h2>
+      <div id="boughtList" class="tile-grid"></div>
+      <div id="boughtEmpty" class="empty">No completed tasks yet.</div>
+      <div class="subtle">Completed tasks stay here until you clear the list.</div>
+    </section>
+  </main>
+
+  <script>
+    // =========================
+    // REQUIRED CONFIG
+    // =========================
+    const GOOGLE_API_KEY = "AIzaSyBPZEeYB8IaheJPJA2Y44msGfDwIhJMpGU";
+    const GOOGLE_CLIENT_ID = "82204016171-ta1ipuu88gie0tkq69je3di5uifu1kki.apps.googleusercontent.com";
+
+    const SPREADSHEET_ID = "1ccfVTfNqrrzMLkD4uK8fkWs3wRJENs5XQJHJfjkWmmY";
+    const SHEET_NAME = "ToDo";
+
+    const SHARED_TOKEN_KEY = "pocketsteak_google_access_token";
+    const SHARED_TOKEN_EXP_KEY = "pocketsteak_google_token_exp";
+
+    const DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
+    const SCOPES = "https://www.googleapis.com/auth/spreadsheets";
+
+    // =========================
+    // STATE
+    // =========================
+    let tokenClient = null;
+    let gapiReady = false;
+    let gisReady = false;
+    let appReady = false;
+    let isConnected = false;
+    let groceryRows = [];
+    let isBusy = false;
+
+    // =========================
+    // DOM
+    // =========================
+    const statusPill = document.getElementById("statusPill");
+    const statusText = document.getElementById("statusText");
+    const connectBtn = document.getElementById("connectBtn");
+    const clearAllBtn = document.getElementById("clearAllBtn");
+    const addBtn = document.getElementById("addBtn");
+    const itemInput = document.getElementById("itemInput");
+    const ownerSelect = document.getElementById("ownerSelect");
+    const messageEl = document.getElementById("message");
+    const activeListEl = document.getElementById("activeList");
+    const activeEmptyEl = document.getElementById("activeEmpty");
+    const boughtListEl = document.getElementById("boughtList");
+    const boughtEmptyEl = document.getElementById("boughtEmpty");
+    const inputCard = document.getElementById("inputCard");
+
+    // =========================
+    // HELPERS
+    // =========================
+    function setBusy(value) {
+      isBusy = value;
+      addBtn.disabled = value || !isConnected;
+      clearAllBtn.disabled = value || !isConnected;
+      connectBtn.disabled = value && appReady;
+      itemInput.disabled = value || !isConnected;
+      ownerSelect.disabled = value || !isConnected;
+      inputCard.classList.toggle("loading", value);
+    }
+
+    function setStatus(text, ok = false) {
+      statusText.textContent = text;
+      statusPill.classList.toggle("status-ok", ok);
+      statusPill.classList.toggle("status-bad", !ok);
+    }
+
+    function showMessage(text = "", type = "") {
+      messageEl.textContent = text;
+      messageEl.className = "message";
+      if (type) {
+        messageEl.classList.add(type);
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function normalizeBool(value) {
+      const str = String(value || "").trim().toLowerCase();
+      return str === "true" || str === "yes" || str === "1" || str === "y";
+    }
+
+    function normalizeOwner(value) {
+      const str = String(value || "").trim().toLowerCase();
+      if (str === "andrew") return "Andrew";
+      if (str === "nichol") return "Nichol";
+      if (str === "jolie") return "Jolie";
+      return "";
+    }
+
+    function getOwnerColor(owner) {
+      if (owner === "Andrew") return "var(--owner-andrew)";
+      if (owner === "Nichol") return "var(--owner-nichol)";
+      if (owner === "Jolie") return "var(--owner-jolie)";
+      return "var(--owner-default)";
+    }
+
+    function getOwnerClassName(owner) {
+      if (owner === "Andrew") return "andrew";
+      if (owner === "Nichol") return "nichol";
+      if (owner === "Jolie") return "jolie";
+      return "default";
+    }
+
+    function getOwnerLabel(owner) {
+      return owner || "Unassigned";
+    }
+
+    function isLikelyHeaderRow(row) {
+      const first = String(row?.[0] || "").trim().toLowerCase();
+      const second = String(row?.[1] || "").trim().toLowerCase();
+      const third = String(row?.[2] || "").trim().toLowerCase();
+      const fourth = String(row?.[3] || "").trim().toLowerCase();
+
+      return (
+        ["item", "items", "task", "tasks", "todo", "to-do", "name"].includes(first) ||
+        ["bought", "done", "status", "checked", "complete", "completed"].includes(second) ||
+        ["created", "createdat", "timestamp", "date"].includes(third) ||
+        ["owner", "person", "addedby", "added by", "who"].includes(fourth)
+      );
+    }
+
+    function getAccessTokenFromSession() {
+      const sharedToken = localStorage.getItem(SHARED_TOKEN_KEY);
+      const sharedExp = Number(localStorage.getItem(SHARED_TOKEN_EXP_KEY) || "0");
+
+      if (!sharedToken || !sharedExp) {
+        return null;
+      }
+
+      if (Date.now() >= sharedExp) {
+        localStorage.removeItem(SHARED_TOKEN_KEY);
+        localStorage.removeItem(SHARED_TOKEN_EXP_KEY);
+        return null;
+      }
+
+      return sharedToken;
+    }
+
+    function saveAccessTokenToSession(token, expiresInSeconds = 3600) {
+      if (token) {
+        localStorage.setItem(SHARED_TOKEN_KEY, token);
+        localStorage.setItem(
+          SHARED_TOKEN_EXP_KEY,
+          String(Date.now() + (Number(expiresInSeconds || 3600) * 1000))
+        );
+      }
+    }
+
+    function clearAccessTokenFromSession() {
+      localStorage.removeItem(SHARED_TOKEN_KEY);
+      localStorage.removeItem(SHARED_TOKEN_EXP_KEY);
+    }
+
+    function ensureAppInitialized() {
+      if (appReady) return;
+      if (!gapiReady || !gisReady) return;
+
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID,
+        scope: SCOPES,
+        callback: async (response) => {
+          if (response.error) {
+            console.error("OAuth token error:", response);
+            setStatus("Setup failed", false);
+            showMessage(getReadableError(response), "error");
+            return;
+          }
+
+          const token = gapi.client.getToken()?.access_token;
+          if (token) {
+            saveAccessTokenToSession(token, response.expires_in || 3600);
+          }
+
+          isConnected = true;
+          setStatus("Connected", true);
+          connectBtn.textContent = "Reconnect";
+
+          try {
+            await loadGroceries();
+            showMessage("", "");
+          } catch (error) {
+            console.error(error);
+            setStatus("Setup failed", false);
+            showMessage(getReadableError(error), "error");
+          } finally {
+            setBusy(false);
+          }
+        },
+      });
+
+      appReady = true;
+      restoreSessionIfPossible();
+    }
+
+    function getReadableError(error) {
+      const message =
+        error?.result?.error?.message ||
+        error?.details ||
+        error?.message ||
+        error?.error ||
+        "Something went wrong with Google Sheets.";
+
+      const code = error?.code || error?.result?.error?.code;
+      const status = error?.status || error?.result?.error?.status;
+      const suffix = [code, status].filter(Boolean).join(" / ");
+
+      return suffix ? `${message} (${suffix})` : message;
+    }
+
+    // =========================
+    // GOOGLE INIT
+    // =========================
+    function initGapi() {
+      const startedAt = Date.now();
+
+      const waitForGapi = () => {
+        if (window.gapi && typeof window.gapi.load === "function") {
+          window.gapi.load("client", async () => {
+            try {
+              await window.gapi.client.init({
+                apiKey: GOOGLE_API_KEY,
+                discoveryDocs: [DISCOVERY_DOC],
+              });
+              gapiReady = true;
+              ensureAppInitialized();
+            } catch (error) {
+              console.error("gapi init error:", error);
+              setStatus("Setup failed", false);
+              showMessage(getReadableError(error), "error");
+            }
+          });
+          return;
+        }
+
+        if (Date.now() - startedAt > 10000) {
+          setStatus("Google failed to load", false);
+          showMessage(
+            "The Google API script did not finish loading. Check your internet connection and browser extensions, then refresh.",
+            "error"
+          );
+          return;
+        }
+
+        window.setTimeout(waitForGapi, 100);
+      };
+
+      waitForGapi();
+    }
+
+    function initGisReadyCheck() {
+      const startedAt = Date.now();
+
+      const waitForGoogle = () => {
+        if (window.google && google.accounts && google.accounts.oauth2) {
+          gisReady = true;
+          ensureAppInitialized();
+          return;
+        }
+
+        if (Date.now() - startedAt > 10000) {
+          setStatus("Google failed to load", false);
+          showMessage(
+            "The Google sign-in script did not finish loading. Check your internet connection and browser extensions, then refresh.",
+            "error"
+          );
+          return;
+        }
+
+        window.setTimeout(waitForGoogle, 100);
+      };
+
+      waitForGoogle();
+    }
+
+    async function restoreSessionIfPossible() {
+      const savedToken = getAccessTokenFromSession();
+
+      if (!savedToken) {
+        setStatus("Not connected", false);
+        setBusy(false);
+        return;
+      }
+
+      try {
+        gapi.client.setToken({ access_token: savedToken });
+        await testSheetsAccess();
+        isConnected = true;
+        setStatus("Connected", true);
+        connectBtn.textContent = "Reconnect";
+        await loadGroceries();
+        setBusy(false);
+      } catch (error) {
+        console.warn("Saved token no longer valid:", error);
+        gapi.client.setToken(null);
+        clearAccessTokenFromSession();
+        isConnected = false;
+        setStatus("Not connected", false);
+        connectBtn.textContent = "Connect";
+        setBusy(false);
+      }
+    }
+
+    async function connectGoogle(forceConsent = false) {
+      if (!appReady || !tokenClient) {
+        showMessage("Google is still loading. Try again in a second.", "error");
+        return;
+      }
+
+      setBusy(true);
+      showMessage("", "");
+
+      try {
+        const existingToken = gapi.client.getToken();
+
+        tokenClient.callback = async (response) => {
+          if (response.error) {
+            console.error("OAuth token error:", response);
+            setStatus("Setup failed", false);
+            showMessage(getReadableError(response), "error");
+            setBusy(false);
+            return;
+          }
+
+          const token = gapi.client.getToken()?.access_token;
+          if (token) {
+            saveAccessTokenToSession(token, response.expires_in || 3600);
+          }
+
+          isConnected = true;
+          setStatus("Connected", true);
+          connectBtn.textContent = "Reconnect";
+
+          try {
+            await loadGroceries();
+          } catch (error) {
+            console.error(error);
+            setStatus("Setup failed", false);
+            showMessage(getReadableError(error), "error");
+          } finally {
+            setBusy(false);
+          }
+        };
+
+        tokenClient.requestAccessToken({
+          prompt: forceConsent || !existingToken ? "consent" : "",
+        });
+      } catch (error) {
+        console.error(error);
+        setStatus("Setup failed", false);
+        showMessage(getReadableError(error), "error");
+        setBusy(false);
+      }
+    }
+
+    async function testSheetsAccess() {
+      await gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${SHEET_NAME}!A:D`,
+      });
+    }
+
+    // =========================
+    // SHEETS
+    // =========================
+    async function loadGroceries() {
+      setBusy(true);
+      showMessage("", "");
+
+      const response = await gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${SHEET_NAME}!A:D`,
+      });
+
+      const values = response.result.values || [];
+
+      let startIndex = 0;
+      if (values.length > 0 && isLikelyHeaderRow(values[0])) {
+        startIndex = 1;
+      }
+
+      groceryRows = values.slice(startIndex).map((row, index) => {
+        const actualRowNumber = startIndex + index + 1;
+        return {
+          rowNumber: actualRowNumber,
+          item: String(row[0] || "").trim(),
+          bought: normalizeBool(row[1]),
+          createdAt: String(row[2] || "").trim(),
+          owner: normalizeOwner(row[3]),
+        };
+      }).filter(row => row.item);
+
+      renderGroceries();
+      setBusy(false);
+    }
+
+    async function addItem() {
+      const item = itemInput.value.trim();
+      const owner = normalizeOwner(ownerSelect.value);
+
+      if (!isConnected) {
+        showMessage("Connect Google first.", "error");
+        return;
+      }
+
+      if (!item) {
+        showMessage("Enter an item first.", "error");
+        itemInput.focus();
+        return;
+      }
+
+      setBusy(true);
+      showMessage("", "");
+
+      try {
+        await gapi.client.sheets.spreadsheets.values.append({
+          spreadsheetId: SPREADSHEET_ID,
+          range: `${SHEET_NAME}!A:D`,
+          valueInputOption: "USER_ENTERED",
+          insertDataOption: "INSERT_ROWS",
+          resource: {
+            values: [[item, "FALSE", new Date().toISOString(), owner]],
+          },
+        });
+
+        itemInput.value = "";
+        ownerSelect.value = "";
+        await loadGroceries();
+        showMessage("Task added.", "success");
+        itemInput.focus();
+      } catch (error) {
+        console.error(error);
+        showMessage(getReadableError(error), "error");
+        setBusy(false);
+      }
+    }
+
+    async function findSheetRowNumber(targetRow) {
+      const response = await gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${SHEET_NAME}!A:D`,
+      });
+
+      const values = response.result.values || [];
+      const startIndex = values.length > 0 && isLikelyHeaderRow(values[0]) ? 1 : 0;
+
+      for (let index = startIndex; index < values.length; index += 1) {
+        const row = values[index] || [];
+        const item = String(row[0] || "").trim();
+        const createdAt = String(row[2] || "").trim();
+
+        if (item === targetRow.item && createdAt === targetRow.createdAt) {
+          return index + 1;
+        }
+      }
+
+      return targetRow.rowNumber;
+    }
+
+    async function toggleBought(targetRow) {
+      if (!isConnected) {
+        showMessage("Connect Google first.", "error");
+        return;
+      }
+
+      setBusy(true);
+      showMessage("", "");
+
+      try {
+        const rowNumber = await findSheetRowNumber(targetRow);
+
+        await gapi.client.sheets.spreadsheets.values.update({
+          spreadsheetId: SPREADSHEET_ID,
+          range: `${SHEET_NAME}!B${rowNumber}`,
+          valueInputOption: "USER_ENTERED",
+          resource: {
+            values: [[targetRow.bought ? "FALSE" : "TRUE"]],
+          },
+        });
+
+        await loadGroceries();
+        showMessage(targetRow.bought ? "Task marked active." : "Task marked done.", "success");
+      } catch (error) {
+        console.error(error);
+        showMessage(getReadableError(error), "error");
+        setBusy(false);
+      }
+    }
+
+    async function clearAllItems() {
+      if (!isConnected) {
+        showMessage("Connect Google first.", "error");
+        return;
+      }
+
+      const doneItems = groceryRows.filter(row => row.bought);
+
+      if (!doneItems.length) {
+        showMessage("There are no completed tasks to clear.", "error");
+        return;
+      }
+
+      const confirmed = window.confirm("Clear all completed to-do items?");
+      if (!confirmed) return;
+
+      setBusy(true);
+      showMessage("", "");
+
+      try {
+        const response = await gapi.client.sheets.spreadsheets.values.get({
+          spreadsheetId: SPREADSHEET_ID,
+          range: `${SHEET_NAME}!A:D`,
+        });
+
+        const values = response.result.values || [];
+        const hasHeader = values.length > 0 && isLikelyHeaderRow(values[0]);
+        const headerRow = hasHeader ? values[0] : null;
+        const startIndex = hasHeader ? 1 : 0;
+        const remainingRows = values.slice(startIndex).filter((row) => !normalizeBool(row[1]));
+        const nextValues = headerRow ? [headerRow, ...remainingRows] : remainingRows;
+
+        await gapi.client.sheets.spreadsheets.values.clear({
+          spreadsheetId: SPREADSHEET_ID,
+          range: `${SHEET_NAME}!A:D`,
+        });
+
+        if (nextValues.length) {
+          await gapi.client.sheets.spreadsheets.values.update({
+            spreadsheetId: SPREADSHEET_ID,
+            range: `${SHEET_NAME}!A1`,
+            valueInputOption: "USER_ENTERED",
+            resource: {
+              values: nextValues,
+            },
+          });
+        }
+
+        await loadGroceries();
+        showMessage("Completed tasks cleared.", "success");
+      } catch (error) {
+        console.error(error);
+        showMessage(getReadableError(error), "error");
+        setBusy(false);
+      }
+    }
+
+    // =========================
+    // RENDER
+    // =========================
+    function renderGroceries() {
+      activeListEl.innerHTML = "";
+      boughtListEl.innerHTML = "";
+
+      const activeItems = groceryRows.filter(row => !row.bought);
+      const boughtItems = groceryRows.filter(row => row.bought);
+
+      activeEmptyEl.style.display = activeItems.length ? "none" : "block";
+      boughtEmptyEl.style.display = boughtItems.length ? "none" : "block";
+
+      for (const row of activeItems) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "tile";
+        button.style.borderLeftColor = getOwnerColor(row.owner);
+        button.innerHTML = `
+          <div class="tile-title">${escapeHtml(row.item)}</div>
+          <div class="tile-owner ${getOwnerClassName(row.owner)}">
+            <span class="tile-owner-dot"></span>
+            ${escapeHtml(getOwnerLabel(row.owner))}
+          </div>
+        `;
+        button.addEventListener("click", () => toggleBought(row));
+        activeListEl.appendChild(button);
+      }
+
+      for (const row of boughtItems) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "tile done";
+        button.style.borderLeftColor = getOwnerColor(row.owner);
+        button.innerHTML = `
+          <div class="tile-title">${escapeHtml(row.item)}</div>
+          <div class="tile-owner ${getOwnerClassName(row.owner)}">
+            <span class="tile-owner-dot"></span>
+            ${escapeHtml(getOwnerLabel(row.owner))}
+          </div>
+        `;
+        button.addEventListener("click", () => toggleBought(row));
+        boughtListEl.appendChild(button);
+      }
+    }
+
+    // =========================
+    // EVENTS
+    // =========================
+    connectBtn.addEventListener("click", () => {
+      if (!appReady) {
+        setStatus("Retrying Google...", false);
+        showMessage("Trying to load Google services again...", "");
+        initGapi();
+        initGisReadyCheck();
+        return;
+      }
+
+      connectGoogle(true);
+    });
+    addBtn.addEventListener("click", addItem);
+    clearAllBtn.addEventListener("click", clearAllItems);
+
+    if (new URLSearchParams(window.location.search).has("overlay")) {
+      const backBtn = document.getElementById("backHomeBtn");
+      backBtn.textContent = "Close";
+      backBtn.setAttribute("href", "#");
+      backBtn.addEventListener("click", (event) => {
+        event.preventDefault();
+        window.parent.postMessage({ type: "family-overlay-close" }, "*");
+      });
+    }
+
+    itemInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        addItem();
+      }
+    });
+
+    // =========================
+    // START
+    // =========================
+    setBusy(true);
+    setStatus("Loading Google...", false);
+
+    if (window.location.protocol === "file:") {
+      setBusy(false);
+      setStatus("Serve from localhost", false);
+      showMessage(
+        "Google sign-in will not work from a file:// page. Open this through a local server like http://localhost:5500 or your hosted site.",
+        "error"
+      );
+    } else {
+      initGapi();
+      initGisReadyCheck();
+    }
+  </script>
+</body>
+</html>
