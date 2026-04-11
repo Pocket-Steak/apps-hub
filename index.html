@@ -39,7 +39,13 @@
     @keyframes bgShift{from{background-position:0% 40%}to{background-position:100% 60%}}
 
     header{max-width:var(--grid-max);margin:0 auto;padding:20px 18px 0}
-    .mast{ display:flex; align-items:center; gap:6px; }
+    .mast{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      width:100%;
+    }
 
     .logo{
       width:clamp(118px,18vw,210px);
@@ -48,8 +54,9 @@
     }
 
     .mast-title{
-      display:flex; flex-direction:column; align-items:center;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
       line-height:1.02;
+      text-align:center;
     }
     .mast-title .line1{ font-weight:900; font-size:clamp(34px,4.9vw,72px); }
     .mast-title .line2{ font-weight:900; font-size:clamp(31px,4.4vw,66px); }
@@ -130,7 +137,7 @@
 
     @media (max-width: 700px){
       header{padding:16px 14px 0}
-      .mast{gap:4px}
+      .mast{gap:8px}
       .logo{width:110px}
       main{padding:6px 14px 28px}
       .grid{gap:14px;grid-template-columns:1fr}
