@@ -592,8 +592,6 @@
     const SPREADSHEET_ID = "1ccfVTfNqrrzMLkD4uK8fkWs3wRJENs5XQJHJfjkWmmY";
     const SHEET_NAME = "ToDo";
 
-    // Session storage key for this page
-    const SESSION_TOKEN_KEY = "pocketsteak_family_google_token";
     const SHARED_TOKEN_KEY = "pocketsteak_google_access_token";
     const SHARED_TOKEN_EXP_KEY = "pocketsteak_google_token_exp";
 
@@ -710,11 +708,6 @@
     }
 
     function getAccessTokenFromSession() {
-      const pageToken = localStorage.getItem(SESSION_TOKEN_KEY);
-      if (pageToken) {
-        return pageToken;
-      }
-
       const sharedToken = localStorage.getItem(SHARED_TOKEN_KEY);
       const sharedExp = Number(localStorage.getItem(SHARED_TOKEN_EXP_KEY) || "0");
 
@@ -733,7 +726,6 @@
 
     function saveAccessTokenToSession(token, expiresInSeconds = 3600) {
       if (token) {
-        localStorage.setItem(SESSION_TOKEN_KEY, token);
         localStorage.setItem(SHARED_TOKEN_KEY, token);
         localStorage.setItem(
           SHARED_TOKEN_EXP_KEY,
@@ -743,7 +735,8 @@
     }
 
     function clearAccessTokenFromSession() {
-      localStorage.removeItem(SESSION_TOKEN_KEY);
+      localStorage.removeItem(SHARED_TOKEN_KEY);
+      localStorage.removeItem(SHARED_TOKEN_EXP_KEY);
     }
 
     function ensureAppInitialized() {

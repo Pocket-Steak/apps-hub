@@ -1461,7 +1461,8 @@
     function openDashboardOverlay(title, path) {
       activeOverlayPath = path;
       document.getElementById("overlayTitle").textContent = title;
-      document.getElementById("overlayFrame").src = path;
+      const separator = path.includes("?") ? "&" : "?";
+      document.getElementById("overlayFrame").src = `${path}${separator}overlay=${Date.now()}`;
       document.getElementById("dashboardOverlay").classList.add("open");
       document.getElementById("dashboardOverlay").setAttribute("aria-hidden", "false");
       document.body.classList.add("modal-open");
