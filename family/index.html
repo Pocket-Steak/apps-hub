@@ -1174,8 +1174,7 @@
     const DISCOVERY_DOC = "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest";
     const SHEETS_DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
     const SPREADSHEET_ID = "1ccfVTfNqrrzMLkD4uK8fkWs3wRJENs5XQJHJfjkWmmY";
-    const GROCERY_SHEET_NAME = "Groceries";
-    const TODO_SHEET_NAME = "ToDo";
+    const COMMAND_CENTER_SHEET_NAME = "Command Center";
     const SCOPES = [
       "https://www.googleapis.com/auth/calendar",
       "https://www.googleapis.com/auth/spreadsheets",
@@ -1322,10 +1321,10 @@
       const fourth = String(row?.[3] || "").trim().toLowerCase();
 
       return (
-        ["item", "items", "task", "tasks", "todo", "to-do", "grocery", "groceries", "name"].includes(first) ||
-        ["bought", "done", "status", "checked", "complete", "completed"].includes(second) ||
-        ["created", "createdat", "timestamp", "date"].includes(third) ||
-        ["owner", "person", "addedby", "added by", "who"].includes(fourth)
+        ["list", "type", "listtype", "category"].includes(first) ||
+        ["item", "items", "task", "tasks", "todo", "to-do", "grocery", "groceries", "name"].includes(second) ||
+        ["bought", "done", "status", "checked", "complete", "completed"].includes(third) ||
+        ["created", "createdat", "timestamp", "date"].includes(fourth)
       );
     }
 
@@ -1484,10 +1483,10 @@
       document.body.classList.remove("modal-open");
     }
 
-    async function loadSheetPreview(sheetName) {
+    async function loadSheetPreview(listType) {
       const response = await gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${sheetName}!A:D`,
+        range: `${COMMAND_CENTER_SHEET_NAME}!A:E`,
       });
 
       const values = response.result.values || [];
@@ -1495,19 +1494,20 @@
 
       return values.slice(startIndex)
         .map((row) => ({
-          title: String(row[0] || "").trim(),
-          done: normalizeBool(row[1]),
-          createdAt: String(row[2] || "").trim(),
-          owner: normalizeOwner(row[3]),
+          listType: String(row[0] || "").trim().toLowerCase(),
+          title: String(row[1] || "").trim(),
+          done: normalizeBool(row[2]),
+          createdAt: String(row[3] || "").trim(),
+          owner: normalizeOwner(row[4]),
         }))
-        .filter((row) => row.title);
+        .filter((row) => row.title && row.listType === listType);
     }
 
     async function loadDashboardLists() {
       try {
         const [groceryRows, todoRows] = await Promise.all([
-          loadSheetPreview(GROCERY_SHEET_NAME),
-          loadSheetPreview(TODO_SHEET_NAME),
+          loadSheetPreview("grocery"),
+          loadSheetPreview("todo"),
         ]);
 
         groceryPreviewRows = groceryRows;
