@@ -289,7 +289,7 @@
       min-height: 124px;
       width: 100%;
       border: 1px solid rgba(255, 255, 255, 0.1);
-      border-left: 6px solid var(--owner-default);
+      border-left: 6px solid var(--accent);
       border-radius: 18px;
       background: linear-gradient(180deg, var(--surface), rgba(255,255,255,0.03));
       color: var(--text);
@@ -555,12 +555,6 @@
           spellcheck="false"
           placeholder="Add grocery item"
         />
-        <select id="ownerSelect" class="owner-select" aria-label="Owner">
-          <option value="">Owner</option>
-          <option value="Andrew">Andrew</option>
-          <option value="Nichol">Nichol</option>
-          <option value="Jolie">Jolie</option>
-        </select>
         <button id="addBtn" class="btn btn-accent" type="button">Add Item</button>
       </div>
 
@@ -618,7 +612,6 @@
     const clearAllBtn = document.getElementById("clearAllBtn");
     const addBtn = document.getElementById("addBtn");
     const itemInput = document.getElementById("itemInput");
-    const ownerSelect = document.getElementById("ownerSelect");
     const messageEl = document.getElementById("message");
     const activeListEl = document.getElementById("activeList");
     const activeEmptyEl = document.getElementById("activeEmpty");
@@ -635,7 +628,6 @@
       clearAllBtn.disabled = value || !isConnected;
       connectBtn.disabled = value && appReady;
       itemInput.disabled = value || !isConnected;
-      ownerSelect.disabled = value || !isConnected;
       inputCard.classList.toggle("loading", value);
     }
 
@@ -665,32 +657,6 @@
     function normalizeBool(value) {
       const str = String(value || "").trim().toLowerCase();
       return str === "true" || str === "yes" || str === "1" || str === "y";
-    }
-
-    function normalizeOwner(value) {
-      const str = String(value || "").trim().toLowerCase();
-      if (str === "andrew") return "Andrew";
-      if (str === "nichol") return "Nichol";
-      if (str === "jolie") return "Jolie";
-      return "";
-    }
-
-    function getOwnerColor(owner) {
-      if (owner === "Andrew") return "var(--owner-andrew)";
-      if (owner === "Nichol") return "var(--owner-nichol)";
-      if (owner === "Jolie") return "var(--owner-jolie)";
-      return "var(--owner-default)";
-    }
-
-    function getOwnerClassName(owner) {
-      if (owner === "Andrew") return "andrew";
-      if (owner === "Nichol") return "nichol";
-      if (owner === "Jolie") return "jolie";
-      return "default";
-    }
-
-    function getOwnerLabel(owner) {
-      return owner || "Unassigned";
     }
 
     function isLikelyHeaderRow(row) {
@@ -973,7 +939,6 @@
           item: String(row[0] || "").trim(),
           bought: normalizeBool(row[1]),
           createdAt: String(row[2] || "").trim(),
-          owner: normalizeOwner(row[3]),
         };
       }).filter(row => row.item);
 
@@ -983,8 +948,6 @@
 
     async function addItem() {
       const item = itemInput.value.trim();
-      const owner = normalizeOwner(ownerSelect.value);
-
       if (!isConnected) {
         showMessage("Connect Google first.", "error");
         return;
@@ -1006,12 +969,11 @@
           valueInputOption: "USER_ENTERED",
           insertDataOption: "INSERT_ROWS",
           resource: {
-            values: [[item, "FALSE", new Date().toISOString(), owner]],
+            values: [[item, "FALSE", new Date().toISOString(), ""]],
           },
         });
 
         itemInput.value = "";
-        ownerSelect.value = "";
         await loadGroceries();
         showMessage("Item added.", "success");
         itemInput.focus();
@@ -1148,13 +1110,8 @@
         const button = document.createElement("button");
         button.type = "button";
         button.className = "tile";
-        button.style.borderLeftColor = getOwnerColor(row.owner);
         button.innerHTML = `
           <div class="tile-title">${escapeHtml(row.item)}</div>
-          <div class="tile-owner ${getOwnerClassName(row.owner)}">
-            <span class="tile-owner-dot"></span>
-            ${escapeHtml(getOwnerLabel(row.owner))}
-          </div>
         `;
         button.addEventListener("click", () => toggleBought(row));
         activeListEl.appendChild(button);
@@ -1164,13 +1121,8 @@
         const button = document.createElement("button");
         button.type = "button";
         button.className = "tile bought";
-        button.style.borderLeftColor = getOwnerColor(row.owner);
         button.innerHTML = `
           <div class="tile-title">${escapeHtml(row.item)}</div>
-          <div class="tile-owner ${getOwnerClassName(row.owner)}">
-            <span class="tile-owner-dot"></span>
-            ${escapeHtml(getOwnerLabel(row.owner))}
-          </div>
         `;
         button.addEventListener("click", () => toggleBought(row));
         boughtListEl.appendChild(button);
