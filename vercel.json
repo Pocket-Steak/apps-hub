@@ -27,12 +27,12 @@
     },
     {
       "source": "/settings",
-      "destination": "/family/settings.html",
+      "destination": "/settings/",
       "permanent": false
     },
     {
       "source": "/tst-settings",
-      "destination": "/family-tst/settings.html",
+      "destination": "/tst-settings/",
       "permanent": false
     }
   ],
