@@ -24,6 +24,16 @@
       "source": "/countdown",
       "destination": "/countdown/",
       "permanent": false
+    },
+    {
+      "source": "/settings",
+      "destination": "/family/settings.html",
+      "permanent": false
+    },
+    {
+      "source": "/tst-settings",
+      "destination": "/family-tst/settings.html",
+      "permanent": false
     }
   ],
   "headers": [
