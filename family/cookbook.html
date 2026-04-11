@@ -478,18 +478,94 @@
       document.getElementById("resultsList").innerHTML = `<div class="empty-state">${escapeHtml(message)}</div>`;
     }
 
-    function extractTextFromShape(shape) {
-      const textElements = shape?.text?.textElements || [];
-      return textElements
-        .map((element) => element?.textRun?.content || "")
+    function readTextElements(textElements) {
+      return (textElements || [])
+        .map((element) => element?.textRun?.content || element?.autoText?.content || "")
         .join("")
-        .replace(/\u000b/g, "\n");
+        .replace(/\u000b/g, "\n")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+    }
+
+    function extractTextFromShape(shape) {
+      return readTextElements(shape?.text?.textElements || []);
+    }
+
+    function extractTextFromTable(table) {
+      const rows = table?.tableRows || [];
+      return rows
+        .flatMap((row) => row?.tableCells || [])
+        .map((cell) => readTextElements(cell?.text?.textElements || []))
+        .filter(Boolean)
+        .join("\n")
+        .trim();
+    }
+
+    function getElementYPosition(element) {
+      const translateY = Number(element?.transform?.translateY);
+      return Number.isFinite(translateY) ? translateY : Number.MAX_SAFE_INTEGER;
+    }
+
+    function getPlaceholderType(element) {
+      return (
+        element?.shape?.placeholder?.type ||
+        element?.placeholder?.type ||
+        ""
+      );
+    }
+
+    function collectSlideTextEntries(pageElements, entries = []) {
+      (pageElements || []).forEach((element) => {
+        let text = "";
+
+        if (element.shape) {
+          text = extractTextFromShape(element.shape);
+        } else if (element.table) {
+          text = extractTextFromTable(element.table);
+        } else if (element.wordArt) {
+          text = String(element.wordArt?.renderedText || "").trim();
+        }
+
+        if (text) {
+          entries.push({
+            text,
+            y: getElementYPosition(element),
+            placeholderType: getPlaceholderType(element),
+          });
+        }
+
+        if (Array.isArray(element.elementGroup?.children) && element.elementGroup.children.length) {
+          collectSlideTextEntries(element.elementGroup.children, entries);
+        }
+      });
+
+      return entries;
+    }
+
+    function getBestSlideTitle(entries, index) {
+      const preferred = entries.find((entry) =>
+        ["TITLE", "CENTERED_TITLE", "SUBTITLE", "HEADER"].includes(entry.placeholderType)
+      );
+      if (preferred?.text) {
+        return preferred.text.split("\n").map((line) => line.trim()).filter(Boolean)[0] || `Slide ${index + 1}`;
+      }
+
+      const topMost = [...entries]
+        .sort((a, b) => a.y - b.y)
+        .find((entry) => entry.text.trim());
+
+      if (!topMost?.text) {
+        return `Slide ${index + 1}`;
+      }
+
+      return topMost.text.split("\n").map((line) => line.trim()).filter(Boolean)[0] || `Slide ${index + 1}`;
     }
 
     function extractSlideText(slide) {
-      const pageElements = slide?.pageElements || [];
-      return pageElements
-        .map((element) => extractTextFromShape(element.shape))
+      const entries = collectSlideTextEntries(slide?.pageElements || []);
+      return entries
+        .map((entry) => entry.text)
+        .filter(Boolean)
         .join("\n")
         .replace(/\n{3,}/g, "\n\n")
         .trim();
@@ -498,13 +574,19 @@
     function buildSlideIndex(slides) {
       return (slides || [])
         .map((slide, index) => {
-          const fullText = extractSlideText(slide);
+          const entries = collectSlideTextEntries(slide?.pageElements || []);
+          const fullText = entries
+            .map((entry) => entry.text)
+            .filter(Boolean)
+            .join("\n")
+            .replace(/\n{3,}/g, "\n\n")
+            .trim();
           const lines = fullText
             .split("\n")
             .map((line) => line.trim())
             .filter(Boolean);
 
-          const title = lines[0] || `Slide ${index + 1}`;
+          const title = getBestSlideTitle(entries, index);
           const snippet = lines.slice(1).join(" ").trim() || "No extra notes on this slide.";
 
           return {
