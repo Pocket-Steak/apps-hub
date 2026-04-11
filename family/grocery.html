@@ -521,7 +521,7 @@
     <section class="card">
       <div class="topbar">
         <div class="toolbar-group">
-          <a class="btn btn-back" href="./index.html">← Back to Home</a>
+          <a class="btn btn-back" id="backHomeBtn" href="./index.html">← Back to Home</a>
           <button id="clearAllBtn" class="btn btn-danger" type="button">Clear Purchased Items</button>
         </div>
 
@@ -1145,6 +1145,16 @@
     });
     addBtn.addEventListener("click", addItem);
     clearAllBtn.addEventListener("click", clearAllItems);
+
+    if (new URLSearchParams(window.location.search).has("overlay")) {
+      const backBtn = document.getElementById("backHomeBtn");
+      backBtn.textContent = "Close";
+      backBtn.setAttribute("href", "#");
+      backBtn.addEventListener("click", (event) => {
+        event.preventDefault();
+        window.parent.postMessage({ type: "family-overlay-close" }, "*");
+      });
+    }
 
     itemInput.addEventListener("keydown", (event) => {
       if (event.key === "Enter") {

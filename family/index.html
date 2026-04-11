@@ -1804,6 +1804,11 @@
         closeDashboardOverlay();
       }
     });
+    window.addEventListener("message", (event) => {
+      if (event.data?.type === "family-overlay-close") {
+        closeDashboardOverlay();
+      }
+    });
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && document.getElementById("dashboardOverlay").classList.contains("open")) {
         closeDashboardOverlay();
