@@ -1,10 +1,12 @@
 const QUEUE_TIMES_PARK_URLS = {
+  magicKingdom: "https://queue-times.com/parks/6/queue_times.json",
   epcot: "https://queue-times.com/parks/5/queue_times.json",
   animalKingdom: "https://queue-times.com/parks/8/queue_times.json",
   hollywoodStudios: "https://queue-times.com/parks/7/queue_times.json"
 };
 
 const DISNEY_RIDES = [
+  { parkKey: "magicKingdom", rideId: 138, label: "Space Mountain" },
   { parkKey: "epcot", rideId: 159, label: "Spaceship Earth" },
   { parkKey: "animalKingdom", rideId: 110, label: "Expedition Everest" },
   { parkKey: "hollywoodStudios", rideId: 123, label: "Tower of Terror" }

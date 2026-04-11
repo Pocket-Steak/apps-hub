@@ -1807,6 +1807,10 @@
         <div class="center-ribbon">
           <div class="ride-waits" id="rideWaits">
             <div class="ride-chip">
+              <div class="ride-name">Space Mountain</div>
+              <div class="ride-wait">--</div>
+            </div>
+            <div class="ride-chip">
               <div class="ride-name">Spaceship Earth</div>
               <div class="ride-wait">--</div>
             </div>
@@ -1959,6 +1963,7 @@
     const WEATHER_URL = "https://api.open-meteo.com/v1/forecast?latitude=41.582011&longitude=-81.203217&current=temperature_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FNew_York&forecast_days=7";
     const DISNEY_COUNTDOWN_TARGET = new Date(2026, 7, 15, 0, 0, 0);
     const DISNEY_RIDES = [
+      { rideId: 138, label: "Space Mountain" },
       { rideId: 159, label: "Spaceship Earth" },
       { rideId: 110, label: "Expedition Everest" },
       { rideId: 123, label: "Tower of Terror" },
