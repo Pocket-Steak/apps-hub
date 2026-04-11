@@ -513,7 +513,7 @@
       </div>
 
       <div class="top-actions">
-        <button class="top-btn" type="button" onclick="window.location.href='./settings.html'">Settings</button>
+        <button class="top-btn" type="button" onclick="window.location.href='/family-tst/settings.html'">Settings</button>
         <div style="display:none;">
           <div class="status-pill">
             <div class="status-label">Google</div>
@@ -705,7 +705,7 @@
 
       document.querySelectorAll(".day-cell").forEach(cell => {
         cell.addEventListener("click", () => {
-          window.location.href = `./day.html?date=${cell.dataset.date}`;
+          window.location.href = `/family-tst/day.html?date=${cell.dataset.date}`;
         });
       });
     }
@@ -836,7 +836,7 @@
     }
 
     document.getElementById("backHomeBtn").addEventListener("click", () => {
-      window.location.href = "./index.html";
+      window.location.href = "/family-tst/";
     });
 
     document.getElementById("authBtn").addEventListener("click", handleAuthClick);

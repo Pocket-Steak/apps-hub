@@ -572,7 +572,7 @@
       </div>
 
       <div class="top-actions">
-        <button class="top-btn" type="button" onclick="window.location.href='./settings.html'">Settings</button>
+        <button class="top-btn" type="button" onclick="window.location.href='/family/settings.html'">Settings</button>
         <div style="display:none;">
           <div class="status-pill">
             <div class="status-label">Google</div>
@@ -1174,7 +1174,7 @@
         }
 
         selectedDate = date;
-        history.replaceState({}, "", `./day.html?date=${date}`);
+        history.replaceState({}, "", `/family/day.html?date=${date}`);
         closeModal();
         await loadGoogleDayData();
       } catch (err) {
@@ -1216,7 +1216,7 @@
     }
 
     document.getElementById("backHomeBtn").addEventListener("click", () => {
-      window.location.href = "./index.html";
+      window.location.href = "/family/";
     });
 
     if (new URLSearchParams(window.location.search).has("overlay")) {
