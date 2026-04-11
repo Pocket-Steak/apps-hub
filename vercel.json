@@ -6,6 +6,128 @@
       "permanent": false
     }
   ],
+  "rewrites": [
+    {
+      "source": "/family",
+      "destination": "/family/index.html"
+    },
+    {
+      "source": "/family/notes",
+      "destination": "/family/notes.html"
+    },
+    {
+      "source": "/family/notes.html",
+      "destination": "/family/notes.html"
+    },
+    {
+      "source": "/family/cookbook",
+      "destination": "/family/cookbook.html"
+    },
+    {
+      "source": "/family/cookbook.html",
+      "destination": "/family/cookbook.html"
+    },
+    {
+      "source": "/family/settings",
+      "destination": "/family/settings.html"
+    },
+    {
+      "source": "/family/settings.html",
+      "destination": "/family/settings.html"
+    },
+    {
+      "source": "/family/calendar",
+      "destination": "/family/calendar.html"
+    },
+    {
+      "source": "/family/calendar.html",
+      "destination": "/family/calendar.html"
+    },
+    {
+      "source": "/family/day",
+      "destination": "/family/day.html"
+    },
+    {
+      "source": "/family/day.html",
+      "destination": "/family/day.html"
+    },
+    {
+      "source": "/family/grocery",
+      "destination": "/family/grocery.html"
+    },
+    {
+      "source": "/family/grocery.html",
+      "destination": "/family/grocery.html"
+    },
+    {
+      "source": "/family/todo",
+      "destination": "/family/todo.html"
+    },
+    {
+      "source": "/family/todo.html",
+      "destination": "/family/todo.html"
+    },
+    {
+      "source": "/family-tst",
+      "destination": "/family-tst/index.html"
+    },
+    {
+      "source": "/family-tst/notes",
+      "destination": "/family-tst/notes.html"
+    },
+    {
+      "source": "/family-tst/notes.html",
+      "destination": "/family-tst/notes.html"
+    },
+    {
+      "source": "/family-tst/cookbook",
+      "destination": "/family-tst/cookbook.html"
+    },
+    {
+      "source": "/family-tst/cookbook.html",
+      "destination": "/family-tst/cookbook.html"
+    },
+    {
+      "source": "/family-tst/settings",
+      "destination": "/family-tst/settings.html"
+    },
+    {
+      "source": "/family-tst/settings.html",
+      "destination": "/family-tst/settings.html"
+    },
+    {
+      "source": "/family-tst/calendar",
+      "destination": "/family-tst/calendar.html"
+    },
+    {
+      "source": "/family-tst/calendar.html",
+      "destination": "/family-tst/calendar.html"
+    },
+    {
+      "source": "/family-tst/day",
+      "destination": "/family-tst/day.html"
+    },
+    {
+      "source": "/family-tst/day.html",
+      "destination": "/family-tst/day.html"
+    },
+    {
+      "source": "/family-tst/grocery",
+      "destination": "/family-tst/grocery.html"
+    },
+    {
+      "source": "/family-tst/grocery.html",
+      "destination": "/family-tst/grocery.html"
+    },
+    {
+      "source": "/family-tst/todo",
+      "destination": "/family-tst/todo.html"
+    },
+    {
+      "source": "/family-tst/todo.html",
+      "destination": "/family-tst/todo.html"
+    }
+  ],
   "headers": [
     {
       "source": "/api/(.*)",
