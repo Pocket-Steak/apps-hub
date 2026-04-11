@@ -60,11 +60,10 @@
     }
 
     .topbar{
-      display:flex;
-      justify-content:space-between;
+      display:grid;
+      grid-template-columns:minmax(0, 1fr) auto minmax(0, 1fr);
       align-items:center;
       gap:12px;
-      flex-wrap:wrap;
       min-height:64px;
       padding:10px 12px;
       background:
@@ -79,6 +78,7 @@
       display:flex;
       gap:10px;
       flex-wrap:wrap;
+      align-items:center;
     }
 
     .top-right{
@@ -86,6 +86,48 @@
       gap:10px;
       align-items:center;
       flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .brand-lockup{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:12px;
+      min-width:0;
+      padding:0 10px;
+    }
+
+    .brand-logo{
+      width:42px;
+      height:42px;
+      object-fit:contain;
+      flex:0 0 auto;
+      filter:drop-shadow(0 6px 12px rgba(0,0,0,.22));
+    }
+
+    .brand-copy{
+      display:grid;
+      gap:2px;
+      min-width:0;
+    }
+
+    .brand-eyebrow{
+      font-size:10px;
+      font-weight:900;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:var(--muted);
+      line-height:1;
+    }
+
+    .brand-title{
+      font-size:20px;
+      font-weight:900;
+      letter-spacing:-.03em;
+      line-height:1;
+      color:var(--text);
+      white-space:nowrap;
     }
 
     .top-btn{
@@ -1147,13 +1189,21 @@
       }
 
       .topbar{
-        align-items:stretch;
+        grid-template-columns:1fr;
         min-height:auto;
+        align-items:stretch;
       }
 
       .top-actions,
-      .top-right{
+      .top-right,
+      .brand-lockup{
         width:100%;
+      }
+
+      .brand-lockup{
+        justify-content:flex-start;
+        padding:0;
+        order:-1;
       }
 
       .top-btn{
@@ -1227,6 +1277,15 @@
 
       .topbar{
         padding:10px;
+      }
+
+      .brand-logo{
+        width:36px;
+        height:36px;
+      }
+
+      .brand-title{
+        font-size:18px;
       }
 
       .today-top{
@@ -1420,6 +1479,14 @@
         <button class="top-btn" id="backAppsBtn" type="button" style="display:none;">← Back to Apps</button>
         <button class="top-btn" id="cookbookBtn" type="button">Cookbook</button>
         <button class="top-btn" id="notesBtn" type="button" onclick="window.location.href='./notes.html'">Notes</button>
+      </div>
+
+      <div class="brand-lockup" aria-label="PocketSteak 135 Command Center">
+        <img class="brand-logo" src="../assets/pocket_steak_logo.png" alt="PocketSteak logo" />
+        <div class="brand-copy">
+          <div class="brand-eyebrow">PocketSteak</div>
+          <div class="brand-title">135 Command Center</div>
+        </div>
       </div>
 
       <div class="top-right">
