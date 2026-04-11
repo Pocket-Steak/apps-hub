@@ -1,8 +1,5 @@
 {
   "name": "pocketsteak-apps-hub",
   "private": true,
-  "version": "1.0.0",
-  "scripts": {
-    "start": "node server.mjs"
-  }
+  "version": "1.0.0"
 }
