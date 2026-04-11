@@ -594,6 +594,8 @@
 
     // Session storage key for this page
     const SESSION_TOKEN_KEY = "pocketsteak_family_google_token";
+    const SHARED_TOKEN_KEY = "pocketsteak_google_access_token";
+    const SHARED_TOKEN_EXP_KEY = "pocketsteak_google_token_exp";
 
     const DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
     const SCOPES = "https://www.googleapis.com/auth/spreadsheets";
@@ -708,12 +710,35 @@
     }
 
     function getAccessTokenFromSession() {
-      return localStorage.getItem(SESSION_TOKEN_KEY);
+      const pageToken = localStorage.getItem(SESSION_TOKEN_KEY);
+      if (pageToken) {
+        return pageToken;
+      }
+
+      const sharedToken = localStorage.getItem(SHARED_TOKEN_KEY);
+      const sharedExp = Number(localStorage.getItem(SHARED_TOKEN_EXP_KEY) || "0");
+
+      if (!sharedToken || !sharedExp) {
+        return null;
+      }
+
+      if (Date.now() >= sharedExp) {
+        localStorage.removeItem(SHARED_TOKEN_KEY);
+        localStorage.removeItem(SHARED_TOKEN_EXP_KEY);
+        return null;
+      }
+
+      return sharedToken;
     }
 
-    function saveAccessTokenToSession(token) {
+    function saveAccessTokenToSession(token, expiresInSeconds = 3600) {
       if (token) {
         localStorage.setItem(SESSION_TOKEN_KEY, token);
+        localStorage.setItem(SHARED_TOKEN_KEY, token);
+        localStorage.setItem(
+          SHARED_TOKEN_EXP_KEY,
+          String(Date.now() + (Number(expiresInSeconds || 3600) * 1000))
+        );
       }
     }
 
@@ -738,7 +763,7 @@
 
           const token = gapi.client.getToken()?.access_token;
           if (token) {
-            saveAccessTokenToSession(token);
+            saveAccessTokenToSession(token, response.expires_in || 3600);
           }
 
           isConnected = true;
@@ -893,7 +918,7 @@
 
           const token = gapi.client.getToken()?.access_token;
           if (token) {
-            saveAccessTokenToSession(token);
+            saveAccessTokenToSession(token, response.expires_in || 3600);
           }
 
           isConnected = true;
