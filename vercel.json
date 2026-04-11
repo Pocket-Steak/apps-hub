@@ -1,11 +1,4 @@
 {
-  "cleanUrls": true,
-  "rewrites": [
-    {
-      "source": "/",
-      "destination": "/index"
-    }
-  ],
   "headers": [
     {
       "source": "/api/(.*)",
@@ -15,6 +8,31 @@
           "value": "*"
         }
       ]
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "^/$",
+      "dest": "/index.html"
+    },
+    {
+      "src": "^/family/?$",
+      "dest": "/family/index.html"
+    },
+    {
+      "src": "^/family-tst/?$",
+      "dest": "/family-tst/index.html"
+    },
+    {
+      "src": "^/countdown/?$",
+      "dest": "/countdown/index.html"
     }
   ]
 }
