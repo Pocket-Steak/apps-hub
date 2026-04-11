@@ -522,7 +522,7 @@
       <div class="topbar">
         <div class="toolbar-group">
           <a class="btn btn-back" href="./index.html">← Back to Home</a>
-          <button id="clearAllBtn" class="btn btn-danger" type="button">Clear All Tasks</button>
+          <button id="clearAllBtn" class="btn btn-danger" type="button">Clear Done Tasks</button>
         </div>
 
         <div class="toolbar-group right">
@@ -1062,12 +1062,14 @@
         return;
       }
 
-      if (!groceryRows.length) {
-        showMessage("There is nothing to clear.", "error");
+      const doneItems = groceryRows.filter(row => row.bought);
+
+      if (!doneItems.length) {
+        showMessage("There are no completed tasks to clear.", "error");
         return;
       }
 
-      const confirmed = window.confirm("Clear all to-do items?");
+      const confirmed = window.confirm("Clear all completed to-do items?");
       if (!confirmed) return;
 
       setBusy(true);
@@ -1081,16 +1083,29 @@
 
         const values = response.result.values || [];
         const hasHeader = values.length > 0 && isLikelyHeaderRow(values[0]);
-
-        const startRow = hasHeader ? 2 : 1;
+        const headerRow = hasHeader ? values[0] : null;
+        const startIndex = hasHeader ? 1 : 0;
+        const remainingRows = values.slice(startIndex).filter((row) => !normalizeBool(row[1]));
+        const nextValues = headerRow ? [headerRow, ...remainingRows] : remainingRows;
 
         await gapi.client.sheets.spreadsheets.values.clear({
           spreadsheetId: SPREADSHEET_ID,
-          range: `${SHEET_NAME}!A${startRow}:D`,
+          range: `${SHEET_NAME}!A:D`,
         });
 
+        if (nextValues.length) {
+          await gapi.client.sheets.spreadsheets.values.update({
+            spreadsheetId: SPREADSHEET_ID,
+            range: `${SHEET_NAME}!A1`,
+            valueInputOption: "USER_ENTERED",
+            resource: {
+              values: nextValues,
+            },
+          });
+        }
+
         await loadGroceries();
-        showMessage("All tasks cleared.", "success");
+        showMessage("Completed tasks cleared.", "success");
       } catch (error) {
         console.error(error);
         showMessage(getReadableError(error), "error");
