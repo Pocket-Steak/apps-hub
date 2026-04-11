@@ -591,7 +591,7 @@
 
     const SPREADSHEET_ID = "1ccfVTfNqrrzMLkD4uK8fkWs3wRJENs5XQJHJfjkWmmY";
     const SHEET_NAME = "Command Center";
-    const LIST_TYPE = "todo";
+    const SHEET_RANGE = "F:I";
 
     const SHARED_TOKEN_KEY = "pocketsteak_google_access_token";
     const SHARED_TOKEN_EXP_KEY = "pocketsteak_google_token_exp";
@@ -701,10 +701,10 @@
       const fourth = String(row?.[3] || "").trim().toLowerCase();
 
       return (
-        ["list", "type", "listtype", "category"].includes(first) ||
-        ["item", "items", "task", "tasks", "todo", "to-do", "name"].includes(second) ||
-        ["bought", "done", "status", "checked", "complete", "completed"].includes(third) ||
-        ["created", "createdat", "timestamp", "date"].includes(fourth)
+        ["item", "items", "task", "tasks", "todo", "to-do", "name"].includes(first) ||
+        ["bought", "done", "status", "checked", "complete", "completed"].includes(second) ||
+        ["created", "createdat", "timestamp", "date"].includes(third) ||
+        ["owner", "person", "addedby", "added by", "who"].includes(fourth)
       );
     }
 
@@ -944,7 +944,7 @@
     async function testSheetsAccess() {
       await gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!A:E`,
+        range: `${SHEET_NAME}!${SHEET_RANGE}`,
       });
     }
 
@@ -957,7 +957,7 @@
 
       const response = await gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!A:E`,
+        range: `${SHEET_NAME}!${SHEET_RANGE}`,
       });
 
       const values = response.result.values || [];
@@ -971,13 +971,12 @@
         const actualRowNumber = startIndex + index + 1;
         return {
           rowNumber: actualRowNumber,
-          listType: String(row[0] || "").trim().toLowerCase(),
-          item: String(row[1] || "").trim(),
-          bought: normalizeBool(row[2]),
-          createdAt: String(row[3] || "").trim(),
-          owner: normalizeOwner(row[4]),
+          item: String(row[0] || "").trim(),
+          bought: normalizeBool(row[1]),
+          createdAt: String(row[2] || "").trim(),
+          owner: normalizeOwner(row[3]),
         };
-      }).filter(row => row.item && row.listType === LIST_TYPE);
+      }).filter(row => row.item);
 
       renderGroceries();
       setBusy(false);
@@ -1004,11 +1003,11 @@
       try {
         await gapi.client.sheets.spreadsheets.values.append({
           spreadsheetId: SPREADSHEET_ID,
-          range: `${SHEET_NAME}!A:E`,
+          range: `${SHEET_NAME}!${SHEET_RANGE}`,
           valueInputOption: "USER_ENTERED",
           insertDataOption: "INSERT_ROWS",
           resource: {
-            values: [[LIST_TYPE, item, "FALSE", new Date().toISOString(), owner]],
+            values: [[item, "FALSE", new Date().toISOString(), owner]],
           },
         });
 
@@ -1027,7 +1026,7 @@
     async function findSheetRowNumber(targetRow) {
       const response = await gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!A:E`,
+        range: `${SHEET_NAME}!${SHEET_RANGE}`,
       });
 
       const values = response.result.values || [];
@@ -1035,11 +1034,10 @@
 
       for (let index = startIndex; index < values.length; index += 1) {
         const row = values[index] || [];
-        const listType = String(row[0] || "").trim().toLowerCase();
-        const item = String(row[1] || "").trim();
-        const createdAt = String(row[3] || "").trim();
+        const item = String(row[0] || "").trim();
+        const createdAt = String(row[2] || "").trim();
 
-        if (listType === LIST_TYPE && item === targetRow.item && createdAt === targetRow.createdAt) {
+        if (item === targetRow.item && createdAt === targetRow.createdAt) {
           return index + 1;
         }
       }
@@ -1061,7 +1059,7 @@
 
         await gapi.client.sheets.spreadsheets.values.update({
           spreadsheetId: SPREADSHEET_ID,
-          range: `${SHEET_NAME}!C${rowNumber}`,
+          range: `${SHEET_NAME}!G${rowNumber}`,
           valueInputOption: "USER_ENTERED",
           resource: {
             values: [[targetRow.bought ? "FALSE" : "TRUE"]],
@@ -1099,23 +1097,19 @@
       try {
         const response = await gapi.client.sheets.spreadsheets.values.get({
           spreadsheetId: SPREADSHEET_ID,
-          range: `${SHEET_NAME}!A:E`,
+          range: `${SHEET_NAME}!${SHEET_RANGE}`,
         });
 
         const values = response.result.values || [];
         const hasHeader = values.length > 0 && isLikelyHeaderRow(values[0]);
         const headerRow = hasHeader ? values[0] : null;
         const startIndex = hasHeader ? 1 : 0;
-        const remainingRows = values.slice(startIndex).filter((row) => {
-          const rowListType = String(row[0] || "").trim().toLowerCase();
-          const isDone = normalizeBool(row[2]);
-          return rowListType !== LIST_TYPE || !isDone;
-        });
+        const remainingRows = values.slice(startIndex).filter((row) => !normalizeBool(row[1]));
         const nextValues = headerRow ? [headerRow, ...remainingRows] : remainingRows;
 
         await gapi.client.sheets.spreadsheets.values.clear({
           spreadsheetId: SPREADSHEET_ID,
-          range: `${SHEET_NAME}!A:E`,
+          range: `${SHEET_NAME}!${SHEET_RANGE}`,
         });
 
         if (nextValues.length) {
