@@ -590,8 +590,7 @@
     const GOOGLE_CLIENT_ID = "82204016171-ta1ipuu88gie0tkq69je3di5uifu1kki.apps.googleusercontent.com";
 
     const SPREADSHEET_ID = "1ccfVTfNqrrzMLkD4uK8fkWs3wRJENs5XQJHJfjkWmmY";
-    const SHEET_NAME = "Command Center";
-    const SHEET_RANGE = "F:I";
+    const SHEET_NAME = "ToDo";
 
     const SHARED_TOKEN_KEY = "pocketsteak_google_access_token";
     const SHARED_TOKEN_EXP_KEY = "pocketsteak_google_token_exp";
@@ -944,7 +943,7 @@
     async function testSheetsAccess() {
       await gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!${SHEET_RANGE}`,
+        range: `${SHEET_NAME}!A:D`,
       });
     }
 
@@ -957,7 +956,7 @@
 
       const response = await gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!${SHEET_RANGE}`,
+        range: `${SHEET_NAME}!A:D`,
       });
 
       const values = response.result.values || [];
@@ -1003,7 +1002,7 @@
       try {
         await gapi.client.sheets.spreadsheets.values.append({
           spreadsheetId: SPREADSHEET_ID,
-          range: `${SHEET_NAME}!${SHEET_RANGE}`,
+          range: `${SHEET_NAME}!A:D`,
           valueInputOption: "USER_ENTERED",
           insertDataOption: "INSERT_ROWS",
           resource: {
@@ -1026,7 +1025,7 @@
     async function findSheetRowNumber(targetRow) {
       const response = await gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!${SHEET_RANGE}`,
+        range: `${SHEET_NAME}!A:D`,
       });
 
       const values = response.result.values || [];
@@ -1059,7 +1058,7 @@
 
         await gapi.client.sheets.spreadsheets.values.update({
           spreadsheetId: SPREADSHEET_ID,
-          range: `${SHEET_NAME}!G${rowNumber}`,
+          range: `${SHEET_NAME}!B${rowNumber}`,
           valueInputOption: "USER_ENTERED",
           resource: {
             values: [[targetRow.bought ? "FALSE" : "TRUE"]],
@@ -1097,7 +1096,7 @@
       try {
         const response = await gapi.client.sheets.spreadsheets.values.get({
           spreadsheetId: SPREADSHEET_ID,
-          range: `${SHEET_NAME}!${SHEET_RANGE}`,
+          range: `${SHEET_NAME}!A:D`,
         });
 
         const values = response.result.values || [];
@@ -1109,7 +1108,7 @@
 
         await gapi.client.sheets.spreadsheets.values.clear({
           spreadsheetId: SPREADSHEET_ID,
-          range: `${SHEET_NAME}!${SHEET_RANGE}`,
+          range: `${SHEET_NAME}!A:D`,
         });
 
         if (nextValues.length) {

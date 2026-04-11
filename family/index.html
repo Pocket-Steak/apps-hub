@@ -1174,9 +1174,8 @@
     const DISCOVERY_DOC = "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest";
     const SHEETS_DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
     const SPREADSHEET_ID = "1ccfVTfNqrrzMLkD4uK8fkWs3wRJENs5XQJHJfjkWmmY";
-    const COMMAND_CENTER_SHEET_NAME = "Command Center";
-    const GROCERY_RANGE = "A:C";
-    const TODO_RANGE = "F:I";
+    const GROCERY_SHEET_NAME = "Groceries";
+    const TODO_SHEET_NAME = "ToDo";
     const SCOPES = [
       "https://www.googleapis.com/auth/calendar",
       "https://www.googleapis.com/auth/spreadsheets",
@@ -1491,10 +1490,11 @@
       }
     }
 
-    async function loadSheetPreview(range, hasOwner = false) {
+    async function loadSheetPreview(sheetName, hasOwner = false) {
+      const range = hasOwner ? "A:D" : "A:C";
       const response = await gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${COMMAND_CENTER_SHEET_NAME}!${range}`,
+        range: `${sheetName}!${range}`,
       });
 
       const values = response.result.values || [];
@@ -1513,8 +1513,8 @@
     async function loadDashboardLists() {
       try {
         const [groceryRows, todoRows] = await Promise.all([
-          loadSheetPreview(GROCERY_RANGE, false),
-          loadSheetPreview(TODO_RANGE, true),
+          loadSheetPreview(GROCERY_SHEET_NAME, false),
+          loadSheetPreview(TODO_SHEET_NAME, true),
         ]);
 
         groceryPreviewRows = groceryRows;
