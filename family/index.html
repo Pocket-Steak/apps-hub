@@ -89,13 +89,12 @@
       justify-content:flex-end;
     }
 
-    .brand-lockup{
+    .brand-left{
       display:flex;
       align-items:center;
-      justify-content:center;
+      justify-content:flex-start;
       gap:12px;
       min-width:0;
-      padding:0 10px;
     }
 
     .brand-logo{
@@ -125,6 +124,23 @@
 
     .brand-title{
       font-size:20px;
+      font-weight:900;
+      letter-spacing:-.03em;
+      line-height:1;
+      color:var(--text);
+      white-space:nowrap;
+    }
+
+    .brand-center{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      min-width:0;
+      padding:0 10px;
+    }
+
+    .center-title{
+      font-size:22px;
       font-weight:900;
       letter-spacing:-.03em;
       line-height:1;
@@ -1198,13 +1214,22 @@
 
       .top-actions,
       .top-right,
-      .brand-lockup{
+      .brand-left,
+      .brand-center{
         width:100%;
       }
 
-      .brand-lockup{
+      .brand-left,
+      .brand-center{
         justify-content:flex-start;
         padding:0;
+      }
+
+      .brand-left{
+        order:-2;
+      }
+
+      .brand-center{
         order:-1;
       }
 
@@ -1292,6 +1317,10 @@
 
       .brand-copy{
         gap:8px;
+      }
+
+      .center-title{
+        font-size:20px;
       }
 
       .today-top{
@@ -1481,21 +1510,21 @@
 <body>
   <div class="page">
     <div class="topbar">
-      <div class="top-actions">
-        <button class="top-btn" id="backAppsBtn" type="button" style="display:none;">← Back to Apps</button>
-        <button class="top-btn" id="cookbookBtn" type="button">Cookbook</button>
-        <button class="top-btn" id="notesBtn" type="button" onclick="window.location.href='./notes.html'">Notes</button>
-      </div>
-
-      <div class="brand-lockup" aria-label="PocketSteak 135 Command Center">
+      <div class="brand-left" aria-label="PocketSteak">
         <img class="brand-logo" src="../assets/pocket_steak_logo.png" alt="PocketSteak logo" />
         <div class="brand-copy">
           <div class="brand-eyebrow">PocketSteak</div>
-          <div class="brand-title">135 Command Center</div>
         </div>
       </div>
 
+      <div class="brand-center" aria-label="Command Center">
+        <div class="center-title">Command Center</div>
+      </div>
+
       <div class="top-right">
+        <button class="top-btn" id="backAppsBtn" type="button" style="display:none;">← Back to Apps</button>
+        <button class="top-btn" id="cookbookBtn" type="button">Cookbook</button>
+        <button class="top-btn" id="notesBtn" type="button" onclick="window.location.href='./notes.html'">Notes</button>
         <button class="top-btn" id="settingsBtn" type="button" onclick="window.location.href='./settings.html'">Settings</button>
         <div style="display:none;">
           <div class="status-pill">
