@@ -157,18 +157,26 @@
       grid-template-columns:minmax(300px, .7fr) minmax(0, 1.3fr);
       gap:16px;
       min-height:0;
-      height:100%;
-      flex:1 1 auto;
+      height:calc(100vh - 260px);
       overflow:hidden;
     }
 
-    .search-shell,
-    .viewer-shell{
+    .search-shell{
       min-height:0;
       height:100%;
       padding:14px;
       display:grid;
       grid-template-rows:auto auto minmax(0, 1fr);
+      gap:12px;
+      overflow:hidden;
+    }
+
+    .viewer-shell{
+      min-height:0;
+      height:100%;
+      padding:14px;
+      display:grid;
+      grid-template-rows:minmax(0, 1fr) auto;
       gap:12px;
       overflow:hidden;
     }
@@ -212,6 +220,7 @@
     .results{
       display:grid;
       gap:10px;
+      height:100%;
       overflow:auto;
       min-height:0;
       padding-right:4px;
@@ -279,7 +288,7 @@
     .viewer-frame{
       width:100%;
       min-height:0;
-      height:calc(100vh - 270px);
+      height:100%;
       border:none;
       border-radius:16px;
       background:#111319;
@@ -309,6 +318,10 @@
 
       .viewer-frame{
         height:calc(100vh - 440px);
+      }
+
+      .viewer-shell{
+        grid-template-rows:auto auto;
       }
     }
 
@@ -352,10 +365,11 @@
       .cookbook-layout{
         grid-template-columns:minmax(280px, .68fr) minmax(0, 1.32fr);
         gap:12px;
+        height:calc(100vh - 220px);
       }
 
       .viewer-frame{
-        height:calc(100vh - 220px);
+        height:100%;
       }
     }
   </style>
