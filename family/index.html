@@ -1161,7 +1161,7 @@
     </section>
   </div>
 
-  <div class="overlay-backdrop" id="listOverlay" aria-hidden="true">
+  <div class="overlay-backdrop" id="dashboardOverlay" aria-hidden="true">
     <section class="overlay-shell" role="dialog" aria-modal="true" aria-labelledby="overlayTitle">
       <div class="overlay-top">
         <div class="overlay-heading">
@@ -1173,7 +1173,7 @@
           <button class="overlay-btn accent" id="overlayCloseBtn" type="button">Close</button>
         </div>
       </div>
-      <iframe class="overlay-frame" id="overlayFrame" src="" title="Family list overlay"></iframe>
+      <iframe class="overlay-frame" id="overlayFrame" src="" title="Family dashboard overlay"></iframe>
     </section>
   </div>
 
@@ -1408,7 +1408,10 @@
         `;
 
         card.addEventListener("click", () => {
-          window.location.href = `./day.html?date=${key}`;
+          openDashboardOverlay(
+            `${getShortDayName(date)} ${formatMonthDay(date)}`,
+            `./day.html?date=${key}`
+          );
         });
 
         grid.appendChild(card);
@@ -1464,18 +1467,18 @@
         : `<div class="preview-empty">Everything here is completed.</div>`;
     }
 
-    function openListOverlay(title, path) {
+    function openDashboardOverlay(title, path) {
       activeOverlayPath = path;
       document.getElementById("overlayTitle").textContent = title;
       document.getElementById("overlayFrame").src = path;
-      document.getElementById("listOverlay").classList.add("open");
-      document.getElementById("listOverlay").setAttribute("aria-hidden", "false");
+      document.getElementById("dashboardOverlay").classList.add("open");
+      document.getElementById("dashboardOverlay").setAttribute("aria-hidden", "false");
       document.body.classList.add("modal-open");
     }
 
-    function closeListOverlay() {
-      document.getElementById("listOverlay").classList.remove("open");
-      document.getElementById("listOverlay").setAttribute("aria-hidden", "true");
+    function closeDashboardOverlay() {
+      document.getElementById("dashboardOverlay").classList.remove("open");
+      document.getElementById("dashboardOverlay").setAttribute("aria-hidden", "true");
       document.getElementById("overlayFrame").src = "";
       document.body.classList.remove("modal-open");
     }
@@ -1763,7 +1766,7 @@
     document.getElementById("signOutBtn").addEventListener("click", handleSignoutClick);
     document.getElementById("todayCard").addEventListener("click", () => {
       const todayKey = formatDateKey(new Date());
-      window.location.href = `./day.html?date=${todayKey}`;
+      openDashboardOverlay("Today", `./day.html?date=${todayKey}`);
     });
     document.getElementById("monthBtn").addEventListener("click", (event) => {
       event.stopPropagation();
@@ -1776,33 +1779,33 @@
       window.location.href = `./day.html?date=${todayKey}&add=1`;
     });
     document.getElementById("groceryPreviewCard").addEventListener("click", () => {
-      openListOverlay("Grocery List", "./grocery.html");
+      openDashboardOverlay("Grocery List", "./grocery.html");
     });
     document.getElementById("todoPreviewCard").addEventListener("click", () => {
-      openListOverlay("To-Do List", "./todo.html");
+      openDashboardOverlay("To-Do List", "./todo.html");
     });
     document.getElementById("groceryPreviewBtn").addEventListener("click", (event) => {
       event.stopPropagation();
-      openListOverlay("Grocery List", "./grocery.html");
+      openDashboardOverlay("Grocery List", "./grocery.html");
     });
     document.getElementById("todoPreviewBtn").addEventListener("click", (event) => {
       event.stopPropagation();
-      openListOverlay("To-Do List", "./todo.html");
+      openDashboardOverlay("To-Do List", "./todo.html");
     });
-    document.getElementById("overlayCloseBtn").addEventListener("click", closeListOverlay);
+    document.getElementById("overlayCloseBtn").addEventListener("click", closeDashboardOverlay);
     document.getElementById("overlayOpenPageBtn").addEventListener("click", () => {
       if (activeOverlayPath) {
         window.location.href = activeOverlayPath;
       }
     });
-    document.getElementById("listOverlay").addEventListener("click", (event) => {
+    document.getElementById("dashboardOverlay").addEventListener("click", (event) => {
       if (event.target === event.currentTarget) {
-        closeListOverlay();
+        closeDashboardOverlay();
       }
     });
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && document.getElementById("listOverlay").classList.contains("open")) {
-        closeListOverlay();
+      if (event.key === "Escape" && document.getElementById("dashboardOverlay").classList.contains("open")) {
+        closeDashboardOverlay();
       }
     });
 
