@@ -1,0 +1,2672 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PocketSteak Command Center TST</title>
+  <meta name="description" content="PocketSteak Command Center TST home page." />
+
+  <style>
+    :root{
+      --bg:#0e0f12;
+      --panel:#1a1c22;
+      --panel-2:#22252d;
+      --surface:rgba(255,255,255,.045);
+      --surface-strong:rgba(255,255,255,.075);
+      --border:rgba(255,255,255,.08);
+      --border-strong:rgba(255,255,255,.12);
+      --text:#f3f4f6;
+      --muted:#b8bcc8;
+      --accent:#ff7a18;
+      --accent-2:#ff9c4d;
+      --shadow:0 16px 40px rgba(0,0,0,.35);
+      --shadow-soft:0 8px 20px rgba(0,0,0,.22);
+      --radius:22px;
+      --card-pad:16px;
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{min-height:100%}
+
+    body{
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(900px 500px at 0% 0%, rgba(255,122,24,.12), transparent 55%),
+        linear-gradient(180deg,#0d0e11,#12141a 35%, #171922 100%);
+      color:var(--text);
+      padding:16px;
+    }
+
+    .page{
+      max-width:1600px;
+      margin:0 auto;
+      display:grid;
+      gap:16px;
+      min-height:calc(100dvh - 32px);
+    }
+
+    .weather-banner,
+    .today-card,
+    .preview-card,
+    .day-card,
+    .overlay-shell,
+    .nav-btn,
+    .status-pill{
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,.05), transparent 34%),
+        linear-gradient(180deg,var(--panel),var(--panel-2));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+
+    .topbar{
+      display:grid;
+      grid-template-columns:minmax(0, 1fr) auto minmax(0, 1fr);
+      align-items:center;
+      gap:12px;
+      min-height:64px;
+      padding:10px 12px;
+      background:
+        linear-gradient(90deg, rgba(255,122,24,.12), transparent 20%, transparent 80%, rgba(255,122,24,.08)),
+        radial-gradient(circle at top left, rgba(255,255,255,.05), transparent 34%),
+        linear-gradient(180deg,var(--panel),var(--panel-2));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+
+    .top-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .top-right{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .brand-left{
+      display:flex;
+      align-items:center;
+      justify-content:flex-start;
+      gap:12px;
+      min-width:0;
+      position:relative;
+    }
+
+    .brand-logo{
+      width:42px;
+      height:42px;
+      object-fit:contain;
+      flex:0 0 auto;
+      filter:drop-shadow(0 6px 12px rgba(0,0,0,.22));
+    }
+
+    .brand-copy{
+      display:flex;
+      align-items:baseline;
+      gap:10px;
+      min-width:0;
+    }
+
+    .brand-eyebrow{
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:var(--accent-2);
+      line-height:1;
+      white-space:nowrap;
+      text-shadow:0 0 18px rgba(255,156,77,.18);
+    }
+
+    .brand-title{
+      font-size:20px;
+      font-weight:900;
+      letter-spacing:-.03em;
+      line-height:1;
+      color:var(--text);
+      white-space:nowrap;
+    }
+
+    .brand-center{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      min-width:0;
+      padding:0 10px;
+    }
+
+    .center-ribbon{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:12px;
+      width:100%;
+      min-width:0;
+      padding:6px 10px;
+      border-radius:18px;
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+    }
+
+    .ride-waits{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      min-width:0;
+      flex-wrap:wrap;
+    }
+
+    .ride-chip{
+      display:grid;
+      gap:2px;
+      min-width:120px;
+      padding:8px 10px;
+      border-radius:14px;
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.06);
+    }
+
+    .ride-name{
+      font-size:10px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--muted);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .ride-wait{
+      font-size:18px;
+      font-weight:900;
+      letter-spacing:-.03em;
+      color:var(--text);
+      line-height:1;
+    }
+
+    .center-divider{
+      width:1px;
+      align-self:stretch;
+      background:linear-gradient(180deg, transparent, rgba(255,255,255,.14), transparent);
+      flex:0 0 auto;
+    }
+
+    .countdown-ribbon{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex:0 0 auto;
+      min-width:0;
+    }
+
+    .countdown-summary{
+      display:grid;
+      gap:2px;
+    }
+
+    .countdown-eyebrow{
+      font-size:10px;
+      font-weight:900;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--accent-2);
+    }
+
+    .countdown-target{
+      font-size:12px;
+      font-weight:800;
+      color:var(--text);
+      white-space:nowrap;
+    }
+
+    .countdown-units{
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+
+    .countdown-unit{
+      display:grid;
+      gap:1px;
+      min-width:52px;
+      padding:8px 9px;
+      border-radius:12px;
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.06);
+      text-align:center;
+    }
+
+    .countdown-value{
+      font-size:18px;
+      font-weight:900;
+      letter-spacing:-.03em;
+      color:var(--text);
+      line-height:1;
+    }
+
+    .countdown-label{
+      font-size:9px;
+      font-weight:900;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+
+    .center-credit{
+      font-size:10px;
+      font-weight:800;
+      color:var(--muted);
+      text-decoration:none;
+      white-space:nowrap;
+      transition:color .18s ease;
+    }
+
+    .center-credit:hover{
+      color:var(--text);
+    }
+
+    .top-btn{
+      border:none;
+      color:var(--text);
+      min-height:42px;
+      padding:10px 14px;
+      font-size:14px;
+      font-weight:900;
+      cursor:pointer;
+      border-radius:16px;
+      background:rgba(255,255,255,.08);
+      box-shadow:none;
+      transition:transform .18s ease, background .18s ease, border-color .18s ease, filter .18s ease;
+    }
+
+    .top-btn:hover{
+      background:linear-gradient(180deg,#252932,#2f3440);
+      transform:translateY(-1px);
+    }
+
+    .top-btn.accent{
+      background:var(--accent);
+      border-color:transparent;
+    }
+
+    .top-btn.accent:hover{
+      filter:brightness(1.06);
+    }
+
+    .status-pill{
+      min-height:42px;
+      padding:7px 12px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:2px;
+      min-width:260px;
+    }
+
+    .status-label{
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+
+    .status-text{
+      font-size:14px;
+      font-weight:800;
+      color:var(--text);
+    }
+
+    .weather-banner{
+      min-height:92px;
+      padding:12px 14px;
+      display:grid;
+      grid-template-columns:2.1fr repeat(6, 1fr);
+      gap:10px;
+      align-items:stretch;
+      user-select:none;
+      background:
+        linear-gradient(90deg, rgba(255,122,24,.08), transparent 16%, transparent 84%, rgba(255,122,24,.06)),
+        radial-gradient(circle at top left, rgba(255,255,255,.05), transparent 34%),
+        linear-gradient(180deg,var(--panel),var(--panel-2));
+    }
+
+    .weather-today,
+    .weather-day{
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.065), rgba(255,255,255,.035)),
+        var(--surface);
+      border:1px solid rgba(255,255,255,.05);
+      border-radius:18px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      min-width:0;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+    }
+
+    .weather-today{
+      padding:12px 14px;
+      gap:6px;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .weather-today::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:linear-gradient(115deg, transparent 0%, rgba(255,255,255,.055) 42%, transparent 72%);
+      pointer-events:none;
+    }
+
+    .weather-day{
+      padding:8px 7px;
+      align-items:center;
+      text-align:center;
+      gap:4px;
+      transition:transform .18s ease, border-color .18s ease, background .18s ease;
+    }
+
+    .weather-day:hover{
+      transform:translateY(-2px);
+      border-color:rgba(255,255,255,.1);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.04)),
+        var(--surface);
+    }
+
+    .weather-location{
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--muted);
+    }
+
+    .weather-today-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .weather-today-left{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width:0;
+    }
+
+    .weather-today-label{
+      font-size:16px;
+      font-weight:900;
+      color:var(--text);
+    }
+
+    .weather-today-temp{
+      font-size:30px;
+      line-height:1;
+      font-weight:900;
+    }
+
+    .weather-today-details{
+      font-size:13px;
+      color:var(--muted);
+      font-weight:700;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .weather-icon{
+      font-size:28px;
+      line-height:1;
+      flex:0 0 auto;
+    }
+
+    .weather-day-name{
+      font-size:13px;
+      font-weight:900;
+      color:var(--text);
+      white-space:nowrap;
+    }
+
+    .weather-day-icon{
+      font-size:24px;
+      line-height:1;
+    }
+
+    .weather-day-temps{
+      font-size:13px;
+      font-weight:800;
+      color:var(--text);
+      white-space:nowrap;
+    }
+
+    .weather-day-condition{
+      font-size:11px;
+      font-weight:700;
+      color:var(--muted);
+      line-height:1.15;
+      display:-webkit-box;
+      -webkit-line-clamp:2;
+      -webkit-box-orient:vertical;
+      overflow:hidden;
+    }
+
+    .home-layout{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      grid-template-rows:minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-areas:
+        "today previews"
+        "days previews";
+      gap:12px;
+      align-items:stretch;
+      height:min(72dvh, 760px);
+      min-height:min(72dvh, 760px);
+    }
+
+    .today-card{
+      padding:var(--card-pad);
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      min-height:0;
+      height:auto;
+      cursor:pointer;
+      border-color:var(--border-strong);
+      box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.04);
+      position:relative;
+      overflow:hidden;
+      transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.035), transparent 38%),
+        radial-gradient(circle at top left, rgba(255,255,255,.05), transparent 34%),
+        linear-gradient(180deg,var(--panel),var(--panel-2));
+    }
+
+    .today-card:hover{
+      transform:translateY(-3px);
+      border-color:rgba(255,122,24,.45);
+      box-shadow:0 22px 56px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.05);
+    }
+
+    #todayCard{
+      grid-area:today;
+    }
+
+    .today-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+    }
+
+    .today-heading{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .today-label{
+      font-size:13px;
+      font-weight:900;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--accent-2);
+    }
+
+    .today-date{
+      font-size:38px;
+      line-height:1;
+      font-weight:900;
+      letter-spacing:-.03em;
+    }
+
+    .today-full-date{
+      font-size:15px;
+      color:var(--muted);
+      font-weight:700;
+    }
+
+    .quick-add-btn{
+      border:none;
+      background:var(--accent);
+      color:#fff;
+      padding:12px 16px;
+      border-radius:16px;
+      font-size:16px;
+      font-weight:900;
+      cursor:pointer;
+      min-width:120px;
+      transition:transform .18s ease, filter .18s ease;
+    }
+
+    .quick-add-btn:hover{
+      filter:brightness(1.06);
+      transform:translateY(-1px);
+    }
+
+    .today-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .month-btn{
+      border:none;
+      background:rgba(255,255,255,.08);
+      color:var(--text);
+      padding:12px 16px;
+      border-radius:16px;
+      font-size:16px;
+      font-weight:900;
+      cursor:pointer;
+      min-width:132px;
+      transition:transform .18s ease, background .18s ease;
+    }
+
+    .month-btn:hover{
+      background:rgba(255,255,255,.14);
+      transform:translateY(-1px);
+    }
+
+    .time-blocks{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      grid-auto-rows:minmax(0, auto);
+      gap:10px;
+      margin-top:2px;
+      min-height:0;
+      overflow:auto;
+      padding-right:4px;
+      scrollbar-width:thin;
+      scrollbar-color:rgba(255,255,255,.18) transparent;
+    }
+
+    .time-block{
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03)),
+        var(--surface);
+      border:1px solid rgba(255,255,255,.06);
+      border-left:6px solid var(--accent);
+      border-radius:18px;
+      padding:12px 12px 10px;
+      min-height:60px;
+      display:grid;
+      gap:6px;
+      box-shadow:var(--shadow-soft);
+      transition:transform .18s ease, box-shadow .18s ease, background .18s ease;
+    }
+
+    .time-block:hover{
+      transform:translateY(-2px);
+      box-shadow:0 12px 22px rgba(0,0,0,.24);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.035)),
+        var(--surface);
+    }
+
+    .time-range{
+      font-size:13px;
+      font-weight:900;
+      color:var(--accent-2);
+      letter-spacing:.02em;
+    }
+
+    .time-title{
+      font-size:18px;
+      font-weight:900;
+      line-height:1.1;
+    }
+
+    .empty-state{
+      color:var(--muted);
+      font-weight:700;
+      padding:6px 2px;
+    }
+
+    .days-grid{
+      grid-area:days;
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0, 1fr));
+      grid-template-rows:repeat(2, minmax(0, 1fr));
+      grid-auto-rows:auto;
+      gap:12px;
+      align-content:stretch;
+      height:100%;
+      min-height:0;
+    }
+
+    .day-card{
+      height:auto;
+      min-height:0;
+      padding:14px;
+      cursor:pointer;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      overflow:hidden;
+      border-color:rgba(255,255,255,.1);
+      box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.04);
+      transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.03), transparent 42%),
+        radial-gradient(circle at top left, rgba(255,255,255,.05), transparent 34%),
+        linear-gradient(180deg,var(--panel),var(--panel-2));
+    }
+
+    .day-card:hover{
+      transform:translateY(-3px);
+      border-color:rgba(255,122,24,.28);
+      box-shadow:0 20px 48px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.05);
+    }
+
+    .day-name{
+      font-size:18px;
+      font-weight:900;
+      line-height:1.05;
+      letter-spacing:-.02em;
+    }
+
+    .day-date{
+      font-size:12px;
+      color:var(--muted);
+      font-weight:700;
+    }
+
+    .day-events{
+      display:grid;
+      gap:8px;
+      margin-top:4px;
+      min-height:0;
+      overflow:auto;
+      padding-right:2px;
+      scrollbar-width:thin;
+      scrollbar-color:rgba(255,255,255,.16) transparent;
+    }
+
+    .mini-event{
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03)),
+        var(--surface);
+      border-radius:12px;
+      border-left:4px solid var(--accent);
+      padding:8px 10px;
+      display:grid;
+      gap:4px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+    }
+
+    .mini-time{
+      font-size:12px;
+      color:var(--accent-2);
+      font-weight:900;
+    }
+
+    .mini-title{
+      font-size:13px;
+      font-weight:800;
+      line-height:1.2;
+    }
+
+    .nav-row{
+      display:grid;
+      grid-template-columns:repeat(6, 1fr);
+      gap:12px;
+    }
+
+    .preview-grid{
+      grid-area:previews;
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      grid-template-rows:minmax(0, 1fr);
+      gap:12px;
+      height:100%;
+      min-height:0;
+      overflow:hidden;
+    }
+
+    .preview-card{
+      min-height:0;
+      padding:14px;
+      display:grid;
+      grid-template-rows:auto minmax(0, 1fr);
+      gap:12px;
+      cursor:pointer;
+      border-color:rgba(255,255,255,.1);
+      box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.04);
+      transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.03), transparent 42%),
+        radial-gradient(circle at top left, rgba(255,255,255,.05), transparent 34%),
+        linear-gradient(180deg,var(--panel),var(--panel-2));
+    }
+
+    .preview-card:hover{
+      transform:translateY(-3px);
+      border-color:rgba(255,122,24,.45);
+      box-shadow:0 20px 48px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.05);
+    }
+
+    .preview-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:16px;
+    }
+
+    .preview-heading{
+      display:grid;
+      gap:6px;
+    }
+
+    .preview-title{
+      font-size:19px;
+      line-height:1.02;
+      font-weight:900;
+      letter-spacing:-.02em;
+    }
+
+    .preview-meta{
+      font-size:13px;
+      font-weight:800;
+      color:var(--muted);
+      line-height:1.35;
+    }
+
+    .preview-open{
+      border:none;
+      background:rgba(255,122,24,.16);
+      color:var(--accent-2);
+      padding:10px 12px;
+      border-radius:12px;
+      font-size:13px;
+      font-weight:900;
+      min-width:118px;
+      cursor:pointer;
+      transition:transform .18s ease, background .18s ease;
+    }
+
+    .preview-open:hover{
+      transform:translateY(-1px);
+      background:rgba(255,122,24,.22);
+    }
+
+    .preview-list{
+      display:grid;
+      gap:8px;
+      align-content:start;
+      min-height:0;
+      overflow:auto;
+      padding-right:4px;
+      scrollbar-width:thin;
+      scrollbar-color:rgba(255,255,255,.18) transparent;
+    }
+
+    .preview-item{
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03)),
+        var(--surface);
+      border:1px solid rgba(255,255,255,.05);
+      border-left:4px solid var(--accent);
+      border-radius:14px;
+      padding:10px 12px;
+      display:grid;
+      gap:4px;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+      transition:transform .18s ease, background .18s ease, box-shadow .18s ease;
+    }
+
+    .preview-item:hover{
+      transform:translateY(-1px);
+      box-shadow:0 10px 20px rgba(0,0,0,.16);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.035)),
+        var(--surface);
+    }
+
+    .preview-item.done{
+      opacity:.72;
+      border-left-color:rgba(255,255,255,.18);
+    }
+
+    .preview-item-title{
+      font-size:14px;
+      font-weight:850;
+      line-height:1.2;
+      word-break:break-word;
+    }
+
+    .preview-item-meta{
+      font-size:12px;
+      font-weight:800;
+      color:var(--muted);
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .owner-dot{
+      width:10px;
+      height:10px;
+      border-radius:999px;
+      flex:0 0 auto;
+    }
+
+    .preview-empty{
+      color:var(--muted);
+      font-weight:700;
+      padding:8px 2px;
+      line-height:1.4;
+    }
+
+    .overlay-backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(9,11,16,.74);
+      backdrop-filter:blur(10px);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+      z-index:1000;
+    }
+
+    .overlay-backdrop.open{
+      display:flex;
+    }
+
+    .overlay-shell{
+      width:min(1380px, 100%);
+      height:min(88vh, 920px);
+      padding:14px;
+      display:grid;
+      grid-template-rows:auto minmax(0, 1fr);
+      gap:12px;
+      border-color:var(--border-strong);
+      overflow:hidden;
+    }
+
+    .overlay-top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .overlay-heading{
+      display:grid;
+      gap:4px;
+      min-width:0;
+    }
+
+    .overlay-label{
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:var(--accent-2);
+    }
+
+    .overlay-title{
+      font-size:28px;
+      line-height:1.02;
+      font-weight:900;
+      letter-spacing:-.02em;
+    }
+
+    .overlay-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .overlay-btn{
+      border:none;
+      min-height:44px;
+      padding:10px 14px;
+      border-radius:14px;
+      background:rgba(255,255,255,.08);
+      color:var(--text);
+      font-size:14px;
+      font-weight:900;
+      cursor:pointer;
+      transition:transform .18s ease, background .18s ease, filter .18s ease;
+    }
+
+    .overlay-btn:hover{
+      background:rgba(255,255,255,.14);
+      transform:translateY(-1px);
+    }
+
+    .overlay-btn.accent{
+      background:var(--accent);
+      color:#fff;
+    }
+
+    .overlay-btn.accent:hover{
+      filter:brightness(1.06);
+    }
+
+    .overlay-frame{
+      width:100%;
+      height:100%;
+      border:none;
+      border-radius:18px;
+      background:#111319;
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+    }
+
+    body.modal-open{
+      overflow:hidden;
+    }
+
+    .nav-btn{
+      border:none;
+      color:var(--text);
+      min-height:96px;
+      font-size:20px;
+      font-weight:900;
+      cursor:pointer;
+      transition:transform .15s ease, border-color .15s ease;
+    }
+
+    .nav-btn:hover{
+      transform:translateY(-2px);
+      border-color:rgba(255,122,24,.45);
+    }
+
+    @media (max-width: 1400px){
+      .weather-banner{
+        grid-template-columns:1.75fr repeat(4, minmax(0, .82fr));
+        gap:10px;
+      }
+
+      .weather-day{
+        padding:8px 6px;
+      }
+
+      .weather-icon{
+        font-size:22px;
+      }
+
+      .weather-day-icon{
+        font-size:18px;
+      }
+
+      .weather-day-name,
+      .weather-day-temps{
+        font-size:12px;
+      }
+
+      .weather-day-condition{
+        font-size:10px;
+      }
+
+      .weather-day:nth-child(n+6){
+        display:none;
+      }
+    }
+
+    @media (max-height: 960px){
+      body{
+        padding:12px;
+      }
+
+      .page{
+        gap:12px;
+        min-height:calc(100dvh - 24px);
+      }
+
+      .topbar{
+        min-height:58px;
+        padding:8px 10px;
+      }
+
+      .center-ribbon{
+        gap:10px;
+        padding:5px 8px;
+      }
+
+      .ride-chip{
+        min-width:108px;
+        padding:7px 8px;
+      }
+
+      .ride-name,
+      .countdown-eyebrow,
+      .countdown-label,
+      .center-credit{
+        font-size:9px;
+      }
+
+      .ride-wait,
+      .countdown-value{
+        font-size:16px;
+      }
+
+      .countdown-target{
+        font-size:11px;
+      }
+
+      .countdown-unit{
+        min-width:48px;
+        padding:7px 8px;
+      }
+
+      .top-actions,
+      .top-right{
+        gap:8px;
+      }
+
+      .top-btn{
+        min-height:38px;
+        padding:8px 12px;
+        font-size:13px;
+      }
+
+      .weather-banner{
+        min-height:82px;
+        padding:10px 12px;
+        gap:8px;
+      }
+
+      .weather-today{
+        padding:10px 12px;
+        gap:4px;
+      }
+
+      .weather-day{
+        padding:7px 6px;
+        gap:3px;
+      }
+
+      .weather-location{
+        font-size:11px;
+      }
+
+      .weather-today-label{
+        font-size:14px;
+      }
+
+      .weather-today-temp{
+        font-size:26px;
+      }
+
+      .weather-today-details,
+      .weather-day-temps{
+        font-size:12px;
+      }
+
+      .weather-day-name{
+        font-size:12px;
+      }
+
+      .weather-icon{
+        font-size:22px;
+      }
+
+      .weather-day-icon{
+        font-size:18px;
+      }
+
+      .weather-day-condition{
+        font-size:10px;
+      }
+
+      .home-layout{
+        gap:10px;
+        height:min(69dvh, 700px);
+        min-height:min(69dvh, 700px);
+      }
+
+      .today-card,
+      .preview-card,
+      .day-card{
+        padding:12px;
+      }
+
+      .today-card{
+        gap:12px;
+      }
+
+      .today-heading{
+        gap:6px;
+      }
+
+      .today-label{
+        font-size:12px;
+      }
+
+      .today-date{
+        font-size:34px;
+      }
+
+      .today-full-date{
+        font-size:14px;
+      }
+
+      .month-btn,
+      .quick-add-btn{
+        min-width:112px;
+        padding:10px 14px;
+        font-size:14px;
+      }
+
+      .time-blocks,
+      .days-grid,
+      .preview-grid{
+        gap:10px;
+      }
+
+      .time-block{
+        min-height:54px;
+        padding:10px;
+        gap:5px;
+      }
+
+      .time-range{
+        font-size:12px;
+      }
+
+      .time-title{
+        font-size:16px;
+      }
+
+      .day-card{
+        gap:8px;
+      }
+
+      .day-name{
+        font-size:16px;
+      }
+
+      .day-date,
+      .mini-time,
+      .preview-item-meta,
+      .preview-meta{
+        font-size:11px;
+      }
+
+      .day-events,
+      .preview-list{
+        gap:6px;
+      }
+
+      .mini-event{
+        padding:7px 9px;
+        gap:3px;
+      }
+
+      .mini-title{
+        font-size:12px;
+      }
+
+      .preview-head{
+        gap:12px;
+      }
+
+      .preview-title{
+        font-size:17px;
+      }
+
+      .preview-open{
+        min-width:106px;
+        padding:8px 10px;
+        font-size:12px;
+      }
+
+      .preview-item{
+        padding:8px 10px;
+      }
+
+      .preview-item-title{
+        font-size:13px;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 820px){
+      body{
+        padding:10px;
+      }
+
+      .page{
+        gap:10px;
+        min-height:calc(100dvh - 20px);
+      }
+
+      .topbar{
+        min-height:54px;
+        padding:7px 9px;
+      }
+
+      .center-ribbon{
+        gap:8px;
+        padding:5px 7px;
+      }
+
+      .ride-chip{
+        min-width:96px;
+        padding:6px 8px;
+      }
+
+      .ride-wait,
+      .countdown-value{
+        font-size:15px;
+      }
+
+      .countdown-target{
+        font-size:10px;
+      }
+
+      .countdown-unit{
+        min-width:44px;
+        padding:6px 7px;
+      }
+
+      .top-btn{
+        min-height:36px;
+        padding:7px 11px;
+        font-size:12px;
+      }
+
+      .weather-banner{
+        min-height:74px;
+        padding:9px 10px;
+        gap:7px;
+      }
+
+      .weather-today{
+        padding:9px 10px;
+      }
+
+      .weather-today-temp{
+        font-size:24px;
+      }
+
+      .weather-day{
+        min-height:0;
+        padding:6px 5px;
+      }
+
+      .weather-day-icon{
+        font-size:16px;
+      }
+
+      .home-layout{
+        gap:8px;
+        height:min(67dvh, 620px);
+        min-height:min(67dvh, 620px);
+      }
+
+      .today-card,
+      .preview-card,
+      .day-card{
+        padding:10px;
+      }
+
+      .today-card{
+        gap:10px;
+      }
+
+      .today-top{
+        gap:10px;
+      }
+
+      .today-date{
+        font-size:30px;
+      }
+
+      .today-full-date{
+        font-size:13px;
+      }
+
+      .month-btn,
+      .quick-add-btn{
+        min-width:102px;
+        padding:8px 12px;
+        font-size:13px;
+      }
+
+      .time-blocks,
+      .days-grid,
+      .preview-grid{
+        gap:8px;
+      }
+
+      .time-block{
+        min-height:48px;
+        padding:8px 9px;
+      }
+
+      .time-title{
+        font-size:15px;
+      }
+
+      .day-card{
+        gap:6px;
+      }
+
+      .day-name{
+        font-size:15px;
+      }
+
+      .day-date{
+        font-size:11px;
+      }
+
+      .day-events{
+        gap:5px;
+        margin-top:2px;
+      }
+
+      .mini-event{
+        padding:6px 8px;
+      }
+
+      .mini-time,
+      .mini-title{
+        font-size:11px;
+      }
+
+      .preview-title{
+        font-size:16px;
+      }
+
+      .preview-meta,
+      .preview-item-meta{
+        font-size:10px;
+      }
+
+      .preview-item{
+        padding:7px 9px;
+      }
+
+      .preview-item-title{
+        font-size:12px;
+      }
+
+      .preview-open{
+        min-width:96px;
+        padding:7px 9px;
+        font-size:11px;
+      }
+    }
+
+    @media (max-width: 1200px){
+      .home-layout{
+        grid-template-columns:1fr;
+        grid-template-rows:none;
+        grid-template-areas:
+          "today"
+          "days"
+          "previews";
+        height:auto;
+        min-height:auto;
+      }
+
+      .days-grid{
+        grid-template-columns:repeat(3, 1fr);
+        grid-template-rows:none;
+        grid-auto-rows:152px;
+        height:auto;
+        min-height:0;
+      }
+
+      .today-card{
+        height:auto;
+      }
+
+      .preview-grid{
+        grid-template-columns:1fr 1fr;
+        grid-template-rows:none;
+        max-height:none;
+      }
+
+      .nav-row{
+        grid-template-columns:repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 1024px){
+      body{
+        padding:16px;
+      }
+
+      .topbar{
+        grid-template-columns:1fr;
+        min-height:auto;
+        align-items:stretch;
+      }
+
+      .top-actions,
+      .top-right,
+      .brand-left,
+      .brand-center{
+        width:100%;
+      }
+
+      .brand-left,
+      .brand-center{
+        justify-content:flex-start;
+        padding:0;
+      }
+
+      .brand-left{
+        order:-2;
+      }
+
+      .brand-center{
+        order:-1;
+      }
+
+      .center-ribbon{
+        justify-content:flex-start;
+      }
+
+      .top-btn{
+        flex:1 1 180px;
+      }
+
+      .status-pill{
+        flex:1 1 260px;
+      }
+    }
+
+    @media (max-width: 1000px){
+      .weather-banner{
+        grid-template-columns:1.65fr repeat(4, minmax(0, .75fr));
+        gap:10px;
+        padding:12px;
+      }
+
+      .weather-day{
+        min-height:88px;
+        padding:8px 6px;
+      }
+
+      .weather-today{
+        grid-column:auto;
+        padding:12px 14px;
+      }
+
+      .weather-location{
+        font-size:11px;
+      }
+
+      .weather-today-label{
+        font-size:14px;
+      }
+
+      .weather-today-temp{
+        font-size:28px;
+      }
+
+      .weather-today-details{
+        font-size:12px;
+      }
+
+      .weather-icon{
+        font-size:22px;
+      }
+
+      .weather-day-name,
+      .weather-day-temps{
+        font-size:12px;
+      }
+
+      .weather-day-icon{
+        font-size:18px;
+      }
+
+      .weather-day-condition{
+        font-size:10px;
+      }
+
+      .weather-day:nth-child(n+6){
+        display:none;
+      }
+    }
+
+    @media (max-width: 820px){
+      body{
+        padding:14px;
+      }
+
+      .topbar{
+        padding:10px;
+      }
+
+      .brand-logo{
+        width:36px;
+        height:36px;
+      }
+
+      .brand-title{
+        font-size:18px;
+      }
+
+      .brand-copy{
+        gap:8px;
+      }
+
+      .center-ribbon{
+        flex-direction:column;
+        align-items:flex-start;
+        padding:8px 10px;
+      }
+
+      .ride-waits{
+        width:100%;
+        justify-content:flex-start;
+      }
+
+      .center-divider{
+        width:100%;
+        height:1px;
+      }
+
+      .countdown-ribbon{
+        width:100%;
+        justify-content:space-between;
+      }
+
+      .countdown-units{
+        margin-left:auto;
+      }
+
+      .today-top{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+
+      .today-actions{
+        width:100%;
+      }
+
+      .days-grid{
+        grid-template-columns:repeat(2, 1fr);
+        grid-auto-rows:152px;
+        height:auto;
+      }
+
+      .nav-row{
+        grid-template-columns:repeat(2, 1fr);
+      }
+
+      .preview-title{
+        font-size:28px;
+      }
+
+      .preview-grid{
+        grid-template-columns:1fr;
+        grid-template-rows:none;
+      }
+
+      .today-date{
+        font-size:36px;
+      }
+
+      .time-blocks{
+        grid-template-columns:1fr;
+      }
+
+      .time-block{
+        min-height:56px;
+        padding:10px 10px 9px;
+      }
+
+      .time-title{
+        font-size:16px;
+      }
+
+      .top-right,
+      .top-actions{
+        width:100%;
+      }
+
+      .top-btn{
+        flex:1 1 0;
+      }
+
+      .status-pill{
+        width:100%;
+      }
+
+      .overlay-backdrop{
+        padding:14px;
+      }
+
+      .overlay-shell{
+        height:min(92vh, 920px);
+      }
+
+      .overlay-top{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+
+      .overlay-actions{
+        width:100%;
+      }
+
+      .overlay-btn{
+        flex:1 1 0;
+      }
+
+      .weather-banner{
+        grid-template-columns:1.5fr repeat(3, minmax(0, .74fr));
+        gap:8px;
+      }
+
+      .weather-today{
+        padding:10px 12px;
+      }
+
+      .weather-today-temp{
+        font-size:24px;
+      }
+
+      .weather-icon{
+        font-size:20px;
+      }
+
+      .weather-day{
+        min-height:82px;
+      }
+
+      .weather-day:nth-child(n+5){
+        display:none;
+      }
+
+      .ride-chip{
+        min-width:0;
+        flex:1 1 140px;
+      }
+
+      .countdown-ribbon{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:8px;
+      }
+
+      .countdown-units{
+        width:100%;
+        justify-content:flex-start;
+        margin-left:0;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 900px){
+      .home-layout{
+        height:min(72vh, 620px);
+        min-height:min(72vh, 620px);
+      }
+
+      .time-blocks{
+        gap:8px;
+      }
+
+      .time-block{
+        min-height:52px;
+        padding:10px 10px 9px;
+      }
+
+      .time-range{
+        font-size:12px;
+      }
+
+      .time-title{
+        font-size:16px;
+      }
+
+      .days-grid{
+        grid-template-rows:repeat(2, minmax(0, 1fr));
+        grid-auto-rows:auto;
+        height:100%;
+        min-height:0;
+      }
+
+      .day-card{
+        height:auto;
+      }
+    }
+
+    @media (max-width: 560px){
+      .days-grid,
+      .nav-row{
+        grid-template-columns:1fr;
+      }
+
+      .preview-card{
+        min-height:auto;
+        padding:18px;
+      }
+
+      .today-actions{
+        width:100%;
+      }
+
+      .preview-head{
+        flex-direction:column;
+        align-items:stretch;
+      }
+
+      .month-btn,
+      .quick-add-btn,
+      .preview-open{
+        width:100%;
+      }
+
+      .weather-banner{
+        grid-template-columns:1fr;
+        padding:12px;
+      }
+
+      .weather-day{
+        display:none;
+      }
+
+      .weather-today{
+        grid-column:auto;
+      }
+    }
+  </style>
+
+  <script async defer src="https://apis.google.com/js/api.js"></script>
+  <script async defer src="https://accounts.google.com/gsi/client"></script>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div class="brand-left" aria-label="PocketSteak">
+        <img class="brand-logo" src="../assets/pocket_steak_logo.png" alt="PocketSteak logo" />
+        <div class="brand-copy">
+          <div class="brand-eyebrow">PocketSteak</div>
+        </div>
+      </div>
+
+      <div class="brand-center" aria-label="Disney waits and vacation countdown">
+        <div class="center-ribbon">
+          <div class="ride-waits" id="rideWaits">
+            <div class="ride-chip">
+              <div class="ride-name">Spaceship Earth</div>
+              <div class="ride-wait">--</div>
+            </div>
+            <div class="ride-chip">
+              <div class="ride-name">Expedition Everest</div>
+              <div class="ride-wait">--</div>
+            </div>
+            <div class="ride-chip">
+              <div class="ride-name">Tower of Terror</div>
+              <div class="ride-wait">--</div>
+            </div>
+          </div>
+          <div class="center-divider" aria-hidden="true"></div>
+          <div class="countdown-ribbon" aria-label="Countdown to August 15, 2026">
+            <div class="countdown-summary">
+              <div class="countdown-eyebrow">Countdown</div>
+              <div class="countdown-target">Aug 15, 2026</div>
+              <a class="center-credit" href="https://queue-times.com/en-US" target="_blank" rel="noreferrer">Powered by Queue-Times.com</a>
+            </div>
+            <div class="countdown-units">
+              <div class="countdown-unit">
+                <div class="countdown-value" id="bannerDays">--</div>
+                <div class="countdown-label">Days</div>
+              </div>
+              <div class="countdown-unit">
+                <div class="countdown-value" id="bannerHours">--</div>
+                <div class="countdown-label">Hours</div>
+              </div>
+              <div class="countdown-unit">
+                <div class="countdown-value" id="bannerMinutes">--</div>
+                <div class="countdown-label">Minutes</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="top-right">
+        <button class="top-btn" id="backAppsBtn" type="button" style="display:none;">← Back to Apps</button>
+        <button class="top-btn" id="cookbookBtn" type="button">Cookbook</button>
+        <button class="top-btn" id="notesBtn" type="button" onclick="window.location.href='./notes.html'">Notes</button>
+        <button class="top-btn" id="settingsBtn" type="button" onclick="window.location.href='./settings.html'">Settings</button>
+        <div style="display:none;">
+          <div class="status-pill">
+            <div class="status-label">Google</div>
+            <div class="status-text" id="statusText">Loading…</div>
+          </div>
+          <button class="top-btn accent" id="authBtn" type="button">Connect</button>
+          <button class="top-btn" id="signOutBtn" type="button" style="display:none;">Sign Out</button>
+        </div>
+      </div>
+    </div>
+
+    <section class="weather-banner" aria-label="Chardon Ohio 7 day weather" id="weatherBanner">
+      <div class="weather-today" id="weatherToday">
+        <div class="weather-location">Chardon, Ohio</div>
+        <div class="weather-today-row">
+          <div class="weather-today-left">
+            <div class="weather-today-label">Today</div>
+            <div class="weather-today-temp">--°</div>
+            <div class="weather-today-details">Loading weather…</div>
+          </div>
+          <div class="weather-icon">⛅</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="home-layout">
+      <article class="today-card" id="todayCard">
+        <div class="today-top">
+          <div class="today-heading">
+            <div class="today-label">Today</div>
+            <div class="today-date" id="todayDate">--</div>
+            <div class="today-full-date" id="todayFullDate">--</div>
+          </div>
+
+          <div class="today-actions">
+            <button class="month-btn" id="monthBtn" type="button">Open Month</button>
+            <button class="quick-add-btn" id="quickAddBtn" type="button">Quick Add</button>
+          </div>
+        </div>
+
+        <div class="time-blocks" id="todayTimeBlocks"></div>
+      </article>
+
+      <section class="days-grid" id="daysGrid"></section>
+
+      <section class="preview-grid">
+      <article class="preview-card" id="groceryPreviewCard">
+        <div class="preview-head">
+          <div class="preview-heading">
+            <div class="preview-title">Grocery List</div>
+            <div class="preview-meta" id="groceryPreviewMeta">Connect Google to load grocery items.</div>
+          </div>
+          <button class="preview-open" id="groceryPreviewBtn" type="button">Open List</button>
+        </div>
+        <div class="preview-list" id="groceryPreviewList">
+          <div class="preview-empty">Waiting for Google Sheets…</div>
+        </div>
+        </article>
+
+        <article class="preview-card" id="todoPreviewCard">
+        <div class="preview-head">
+          <div class="preview-heading">
+            <div class="preview-title">To-Do List</div>
+            <div class="preview-meta" id="todoPreviewMeta">Connect Google to load to-do items.</div>
+          </div>
+          <button class="preview-open" id="todoPreviewBtn" type="button">Open List</button>
+        </div>
+        <div class="preview-list" id="todoPreviewList">
+          <div class="preview-empty">Waiting for Google Sheets…</div>
+        </div>
+        </article>
+      </section>
+    </section>
+  </div>
+
+  <div class="overlay-backdrop" id="dashboardOverlay" aria-hidden="true">
+    <section class="overlay-shell" role="dialog" aria-modal="true" aria-labelledby="overlayTitle">
+      <div class="overlay-top">
+        <div class="overlay-heading">
+          <div class="overlay-label">TST</div>
+          <div class="overlay-title" id="overlayTitle">List</div>
+        </div>
+        <div class="overlay-actions">
+          <button class="overlay-btn" id="overlayOpenPageBtn" type="button">Open Full Page</button>
+          <button class="overlay-btn accent" id="overlayCloseBtn" type="button">Close</button>
+        </div>
+      </div>
+      <iframe class="overlay-frame" id="overlayFrame" src="" title="Command Center TST dashboard overlay"></iframe>
+    </section>
+  </div>
+
+  <script>
+    const CLIENT_ID = "82204016171-ta1ipuu88gie0tkq69je3di5uifu1kki.apps.googleusercontent.com";
+    const API_KEY = "AIzaSyBPZEeYB8IaheJPJA2Y44msGfDwIhJMpGU";
+    const DISCOVERY_DOC = "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest";
+    const SHEETS_DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
+    const SPREADSHEET_ID = "1ccfVTfNqrrzMLkD4uK8fkWs3wRJENs5XQJHJfjkWmmY";
+    const GROCERY_SHEET_NAME = "Groceries";
+    const TODO_SHEET_NAME = "ToDo";
+    const SCOPES = [
+      "https://www.googleapis.com/auth/calendar",
+      "https://www.googleapis.com/auth/spreadsheets",
+    ].join(" ");
+
+    const TOKEN_KEY = "pocketsteak_google_access_token";
+    const TOKEN_EXP_KEY = "pocketsteak_google_token_exp";
+
+    const WEATHER_URL = "https://api.open-meteo.com/v1/forecast?latitude=41.582011&longitude=-81.203217&current=temperature_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FNew_York&forecast_days=7";
+    const DISNEY_COUNTDOWN_TARGET = new Date(2026, 7, 15, 0, 0, 0);
+    const DISNEY_RIDES = [
+      { rideId: 159, label: "Spaceship Earth" },
+      { rideId: 110, label: "Expedition Everest" },
+      { rideId: 123, label: "Tower of Terror" },
+    ];
+
+    let tokenClient = null;
+    let gapiInited = false;
+    let gisInited = false;
+    let calendarsById = new Map();
+    let weekEvents = [];
+    let groceryPreviewRows = [];
+    let todoPreviewRows = [];
+    let activeOverlayPath = "";
+
+    function setStatus(text) {
+      document.getElementById("statusText").textContent = text;
+    }
+
+    function saveToken(accessToken, expiresInSeconds = 3600) {
+      const expiresAt = Date.now() + (expiresInSeconds * 1000);
+      localStorage.setItem(TOKEN_KEY, accessToken);
+      localStorage.setItem(TOKEN_EXP_KEY, String(expiresAt));
+    }
+
+    function getSavedToken() {
+      const token = localStorage.getItem(TOKEN_KEY);
+      const exp = Number(localStorage.getItem(TOKEN_EXP_KEY) || "0");
+      if (!token || !exp) return null;
+      if (Date.now() >= exp) {
+        clearSavedToken();
+        return null;
+      }
+      return token;
+    }
+
+    function clearSavedToken() {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(TOKEN_EXP_KEY);
+    }
+
+    function formatDateKey(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function formatMonthDay(date) {
+      return date.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric"
+      });
+    }
+
+    function formatTodayBig(date) {
+      return date.toLocaleDateString(undefined, {
+        month: "long",
+        day: "numeric"
+      });
+    }
+
+    function formatTodayFull(date) {
+      return date.toLocaleDateString(undefined, {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        year: "numeric"
+      });
+    }
+
+    function getShortDayName(date) {
+      return date.toLocaleDateString(undefined, { weekday: "short" });
+    }
+
+    function padNumber(num) {
+      return String(num).padStart(2, "0");
+    }
+
+    function renderRideWaits(values) {
+      const container = document.getElementById("rideWaits");
+      container.innerHTML = values.map((ride) => `
+        <div class="ride-chip">
+          <div class="ride-name">${ride.label}</div>
+          <div class="ride-wait">${ride.wait}</div>
+        </div>
+      `).join("");
+    }
+
+    function updateBannerCountdown() {
+      let diff = DISNEY_COUNTDOWN_TARGET.getTime() - Date.now();
+      if (diff < 0) diff = 0;
+
+      const totalMinutes = Math.floor(diff / 60000);
+      const days = Math.floor(totalMinutes / 1440);
+      const hours = Math.floor((totalMinutes % 1440) / 60);
+      const minutes = totalMinutes % 60;
+
+      document.getElementById("bannerDays").textContent = padNumber(days);
+      document.getElementById("bannerHours").textContent = padNumber(hours);
+      document.getElementById("bannerMinutes").textContent = padNumber(minutes);
+    }
+
+    function isAllDayEvent(event) {
+      return !!event.start.date;
+    }
+
+    function getEventDateKey(event) {
+      if (event.start.date) return event.start.date;
+      return formatDateKey(new Date(event.start.dateTime));
+    }
+
+    function getEventTimeLabel(event) {
+      if (isAllDayEvent(event)) return "All day";
+
+      const start = new Date(event.start.dateTime);
+      const end = new Date(event.end.dateTime);
+
+      const startLabel = start.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+      const endLabel = end.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+
+      return `${startLabel} - ${endLabel}`;
+    }
+
+    function getCalendarColor(calendarId) {
+      const cal = calendarsById.get(calendarId);
+      return cal?.backgroundColor || "#ff7a18";
+    }
+
+    function getEventsForDate(dateKey) {
+      return weekEvents
+        .filter(event => getEventDateKey(event) === dateKey)
+        .sort((a, b) => {
+          const aStart = a.start.dateTime || `${a.start.date}T00:00:00`;
+          const bStart = b.start.dateTime || `${b.start.date}T00:00:00`;
+          return aStart.localeCompare(bStart);
+        });
+    }
+
+    function normalizeBool(value) {
+      const str = String(value || "").trim().toLowerCase();
+      return str === "true" || str === "yes" || str === "1" || str === "y";
+    }
+
+    function normalizeOwner(value) {
+      const str = String(value || "").trim().toLowerCase();
+      if (str === "andrew") return "Andrew";
+      if (str === "nichol") return "Nichol";
+      if (str === "jolie") return "Jolie";
+      return "";
+    }
+
+    function getOwnerColor(owner) {
+      if (owner === "Andrew") return "#ff8a1f";
+      if (owner === "Nichol") return "#8b5cf6";
+      if (owner === "Jolie") return "#22c55e";
+      return "#ec4899";
+    }
+
+    function getOwnerLabel(owner) {
+      return owner || "Unassigned";
+    }
+
+    function isLikelyHeaderRow(row) {
+      const first = String(row?.[0] || "").trim().toLowerCase();
+      const second = String(row?.[1] || "").trim().toLowerCase();
+      const third = String(row?.[2] || "").trim().toLowerCase();
+      const fourth = String(row?.[3] || "").trim().toLowerCase();
+
+      return (
+        ["item", "items", "task", "tasks", "todo", "to-do", "grocery", "groceries", "name"].includes(first) ||
+        ["bought", "done", "status", "checked", "complete", "completed"].includes(second) ||
+        ["created", "createdat", "timestamp", "date"].includes(third) ||
+        ["owner", "person", "addedby", "added by", "who"].includes(fourth)
+      );
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function renderToday() {
+      const today = new Date();
+      const todayKey = formatDateKey(today);
+      const todayEvents = getEventsForDate(todayKey);
+
+      document.getElementById("todayDate").textContent = formatTodayBig(today);
+      document.getElementById("todayFullDate").textContent = formatTodayFull(today);
+
+      const container = document.getElementById("todayTimeBlocks");
+      container.innerHTML = "";
+
+      if (todayEvents.length === 0) {
+        container.innerHTML = `<div class="empty-state">No events today.</div>`;
+        return;
+      }
+
+      todayEvents.forEach(event => {
+        const block = document.createElement("div");
+        block.className = "time-block";
+        block.style.borderLeftColor = getCalendarColor(event.calendarId);
+        block.innerHTML = `
+          <div class="time-range">${getEventTimeLabel(event)}</div>
+          <div class="time-title">${event.summary || "(Untitled event)"}</div>
+        `;
+        container.appendChild(block);
+      });
+    }
+
+    function renderNextSixDays() {
+      const grid = document.getElementById("daysGrid");
+      grid.innerHTML = "";
+
+      for (let i = 1; i <= 6; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() + i);
+
+        const key = formatDateKey(date);
+        const events = getEventsForDate(key);
+
+        const card = document.createElement("article");
+        card.className = "day-card";
+
+        let eventsHtml = "";
+        if (events.length > 0) {
+          eventsHtml = events.map(event => `
+            <div class="mini-event" style="border-left-color:${getCalendarColor(event.calendarId)}">
+              <div class="mini-time">${getEventTimeLabel(event)}</div>
+              <div class="mini-title">${event.summary || "(Untitled event)"}</div>
+            </div>
+          `).join("");
+        }
+
+        card.innerHTML = `
+          <div>
+            <div class="day-name">${getShortDayName(date)}</div>
+            <div class="day-date">${formatMonthDay(date)}</div>
+          </div>
+          <div class="day-events">${eventsHtml}</div>
+        `;
+
+        card.addEventListener("click", () => {
+          openDashboardOverlay(
+            `${getShortDayName(date)} ${formatMonthDay(date)}`,
+            `./day.html?date=${key}`
+          );
+        });
+
+        grid.appendChild(card);
+      }
+    }
+
+    function renderAll() {
+      renderToday();
+      renderNextSixDays();
+      renderPreviewCard({
+        rows: groceryPreviewRows,
+        listId: "groceryPreviewList",
+        metaId: "groceryPreviewMeta",
+        emptyText: "No grocery items right now.",
+        activeLabel: "items to grab",
+        doneLabel: "bought",
+        accentColor: "#ff7a18",
+        showOwner: false,
+      });
+      renderPreviewCard({
+        rows: todoPreviewRows,
+        listId: "todoPreviewList",
+        metaId: "todoPreviewMeta",
+        emptyText: "No to-do items right now.",
+        activeLabel: "active tasks",
+        doneLabel: "done",
+        showOwner: true,
+      });
+    }
+
+    function renderPreviewCard({ rows, listId, metaId, emptyText, activeLabel, doneLabel, accentColor = null, showOwner = true }) {
+      const listEl = document.getElementById(listId);
+      const metaEl = document.getElementById(metaId);
+
+      const activeRows = rows.filter(row => !row.done);
+      const doneRows = rows.filter(row => row.done);
+      const previewRows = activeRows.slice(0, 4);
+
+      if (rows.length === 0) {
+        metaEl.textContent = emptyText;
+        listEl.innerHTML = `<div class="preview-empty">${emptyText}</div>`;
+        return;
+      }
+
+      metaEl.textContent = `${activeRows.length} ${activeLabel} • ${doneRows.length} ${doneLabel}`;
+      listEl.innerHTML = previewRows.length
+        ? previewRows.map(row => `
+            <div class="preview-item${row.done ? " done" : ""}" style="border-left-color:${accentColor || getOwnerColor(row.owner)}">
+              <div class="preview-item-title">${escapeHtml(row.title)}</div>
+              ${showOwner ? `
+              <div class="preview-item-meta">
+                <span class="owner-dot" style="background:${accentColor || getOwnerColor(row.owner)}"></span>
+                ${row.done ? "Completed" : "Ready for action"} • ${escapeHtml(getOwnerLabel(row.owner))}
+              </div>
+              ` : `
+              <div class="preview-item-meta">
+                ${row.done ? "Purchased" : "Ready for action"}
+              </div>
+              `}
+            </div>
+          `).join("")
+        : `<div class="preview-empty">Everything here is completed.</div>`;
+    }
+
+    function openDashboardOverlay(title, path) {
+      activeOverlayPath = path;
+      document.getElementById("overlayTitle").textContent = title;
+      const separator = path.includes("?") ? "&" : "?";
+      document.getElementById("overlayFrame").src = `${path}${separator}overlay=${Date.now()}`;
+      document.getElementById("dashboardOverlay").classList.add("open");
+      document.getElementById("dashboardOverlay").setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+    }
+
+    function closeDashboardOverlay() {
+      document.getElementById("dashboardOverlay").classList.remove("open");
+      document.getElementById("dashboardOverlay").setAttribute("aria-hidden", "true");
+      document.getElementById("overlayFrame").src = "";
+      document.body.classList.remove("modal-open");
+
+      if (gapiInited && gisInited && gapi.client.getToken()) {
+        loadDashboardLists().catch((err) => {
+          console.error(err);
+        });
+      }
+    }
+
+    async function loadSheetPreview(sheetName, hasOwner = false) {
+      const range = hasOwner ? "A:D" : "A:C";
+      const response = await gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${sheetName}!${range}`,
+      });
+
+      const values = response.result.values || [];
+      const startIndex = values.length > 0 && isLikelyHeaderRow(values[0]) ? 1 : 0;
+
+      return values.slice(startIndex)
+        .map((row) => ({
+          title: String(row[0] || "").trim(),
+          done: normalizeBool(row[1]),
+          createdAt: String(row[2] || "").trim(),
+          owner: hasOwner ? normalizeOwner(row[3]) : "",
+        }))
+        .filter((row) => row.title);
+    }
+
+    async function loadDashboardLists() {
+      try {
+        const [groceryRows, todoRows] = await Promise.all([
+          loadSheetPreview(GROCERY_SHEET_NAME, false),
+          loadSheetPreview(TODO_SHEET_NAME, true),
+        ]);
+
+        groceryPreviewRows = groceryRows;
+        todoPreviewRows = todoRows;
+      } catch (err) {
+        console.error(err);
+        groceryPreviewRows = [];
+        todoPreviewRows = [];
+        document.getElementById("groceryPreviewMeta").textContent = "Could not load grocery preview.";
+        document.getElementById("todoPreviewMeta").textContent = "Could not load to-do preview.";
+        document.getElementById("groceryPreviewList").innerHTML = `<div class="preview-empty">Refresh Google access to load this list.</div>`;
+        document.getElementById("todoPreviewList").innerHTML = `<div class="preview-empty">Refresh Google access to load this list.</div>`;
+        return;
+      }
+
+      renderAll();
+    }
+
+    function getWeatherMeta(code) {
+      const map = {
+        0: { icon: "☀️", text: "Clear" },
+        1: { icon: "🌤️", text: "Mostly clear" },
+        2: { icon: "⛅", text: "Partly cloudy" },
+        3: { icon: "☁️", text: "Cloudy" },
+        45: { icon: "🌫️", text: "Fog" },
+        48: { icon: "🌫️", text: "Rime fog" },
+        51: { icon: "🌦️", text: "Light drizzle" },
+        53: { icon: "🌦️", text: "Drizzle" },
+        55: { icon: "🌧️", text: "Heavy drizzle" },
+        56: { icon: "🌧️", text: "Freezing drizzle" },
+        57: { icon: "🌧️", text: "Heavy freezing drizzle" },
+        61: { icon: "🌦️", text: "Light rain" },
+        63: { icon: "🌧️", text: "Rain" },
+        65: { icon: "🌧️", text: "Heavy rain" },
+        66: { icon: "🌧️", text: "Freezing rain" },
+        67: { icon: "🌧️", text: "Heavy freezing rain" },
+        71: { icon: "🌨️", text: "Light snow" },
+        73: { icon: "❄️", text: "Snow" },
+        75: { icon: "❄️", text: "Heavy snow" },
+        77: { icon: "🌨️", text: "Snow grains" },
+        80: { icon: "🌦️", text: "Rain showers" },
+        81: { icon: "🌧️", text: "Heavy showers" },
+        82: { icon: "⛈️", text: "Violent showers" },
+        85: { icon: "🌨️", text: "Snow showers" },
+        86: { icon: "❄️", text: "Heavy snow showers" },
+        95: { icon: "⛈️", text: "Thunderstorm" },
+        96: { icon: "⛈️", text: "Storm with hail" },
+        99: { icon: "⛈️", text: "Heavy storm with hail" }
+      };
+      return map[code] || { icon: "🌤️", text: "Weather" };
+    }
+
+    function renderWeather(data) {
+      const banner = document.getElementById("weatherBanner");
+      const daily = data.daily;
+      const current = data.current;
+
+      const todayMeta = getWeatherMeta(current.weather_code);
+      const todayMax = Math.round(daily.temperature_2m_max[0]);
+      const todayMin = Math.round(daily.temperature_2m_min[0]);
+      const currentTemp = Math.round(current.temperature_2m);
+      const wind = Math.round(current.wind_speed_10m);
+
+      const todayHtml = `
+        <div class="weather-today" id="weatherToday">
+          <div class="weather-location">Chardon, Ohio</div>
+          <div class="weather-today-row">
+            <div class="weather-today-left">
+              <div class="weather-today-label">Today</div>
+              <div class="weather-today-temp">${currentTemp}°</div>
+              <div class="weather-today-details">${todayMeta.text} • H ${todayMax}° / L ${todayMin}° • Wind ${wind} mph</div>
+            </div>
+            <div class="weather-icon">${todayMeta.icon}</div>
+          </div>
+        </div>
+      `;
+
+      const nextDaysHtml = daily.time.slice(1, 7).map((dateStr, idx) => {
+        const dayIndex = idx + 1;
+        const meta = getWeatherMeta(daily.weather_code[dayIndex]);
+        const date = new Date(`${dateStr}T12:00:00`);
+        const label = idx === 0 ? "Tomorrow" : date.toLocaleDateString(undefined, { weekday: "short" });
+        const high = Math.round(daily.temperature_2m_max[dayIndex]);
+        const low = Math.round(daily.temperature_2m_min[dayIndex]);
+
+        return `
+          <div class="weather-day">
+            <div class="weather-day-name">${label}</div>
+            <div class="weather-day-icon">${meta.icon}</div>
+            <div class="weather-day-temps">${high}° / ${low}°</div>
+            <div class="weather-day-condition">${meta.text}</div>
+          </div>
+        `;
+      }).join("");
+
+      banner.innerHTML = todayHtml + nextDaysHtml;
+    }
+
+    async function loadWeather() {
+      try {
+        const resp = await fetch(WEATHER_URL);
+        if (!resp.ok) throw new Error("Weather request failed");
+        const data = await resp.json();
+        renderWeather(data);
+      } catch (err) {
+        console.error(err);
+        document.getElementById("weatherBanner").innerHTML = `
+          <div class="weather-today">
+            <div class="weather-location">Chardon, Ohio</div>
+            <div class="weather-today-row">
+              <div class="weather-today-left">
+                <div class="weather-today-label">Weather</div>
+                <div class="weather-today-temp">--</div>
+                <div class="weather-today-details">Could not load weather right now.</div>
+              </div>
+              <div class="weather-icon">🌤️</div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    async function loadDisneyWaits() {
+      try {
+        const resp = await fetch("/api/disney-waits");
+        if (!resp.ok) throw new Error("Wait time proxy request failed");
+        const data = await resp.json();
+        const rides = Array.isArray(data?.rides) ? data.rides : [];
+        const waitById = new Map(rides.map((ride) => [Number(ride.rideId), ride.wait]));
+        renderRideWaits(DISNEY_RIDES.map((ride) => ({
+          label: ride.label,
+          wait: waitById.get(ride.rideId) || "--",
+        })));
+      } catch (err) {
+        console.error(err);
+        renderRideWaits(DISNEY_RIDES.map((ride) => ({
+          label: ride.label,
+          wait: "--",
+        })));
+      }
+    }
+
+    async function gapiLoaded() {
+      await new Promise((resolve) => gapi.load("client", resolve));
+      await gapi.client.init({
+        apiKey: API_KEY,
+        discoveryDocs: [DISCOVERY_DOC, SHEETS_DISCOVERY_DOC],
+      });
+      gapiInited = true;
+      maybeReady();
+    }
+
+    function gisLoaded() {
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: async (resp) => {
+          if (resp.error) {
+            console.error(resp);
+            setStatus("Connection failed");
+            return;
+          }
+
+          const token = gapi.client.getToken();
+          if (token?.access_token) {
+            saveToken(token.access_token, resp.expires_in || 3600);
+          }
+
+          document.getElementById("authBtn").textContent = "Refresh";
+          document.getElementById("signOutBtn").style.display = "inline-flex";
+
+          await loadGoogleCalendarData();
+        },
+      });
+
+      gisInited = true;
+      maybeReady();
+    }
+
+    async function maybeReady() {
+      if (!gapiInited || !gisInited) return;
+
+      document.getElementById("authBtn").disabled = false;
+
+      const savedToken = getSavedToken();
+      if (savedToken) {
+        gapi.client.setToken({ access_token: savedToken });
+        document.getElementById("authBtn").textContent = "Refresh";
+        document.getElementById("signOutBtn").style.display = "inline-flex";
+        setStatus("Restoring connection…");
+        await loadGoogleCalendarData();
+      } else {
+        setStatus("Not connected");
+      }
+    }
+
+    async function handleAuthClick() {
+      if (!tokenClient) return;
+      setStatus("Connecting…");
+      tokenClient.requestAccessToken({ prompt: "consent" });
+    }
+
+    function handleSignoutClick() {
+      const token = gapi.client.getToken();
+      if (token?.access_token) {
+        google.accounts.oauth2.revoke(token.access_token);
+      }
+
+      gapi.client.setToken("");
+      clearSavedToken();
+      calendarsById = new Map();
+      weekEvents = [];
+      groceryPreviewRows = [];
+      todoPreviewRows = [];
+      document.getElementById("authBtn").textContent = "Connect";
+      document.getElementById("signOutBtn").style.display = "none";
+      setStatus("Not connected");
+      renderAll();
+    }
+
+    async function loadGoogleCalendarData() {
+      try {
+        setStatus("Loading calendars…");
+
+        const calendarResp = await gapi.client.calendar.calendarList.list();
+        const calendars = calendarResp.result.items || [];
+        const visibleCalendars = calendars.filter(cal => cal.selected !== false);
+
+        calendarsById = new Map(
+          visibleCalendars.map(cal => [cal.id, cal])
+        );
+
+        const start = new Date();
+        start.setHours(0, 0, 0, 0);
+
+        const end = new Date(start);
+        end.setDate(end.getDate() + 7);
+
+        const responses = await Promise.all(
+          visibleCalendars.map(cal =>
+            gapi.client.calendar.events.list({
+              calendarId: cal.id,
+              timeMin: start.toISOString(),
+              timeMax: end.toISOString(),
+              showDeleted: false,
+              singleEvents: true,
+              orderBy: "startTime",
+              maxResults: 250,
+            }).then(resp => {
+              const items = resp.result.items || [];
+              return items.map(event => ({
+                ...event,
+                calendarId: cal.id,
+              }));
+            })
+          )
+        );
+
+        weekEvents = responses.flat();
+        await loadDashboardLists();
+        renderAll();
+        setStatus(`Loaded ${weekEvents.length} events`);
+      } catch (err) {
+        console.error(err);
+        setStatus("Load failed");
+      }
+    }
+
+    document.getElementById("backAppsBtn").addEventListener("click", () => {
+      window.location.href = "../index.html";
+    });
+    document.getElementById("cookbookBtn").addEventListener("click", () => {
+      window.location.href = "./cookbook.html";
+    });
+
+    document.getElementById("authBtn").addEventListener("click", handleAuthClick);
+    document.getElementById("signOutBtn").addEventListener("click", handleSignoutClick);
+    document.getElementById("todayCard").addEventListener("click", () => {
+      const todayKey = formatDateKey(new Date());
+      openDashboardOverlay("Today", `./day.html?date=${todayKey}`);
+    });
+    document.getElementById("monthBtn").addEventListener("click", (event) => {
+      event.stopPropagation();
+      window.location.href = "./calendar.html";
+    });
+
+    document.getElementById("quickAddBtn").addEventListener("click", (event) => {
+      event.stopPropagation();
+      const todayKey = formatDateKey(new Date());
+      window.location.href = `./day.html?date=${todayKey}&add=1`;
+    });
+    document.getElementById("groceryPreviewCard").addEventListener("click", () => {
+      openDashboardOverlay("Grocery List", "./grocery.html");
+    });
+    document.getElementById("todoPreviewCard").addEventListener("click", () => {
+      openDashboardOverlay("To-Do List", "./todo.html");
+    });
+    document.getElementById("groceryPreviewBtn").addEventListener("click", (event) => {
+      event.stopPropagation();
+      openDashboardOverlay("Grocery List", "./grocery.html");
+    });
+    document.getElementById("todoPreviewBtn").addEventListener("click", (event) => {
+      event.stopPropagation();
+      openDashboardOverlay("To-Do List", "./todo.html");
+    });
+    document.getElementById("overlayCloseBtn").addEventListener("click", closeDashboardOverlay);
+    document.getElementById("overlayOpenPageBtn").addEventListener("click", () => {
+      if (activeOverlayPath) {
+        window.location.href = activeOverlayPath;
+      }
+    });
+    document.getElementById("dashboardOverlay").addEventListener("click", (event) => {
+      if (event.target === event.currentTarget) {
+        closeDashboardOverlay();
+      }
+    });
+    window.addEventListener("message", (event) => {
+      if (event.data?.type === "family-overlay-close") {
+        closeDashboardOverlay();
+      }
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && document.getElementById("dashboardOverlay").classList.contains("open")) {
+        closeDashboardOverlay();
+      }
+    });
+
+    renderAll();
+    loadWeather();
+    updateBannerCountdown();
+    loadDisneyWaits();
+    setInterval(updateBannerCountdown, 30000);
+    setInterval(loadDisneyWaits, 300000);
+
+    document.getElementById("authBtn").disabled = true;
+    setStatus("Loading Google tools…");
+
+    window.addEventListener("load", async () => {
+      try {
+        await gapiLoaded();
+        gisLoaded();
+      } catch (err) {
+        console.error(err);
+        setStatus("Setup failed");
+      }
+    });
+  </script>
+</body>
+</html>
