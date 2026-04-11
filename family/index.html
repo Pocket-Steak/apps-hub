@@ -41,6 +41,7 @@
       margin:0 auto;
       display:grid;
       gap:16px;
+      min-height:calc(100dvh - 32px);
     }
 
     .weather-banner,
@@ -261,8 +262,8 @@
         "days previews";
       gap:12px;
       align-items:stretch;
-      height:min(72vh, 760px);
-      min-height:min(72vh, 760px);
+      height:min(72dvh, 760px);
+      min-height:min(72dvh, 760px);
     }
 
     .today-card{
@@ -772,6 +773,336 @@
 
       .weather-day:nth-child(n+6){
         display:none;
+      }
+    }
+
+    @media (max-height: 960px){
+      body{
+        padding:12px;
+      }
+
+      .page{
+        gap:12px;
+        min-height:calc(100dvh - 24px);
+      }
+
+      .topbar{
+        min-height:58px;
+        padding:8px 10px;
+      }
+
+      .top-actions,
+      .top-right{
+        gap:8px;
+      }
+
+      .top-btn{
+        min-height:38px;
+        padding:8px 12px;
+        font-size:13px;
+      }
+
+      .weather-banner{
+        min-height:82px;
+        padding:10px 12px;
+        gap:8px;
+      }
+
+      .weather-today{
+        padding:10px 12px;
+        gap:4px;
+      }
+
+      .weather-day{
+        padding:7px 6px;
+        gap:3px;
+      }
+
+      .weather-location{
+        font-size:11px;
+      }
+
+      .weather-today-label{
+        font-size:14px;
+      }
+
+      .weather-today-temp{
+        font-size:26px;
+      }
+
+      .weather-today-details,
+      .weather-day-temps{
+        font-size:12px;
+      }
+
+      .weather-day-name{
+        font-size:12px;
+      }
+
+      .weather-icon{
+        font-size:22px;
+      }
+
+      .weather-day-icon{
+        font-size:18px;
+      }
+
+      .weather-day-condition{
+        font-size:10px;
+      }
+
+      .home-layout{
+        gap:10px;
+        height:min(69dvh, 700px);
+        min-height:min(69dvh, 700px);
+      }
+
+      .today-card,
+      .preview-card,
+      .day-card{
+        padding:12px;
+      }
+
+      .today-card{
+        gap:12px;
+      }
+
+      .today-heading{
+        gap:6px;
+      }
+
+      .today-label{
+        font-size:12px;
+      }
+
+      .today-date{
+        font-size:34px;
+      }
+
+      .today-full-date{
+        font-size:14px;
+      }
+
+      .month-btn,
+      .quick-add-btn{
+        min-width:112px;
+        padding:10px 14px;
+        font-size:14px;
+      }
+
+      .time-blocks,
+      .days-grid,
+      .preview-grid{
+        gap:10px;
+      }
+
+      .time-block{
+        min-height:54px;
+        padding:10px;
+        gap:5px;
+      }
+
+      .time-range{
+        font-size:12px;
+      }
+
+      .time-title{
+        font-size:16px;
+      }
+
+      .day-card{
+        gap:8px;
+      }
+
+      .day-name{
+        font-size:16px;
+      }
+
+      .day-date,
+      .mini-time,
+      .preview-item-meta,
+      .preview-meta{
+        font-size:11px;
+      }
+
+      .day-events,
+      .preview-list{
+        gap:6px;
+      }
+
+      .mini-event{
+        padding:7px 9px;
+        gap:3px;
+      }
+
+      .mini-title{
+        font-size:12px;
+      }
+
+      .preview-head{
+        gap:12px;
+      }
+
+      .preview-title{
+        font-size:17px;
+      }
+
+      .preview-open{
+        min-width:106px;
+        padding:8px 10px;
+        font-size:12px;
+      }
+
+      .preview-item{
+        padding:8px 10px;
+      }
+
+      .preview-item-title{
+        font-size:13px;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 820px){
+      body{
+        padding:10px;
+      }
+
+      .page{
+        gap:10px;
+        min-height:calc(100dvh - 20px);
+      }
+
+      .topbar{
+        min-height:54px;
+        padding:7px 9px;
+      }
+
+      .top-btn{
+        min-height:36px;
+        padding:7px 11px;
+        font-size:12px;
+      }
+
+      .weather-banner{
+        min-height:74px;
+        padding:9px 10px;
+        gap:7px;
+      }
+
+      .weather-today{
+        padding:9px 10px;
+      }
+
+      .weather-today-temp{
+        font-size:24px;
+      }
+
+      .weather-day{
+        min-height:0;
+        padding:6px 5px;
+      }
+
+      .weather-day-icon{
+        font-size:16px;
+      }
+
+      .home-layout{
+        gap:8px;
+        height:min(67dvh, 620px);
+        min-height:min(67dvh, 620px);
+      }
+
+      .today-card,
+      .preview-card,
+      .day-card{
+        padding:10px;
+      }
+
+      .today-card{
+        gap:10px;
+      }
+
+      .today-top{
+        gap:10px;
+      }
+
+      .today-date{
+        font-size:30px;
+      }
+
+      .today-full-date{
+        font-size:13px;
+      }
+
+      .month-btn,
+      .quick-add-btn{
+        min-width:102px;
+        padding:8px 12px;
+        font-size:13px;
+      }
+
+      .time-blocks,
+      .days-grid,
+      .preview-grid{
+        gap:8px;
+      }
+
+      .time-block{
+        min-height:48px;
+        padding:8px 9px;
+      }
+
+      .time-title{
+        font-size:15px;
+      }
+
+      .day-card{
+        gap:6px;
+      }
+
+      .day-name{
+        font-size:15px;
+      }
+
+      .day-date{
+        font-size:11px;
+      }
+
+      .day-events{
+        gap:5px;
+        margin-top:2px;
+      }
+
+      .mini-event{
+        padding:6px 8px;
+      }
+
+      .mini-time,
+      .mini-title{
+        font-size:11px;
+      }
+
+      .preview-title{
+        font-size:16px;
+      }
+
+      .preview-meta,
+      .preview-item-meta{
+        font-size:10px;
+      }
+
+      .preview-item{
+        padding:7px 9px;
+      }
+
+      .preview-item-title{
+        font-size:12px;
+      }
+
+      .preview-open{
+        min-width:96px;
+        padding:7px 9px;
+        font-size:11px;
       }
     }
 
