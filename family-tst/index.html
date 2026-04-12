@@ -1583,6 +1583,8 @@
       .ride-waits{
         width:100%;
         justify-content:flex-start;
+        display:grid;
+        grid-template-columns:repeat(2, minmax(0, 1fr));
       }
 
       .center-divider{
@@ -1705,7 +1707,7 @@
 
       .ride-chip{
         min-width:0;
-        flex:1 1 140px;
+        width:100%;
       }
 
       .countdown-ribbon{
@@ -1752,6 +1754,17 @@
       }
 
       .day-card{
+        height:auto;
+      }
+    }
+
+    @media (orientation: landscape) and (max-height: 900px) and (max-width: 1200px){
+      .home-layout{
+        height:auto;
+        min-height:auto;
+      }
+
+      .days-grid{
         height:auto;
       }
     }
