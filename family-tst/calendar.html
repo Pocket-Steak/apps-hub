@@ -8,8 +8,8 @@
 
   <style>
     :root{
-      --panel:#1a1c22;
-      --panel-2:#22252d;
+      --panel:#0f2233;
+      --panel-2:#173147;
       --surface:rgba(255,255,255,.045);
       --border:rgba(255,255,255,.08);
       --border-strong:rgba(255,255,255,.12);
@@ -18,8 +18,8 @@
       --shadow:0 16px 40px rgba(0,0,0,.35);
       --shadow-soft:0 8px 20px rgba(0,0,0,.22);
       --radius:22px;
-      --accent:#ff7a18;
-      --accent-2:#ffb26f;
+      --accent:#4fd1ff;
+      --accent-2:#9be7ff;
     }
 
     *{box-sizing:border-box;margin:0;padding:0}
@@ -28,8 +28,8 @@
     body{
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
       background:
-        radial-gradient(900px 500px at 0% 0%, rgba(255,122,24,.12), transparent 55%),
-        linear-gradient(180deg,#0d0e11,#12141a 35%, #171922 100%);
+        radial-gradient(900px 500px at 0% 0%, rgba(79,209,255,.18), transparent 55%),
+        linear-gradient(180deg,#041019,#081827 35%, #0d2131 100%);
       color:var(--text);
       padding:16px;
     }
@@ -236,7 +236,7 @@
     }
 
     .day-cell.today{
-      outline:2px solid rgba(255,122,24,.55);
+      outline:2px solid rgba(79,209,255,.55);
       outline-offset:-2px;
     }
 
@@ -614,7 +614,7 @@
 
     function getCalendarColor(calendarId) {
       const found = calendarsById.get(calendarId);
-      return found?.backgroundColor || "#ff7a18";
+      return found?.backgroundColor || "#4fd1ff";
     }
 
     function getEventDateKey(event) {
@@ -643,7 +643,7 @@
 
       legend.innerHTML = calendars.map(cal => `
         <div class="legend-item">
-          <span class="swatch" style="background:${cal.backgroundColor || "#ff7a18"}"></span>
+          <span class="swatch" style="background:${cal.backgroundColor || "#4fd1ff"}"></span>
           <span>${cal.summary}</span>
         </div>
       `).join("");

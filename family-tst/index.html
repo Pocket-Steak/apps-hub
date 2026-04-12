@@ -8,17 +8,17 @@
 
   <style>
     :root{
-      --bg:#0e0f12;
-      --panel:#1a1c22;
-      --panel-2:#22252d;
+      --bg:#06131d;
+      --panel:#0f2233;
+      --panel-2:#173147;
       --surface:rgba(255,255,255,.045);
       --surface-strong:rgba(255,255,255,.075);
       --border:rgba(255,255,255,.08);
       --border-strong:rgba(255,255,255,.12);
       --text:#f3f4f6;
       --muted:#b8bcc8;
-      --accent:#ff7a18;
-      --accent-2:#ff9c4d;
+      --accent:#4fd1ff;
+      --accent-2:#9be7ff;
       --shadow:0 16px 40px rgba(0,0,0,.35);
       --shadow-soft:0 8px 20px rgba(0,0,0,.22);
       --radius:22px;
@@ -31,8 +31,8 @@
     body{
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
       background:
-        radial-gradient(900px 500px at 0% 0%, rgba(255,122,24,.12), transparent 55%),
-        linear-gradient(180deg,#0d0e11,#12141a 35%, #171922 100%);
+        radial-gradient(900px 500px at 0% 0%, rgba(79,209,255,.18), transparent 55%),
+        linear-gradient(180deg,#041019,#081827 35%, #0d2131 100%);
       color:var(--text);
       padding:16px;
     }
@@ -68,7 +68,7 @@
       min-height:64px;
       padding:10px 12px;
       background:
-        linear-gradient(90deg, rgba(255,122,24,.12), transparent 20%, transparent 80%, rgba(255,122,24,.08)),
+        linear-gradient(90deg, rgba(79,209,255,.14), transparent 20%, transparent 80%, rgba(79,209,255,.09)),
         radial-gradient(circle at top left, rgba(255,255,255,.05), transparent 34%),
         linear-gradient(180deg,var(--panel),var(--panel-2));
       border:1px solid var(--border);
@@ -124,7 +124,7 @@
       color:var(--accent-2);
       line-height:1;
       white-space:nowrap;
-      text-shadow:0 0 18px rgba(255,156,77,.18);
+      text-shadow:0 0 18px rgba(155,231,255,.22);
     }
 
     .brand-title{
@@ -331,7 +331,7 @@
       align-items:stretch;
       user-select:none;
       background:
-        linear-gradient(90deg, rgba(255,122,24,.08), transparent 16%, transparent 84%, rgba(255,122,24,.06)),
+        linear-gradient(90deg, rgba(79,209,255,.08), transparent 16%, transparent 84%, rgba(79,209,255,.06)),
         radial-gradient(circle at top left, rgba(255,255,255,.05), transparent 34%),
         linear-gradient(180deg,var(--panel),var(--panel-2));
     }
@@ -494,7 +494,7 @@
 
     .today-card:hover{
       transform:translateY(-3px);
-      border-color:rgba(255,122,24,.45);
+      border-color:rgba(79,209,255,.45);
       box-shadow:0 22px 56px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.05);
     }
 
@@ -666,7 +666,7 @@
 
     .day-card:hover{
       transform:translateY(-3px);
-      border-color:rgba(255,122,24,.28);
+      border-color:rgba(79,209,255,.28);
       box-shadow:0 20px 48px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.05);
     }
 
@@ -753,7 +753,7 @@
 
     .preview-card:hover{
       transform:translateY(-3px);
-      border-color:rgba(255,122,24,.45);
+      border-color:rgba(79,209,255,.45);
       box-shadow:0 20px 48px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.05);
     }
 
@@ -785,7 +785,7 @@
 
     .preview-open{
       border:none;
-      background:rgba(255,122,24,.16);
+      background:rgba(79,209,255,.16);
       color:var(--accent-2);
       padding:10px 12px;
       border-radius:12px;
@@ -798,7 +798,7 @@
 
     .preview-open:hover{
       transform:translateY(-1px);
-      background:rgba(255,122,24,.22);
+      background:rgba(79,209,255,.22);
     }
 
     .preview-list{
@@ -984,7 +984,7 @@
 
     .nav-btn:hover{
       transform:translateY(-2px);
-      border-color:rgba(255,122,24,.45);
+      border-color:rgba(79,209,255,.45);
     }
 
     @media (max-width: 1400px){
@@ -2186,7 +2186,7 @@
 
     function getCalendarColor(calendarId) {
       const cal = calendarsById.get(calendarId);
-      return cal?.backgroundColor || "#ff7a18";
+      return cal?.backgroundColor || "#4fd1ff";
     }
 
     function getEventsForDate(dateKey) {
@@ -2213,7 +2213,7 @@
     }
 
     function getOwnerColor(owner) {
-      if (owner === "Andrew") return "#ff8a1f";
+      if (owner === "Andrew") return "#4fd1ff";
       if (owner === "Nichol") return "#8b5cf6";
       if (owner === "Jolie") return "#22c55e";
       return "#ec4899";
@@ -2327,7 +2327,7 @@
         emptyText: "No grocery items right now.",
         activeLabel: "items to grab",
         doneLabel: "bought",
-        accentColor: "#ff7a18",
+        accentColor: "#4fd1ff",
         showOwner: false,
       });
       renderPreviewCard({
