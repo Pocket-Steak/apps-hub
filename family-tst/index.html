@@ -138,8 +138,10 @@
 
     .brand-center{
       display:flex;
+      flex-direction:column;
       justify-content:center;
       align-items:center;
+      gap:4px;
       min-width:0;
       max-width:100%;
       overflow:hidden;
@@ -276,6 +278,8 @@
       color:var(--muted);
       text-decoration:none;
       white-space:nowrap;
+      align-self:flex-end;
+      padding:0 10px;
       transition:color .18s ease;
     }
 
@@ -1449,6 +1453,10 @@
         justify-content:center;
       }
 
+      .center-credit{
+        align-self:center;
+      }
+
       .top-right{
         order:2;
         justify-content:center;
@@ -1940,7 +1948,6 @@
             <div class="countdown-summary">
               <div class="countdown-eyebrow">Countdown</div>
               <div class="countdown-target">Aug 15, 2026</div>
-              <a class="center-credit" href="https://queue-times.com/en-US" target="_blank" rel="noreferrer">Powered by Queue-Times.com</a>
             </div>
             <div class="countdown-units">
               <div class="countdown-unit">
@@ -1958,6 +1965,7 @@
             </div>
           </div>
         </div>
+        <a class="center-credit" href="https://queue-times.com/en-US" target="_blank" rel="noreferrer">Powered by Queue-Times.com</a>
       </div>
 
       <div class="top-right">
