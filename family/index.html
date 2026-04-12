@@ -98,6 +98,7 @@
       gap:12px;
       min-width:0;
       position:relative;
+      z-index:1;
     }
 
     .brand-logo{
@@ -140,6 +141,8 @@
       justify-content:center;
       align-items:center;
       min-width:0;
+      max-width:100%;
+      overflow:hidden;
       padding:0 10px;
     }
 
@@ -150,6 +153,8 @@
       gap:12px;
       width:100%;
       min-width:0;
+      max-width:100%;
+      flex-wrap:wrap;
       padding:6px 10px;
       border-radius:18px;
       background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
@@ -170,6 +175,7 @@
       display:grid;
       gap:2px;
       min-width:120px;
+      max-width:100%;
       padding:8px 10px;
       border-radius:14px;
       background:rgba(255,255,255,.05);
@@ -208,6 +214,7 @@
       gap:10px;
       flex:0 0 auto;
       min-width:0;
+      max-width:100%;
     }
 
     .countdown-summary{
@@ -1750,6 +1757,33 @@
     }
 
     @media (max-width: 560px){
+      .brand-left{
+        flex-wrap:wrap;
+      }
+
+      .brand-copy{
+        flex:1 1 0;
+        min-width:0;
+      }
+
+      .brand-eyebrow{
+        white-space:normal;
+        overflow-wrap:anywhere;
+      }
+
+      .center-ribbon{
+        width:100%;
+      }
+
+      .ride-waits{
+        display:grid;
+        grid-template-columns:1fr;
+      }
+
+      .ride-chip{
+        width:100%;
+      }
+
       .days-grid,
       .nav-row{
         grid-template-columns:1fr;
