@@ -1433,20 +1433,30 @@
 
       .brand-left,
       .brand-center{
-        justify-content:flex-start;
+        justify-content:center;
         padding:0;
       }
 
       .brand-left{
-        order:-2;
+        order:1;
       }
 
       .brand-center{
-        order:-1;
+        order:3;
       }
 
       .center-ribbon{
-        justify-content:flex-start;
+        justify-content:center;
+      }
+
+      .top-right{
+        order:2;
+        justify-content:center;
+      }
+
+      .top-actions{
+        order:4;
+        justify-content:center;
       }
 
       .home-layout{
@@ -1503,20 +1513,20 @@
 
       .brand-left,
       .brand-center{
-        justify-content:flex-start;
+        justify-content:center;
         padding:0;
       }
 
       .brand-left{
-        order:-2;
+        order:1;
       }
 
       .brand-center{
-        order:-1;
+        order:3;
       }
 
       .center-ribbon{
-        justify-content:flex-start;
+        justify-content:center;
       }
 
       .top-btn{
@@ -1607,13 +1617,13 @@
 
       .center-ribbon{
         flex-direction:column;
-        align-items:flex-start;
+        align-items:center;
         padding:8px 10px;
       }
 
       .ride-waits{
         width:100%;
-        justify-content:flex-start;
+        justify-content:center;
         display:grid;
         grid-template-columns:repeat(2, minmax(0, 1fr));
         grid-template-rows:repeat(2, auto);
@@ -1646,11 +1656,11 @@
 
       .countdown-ribbon{
         width:100%;
-        justify-content:space-between;
+        justify-content:center;
       }
 
       .countdown-units{
-        margin-left:auto;
+        margin-left:0;
       }
 
       .today-top{
@@ -1764,13 +1774,13 @@
 
       .countdown-ribbon{
         flex-direction:column;
-        align-items:flex-start;
+        align-items:center;
         gap:8px;
       }
 
       .countdown-units{
         width:100%;
-        justify-content:flex-start;
+        justify-content:center;
         margin-left:0;
       }
     }
