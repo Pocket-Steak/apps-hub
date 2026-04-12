@@ -542,14 +542,18 @@
     const CLIENT_ID = "82204016171-ta1ipuu88gie0tkq69je3di5uifu1kki.apps.googleusercontent.com";
     const API_KEY = "AIzaSyBPZEeYB8IaheJPJA2Y44msGfDwIhJMpGU";
     const DISCOVERY_DOC = "https://slides.googleapis.com/$discovery/rest?version=v1";
-    const SCOPES = "https://www.googleapis.com/auth/presentations.readonly";
+    const SCOPES = [
+      "https://www.googleapis.com/auth/calendar",
+      "https://www.googleapis.com/auth/spreadsheets",
+      "https://www.googleapis.com/auth/presentations.readonly",
+    ].join(" ");
 
     const PRESENTATION_ID = "1bs7BSxqUOLhLSSHkPafRG8QOsu0nluZGeARFOKHmANU";
     const SLIDES_URL = `https://docs.google.com/presentation/d/${PRESENTATION_ID}/edit?usp=sharing`;
     const EMBED_BASE_URL = `https://docs.google.com/presentation/d/${PRESENTATION_ID}/embed?start=false&loop=false&delayms=30000`;
 
-    const TOKEN_KEY = "pocketsteak_cookbook_google_access_token";
-    const TOKEN_EXP_KEY = "pocketsteak_cookbook_google_token_exp";
+    const TOKEN_KEY = "pocketsteak_google_access_token";
+    const TOKEN_EXP_KEY = "pocketsteak_google_token_exp";
 
     let tokenClient = null;
     let gapiInited = false;
@@ -797,9 +801,8 @@
         await loadCookbookIndex();
         document.getElementById("connectBtn").textContent = "Refresh";
       } catch (error) {
-        console.warn("Saved Slides token is no longer valid:", error);
+        console.warn("Saved Google token could not load Slides:", error);
         gapi.client.setToken(null);
-        clearSavedToken();
         setStatus("Not connected");
       }
     }
