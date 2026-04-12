@@ -1,0 +1,373 @@
+:root {
+  --shell-max: 1600px;
+  --shell-gap: 20px;
+  --shell-pad: 24px;
+  --hero-radius: 30px;
+  --hero-border: rgba(255, 255, 255, 0.14);
+  --hero-sheen: rgba(255, 255, 255, 0.08);
+  --ink-strong: #f7fbff;
+  --ink-soft: #c8d7e6;
+  --cyan: #4fd1ff;
+  --cyan-soft: #9be7ff;
+  --cyan-glow: rgba(79, 209, 255, 0.22);
+  --navy-deep: #07131d;
+  --navy-mid: #102739;
+  --navy-panel: rgba(12, 29, 43, 0.84);
+  --panel-outline: rgba(255, 255, 255, 0.11);
+  --panel-highlight: rgba(255, 255, 255, 0.05);
+  --panel-shadow: 0 24px 60px rgba(0, 9, 16, 0.34);
+}
+
+html {
+  background: #06121b;
+}
+
+body {
+  position: relative;
+  font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif !important;
+  letter-spacing: 0.01em;
+  background:
+    radial-gradient(1200px 650px at 8% 0%, rgba(79, 209, 255, 0.18), transparent 58%),
+    radial-gradient(900px 500px at 100% 0%, rgba(155, 231, 255, 0.12), transparent 42%),
+    linear-gradient(180deg, #04111b 0%, #081827 42%, #0b2030 100%) !important;
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::before {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.65), transparent 90%);
+}
+
+body::after {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.05) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 80% 30%, rgba(255, 255, 255, 0.035) 0 1px, transparent 1.5px);
+  background-size: 180px 180px, 220px 220px;
+  opacity: 0.45;
+}
+
+body > .page,
+body > .app,
+main.app,
+.page {
+  position: relative;
+  z-index: 1;
+  max-width: var(--shell-max) !important;
+  gap: var(--shell-gap) !important;
+}
+
+.topbar,
+.card,
+.hero,
+.weather-banner,
+.today-card,
+.preview-card,
+.day-card,
+.month-bar,
+.legend,
+.calendar-shell,
+.timeline-shell,
+.panel,
+.notes-panel,
+.editor-panel,
+.search-shell,
+.viewer-shell {
+  border-color: var(--panel-outline) !important;
+  box-shadow: var(--panel-shadow) !important;
+  backdrop-filter: blur(12px);
+}
+
+.topbar {
+  position: sticky;
+  top: 14px;
+  z-index: 5;
+  background:
+    linear-gradient(135deg, rgba(155, 231, 255, 0.12), transparent 28%, transparent 72%, rgba(79, 209, 255, 0.14)),
+    linear-gradient(180deg, rgba(16, 39, 57, 0.96), rgba(9, 22, 34, 0.92)) !important;
+  border: 1px solid var(--hero-border) !important;
+  border-radius: 28px !important;
+  padding: 16px 18px !important;
+}
+
+.topbar img {
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.1), rgba(255,255,255,0.03));
+  padding: 8px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.top-btn,
+.nav-btn,
+.icon-btn,
+.quick-add-btn,
+.month-btn,
+.preview-open,
+.btn,
+.action-btn,
+.save-btn,
+.cancel-btn,
+.delete-btn,
+.overlay-btn {
+  border-radius: 16px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: none !important;
+}
+
+.top-btn.accent,
+.btn-accent,
+.action-btn.accent,
+.save-btn,
+.overlay-btn.accent {
+  background: linear-gradient(135deg, #44c9ff, #2e9dff) !important;
+  color: #03131e !important;
+  font-weight: 900 !important;
+}
+
+.hero,
+.tst-masthead {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--hero-radius) !important;
+  border: 1px solid var(--hero-border) !important;
+  background:
+    radial-gradient(circle at top right, rgba(155, 231, 255, 0.16), transparent 28%),
+    linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)),
+    linear-gradient(180deg, rgba(15, 34, 51, 0.96), rgba(10, 23, 35, 0.96)) !important;
+  box-shadow: var(--panel-shadow) !important;
+}
+
+.hero::before,
+.tst-masthead::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.08) 36%, transparent 64%),
+    linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+  pointer-events: none;
+}
+
+.hero,
+.tst-masthead {
+  padding: 28px !important;
+}
+
+.eyebrow,
+.page-kicker {
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase;
+  color: var(--cyan-soft) !important;
+}
+
+.title,
+.page-title,
+.day-title,
+.month-title {
+  font-size: clamp(1.9rem, 2.6vw, 3rem) !important;
+  font-weight: 900 !important;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  color: var(--ink-strong) !important;
+}
+
+.meta,
+.page-copy {
+  max-width: 70ch;
+  font-size: 1rem !important;
+  line-height: 1.65;
+  color: var(--ink-soft) !important;
+}
+
+.page-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.page-stat {
+  min-width: 130px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.page-stat-label {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cyan-soft);
+  font-weight: 800;
+}
+
+.page-stat-value {
+  display: block;
+  margin-top: 6px;
+  font-size: 1rem;
+  color: var(--ink-strong);
+  font-weight: 800;
+}
+
+.weather-banner {
+  padding: 18px !important;
+  background:
+    linear-gradient(90deg, rgba(79, 209, 255, 0.14), transparent 24%, transparent 76%, rgba(155, 231, 255, 0.1)),
+    linear-gradient(180deg, rgba(13, 29, 43, 0.96), rgba(10, 22, 34, 0.95)) !important;
+}
+
+.home-layout {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.16fr) minmax(380px, 0.84fr) !important;
+  grid-template-areas:
+    "today side"
+    "days side" !important;
+  gap: 20px !important;
+}
+
+.today-card {
+  grid-area: today;
+}
+
+.days-grid {
+  grid-area: days;
+  gap: 16px !important;
+}
+
+.preview-grid {
+  grid-area: side;
+  display: grid !important;
+  gap: 16px !important;
+  align-content: start;
+}
+
+.today-card,
+.preview-card,
+.day-card,
+.notes-panel,
+.editor-panel,
+.search-shell,
+.viewer-shell,
+.panel,
+.card,
+.calendar-shell,
+.timeline-shell {
+  background:
+    radial-gradient(circle at top right, rgba(155, 231, 255, 0.09), transparent 24%),
+    linear-gradient(180deg, rgba(18, 39, 57, 0.92), rgba(10, 23, 35, 0.94)) !important;
+}
+
+.today-label,
+.preview-title,
+.panel-title,
+.search-title,
+.section-title {
+  letter-spacing: -0.02em;
+}
+
+.status-pill {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.status-label {
+  color: var(--cyan-soft) !important;
+}
+
+.search-input,
+.title-input,
+.note-textarea,
+.item-input,
+.owner-select,
+input,
+select,
+textarea {
+  background: rgba(6, 19, 29, 0.82) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: var(--ink-strong) !important;
+  border-radius: 16px !important;
+}
+
+.tst-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.toolbar-title {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.toolbar-title h1,
+.toolbar-title .toolbar-heading {
+  margin: 0;
+  font-size: clamp(1.8rem, 2.4vw, 2.6rem);
+  line-height: 1.04;
+  letter-spacing: -0.04em;
+}
+
+.toolbar-subtitle {
+  color: var(--ink-soft);
+  max-width: 54ch;
+  line-height: 1.6;
+}
+
+.dashboard-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.list-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: end;
+}
+
+@media (max-width: 1100px) {
+  .home-layout {
+    grid-template-columns: 1fr !important;
+    grid-template-areas:
+      "today"
+      "side"
+      "days" !important;
+  }
+
+  .list-hero,
+  .tst-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 780px) {
+  body {
+    background:
+      radial-gradient(700px 320px at 0% 0%, rgba(79, 209, 255, 0.18), transparent 55%),
+      linear-gradient(180deg, #04111b 0%, #0a1d2c 100%) !important;
+  }
+
+  .topbar {
+    position: static;
+  }
+
+  .hero,
+  .tst-masthead {
+    padding: 22px !important;
+  }
+}

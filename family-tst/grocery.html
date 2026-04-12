@@ -557,8 +557,9 @@
   <!-- Google APIs -->
   <script async defer src="https://apis.google.com/js/api.js"></script>
   <script async defer src="https://accounts.google.com/gsi/client"></script>
+  <link rel="stylesheet" href="./theme.css" />
 </head>
-<body>
+<body class="tst-shell">
   <main class="app">
     <section class="card">
       <div class="topbar">
@@ -580,8 +581,12 @@
         </div>
       </div>
 
-      <div style="margin-top: 20px;">
-        <h1>Grocery List</h1>
+      <div class="list-hero" style="margin-top: 20px;">
+        <div class="toolbar-title">
+          <div class="page-kicker">Household Supply</div>
+          <h1>Grocery List</h1>
+          <div class="toolbar-subtitle">A tighter shopping workflow with clearer status, faster add flow, and stronger separation between active and purchased items.</div>
+        </div>
       </div>
     </section>
 
@@ -605,13 +610,13 @@
       <div id="message" class="message"></div>
     </section>
 
-    <section class="card">
+    <section class="card dashboard-panel">
       <h2 class="section-title">Active Items</h2>
       <div id="activeList" class="tile-grid"></div>
       <div id="activeEmpty" class="empty">No grocery items right now.</div>
     </section>
 
-    <section class="card">
+    <section class="card dashboard-panel">
       <h2 class="section-title">Purchased Items</h2>
       <div id="boughtList" class="tile-grid"></div>
       <div id="boughtEmpty" class="empty">No purchased items yet.</div>

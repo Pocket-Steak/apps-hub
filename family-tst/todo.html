@@ -558,8 +558,9 @@
   <!-- Google APIs -->
   <script async defer src="https://apis.google.com/js/api.js"></script>
   <script async defer src="https://accounts.google.com/gsi/client"></script>
+  <link rel="stylesheet" href="./theme.css" />
 </head>
-<body>
+<body class="tst-shell">
   <main class="app">
     <section class="card">
       <div class="topbar">
@@ -581,8 +582,12 @@
         </div>
       </div>
 
-      <div style="margin-top: 20px;">
-        <h1>To-Do List</h1>
+      <div class="list-hero" style="margin-top: 20px;">
+        <div class="toolbar-title">
+          <div class="page-kicker">Action Queue</div>
+          <h1>To-Do List</h1>
+          <div class="toolbar-subtitle">A cleaner task view for triage, ownership, and completion tracking in the TST workspace.</div>
+        </div>
       </div>
     </section>
 
@@ -612,13 +617,13 @@
       <div id="message" class="message"></div>
     </section>
 
-    <section class="card">
+    <section class="card dashboard-panel">
       <h2 class="section-title">Active Tasks</h2>
       <div id="activeList" class="tile-grid"></div>
       <div id="activeEmpty" class="empty">No to-do items right now.</div>
     </section>
 
-    <section class="card">
+    <section class="card dashboard-panel">
       <h2 class="section-title">Completed Tasks</h2>
       <div id="boughtList" class="tile-grid"></div>
       <div id="boughtEmpty" class="empty">No completed tasks yet.</div>
