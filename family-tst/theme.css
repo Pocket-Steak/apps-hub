@@ -16,6 +16,21 @@
   --panel-outline: rgba(255, 255, 255, 0.11);
   --panel-highlight: rgba(255, 255, 255, 0.05);
   --panel-shadow: 0 24px 60px rgba(0, 9, 16, 0.34);
+  --bg: #06131d !important;
+  --panel: #0f2233 !important;
+  --panel-2: #173147 !important;
+  --surface: rgba(255, 255, 255, 0.045) !important;
+  --surface-strong: rgba(255, 255, 255, 0.075) !important;
+  --border: rgba(255, 255, 255, 0.08) !important;
+  --border-strong: rgba(255, 255, 255, 0.12) !important;
+  --text: #f3f4f6 !important;
+  --muted: #b8bcc8 !important;
+  --accent: #4fd1ff !important;
+  --accent-2: #9be7ff !important;
+  --accent-hover: #2fb6e6 !important;
+  --shadow: 0 16px 40px rgba(0, 0, 0, 0.35) !important;
+  --shadow-soft: 0 8px 20px rgba(0, 0, 0, 0.22) !important;
+  --owner-andrew: #4fd1ff !important;
 }
 
 html {
@@ -124,6 +139,22 @@ main.app,
   box-shadow: none !important;
 }
 
+.top-btn:hover,
+.nav-btn:hover,
+.icon-btn:hover,
+.quick-add-btn:hover,
+.month-btn:hover,
+.preview-open:hover,
+.btn:hover,
+.action-btn:hover,
+.cancel-btn:hover,
+.delete-btn:hover,
+.overlay-btn:hover {
+  background: linear-gradient(180deg, #1a3851, #21445f) !important;
+  border-color: rgba(79, 209, 255, 0.22) !important;
+  transform: translateY(-1px);
+}
+
 .top-btn.accent,
 .btn-accent,
 .action-btn.accent,
@@ -132,6 +163,14 @@ main.app,
   background: linear-gradient(135deg, #44c9ff, #2e9dff) !important;
   color: #03131e !important;
   font-weight: 900 !important;
+}
+
+.top-btn.accent:hover,
+.btn-accent:hover,
+.action-btn.accent:hover,
+.save-btn:hover,
+.overlay-btn.accent:hover {
+  background: linear-gradient(135deg, #5ed7ff, #39acff) !important;
 }
 
 .hero,
@@ -271,6 +310,22 @@ main.app,
     linear-gradient(180deg, rgba(18, 39, 57, 0.92), rgba(10, 23, 35, 0.94)) !important;
 }
 
+.month-bar,
+.legend,
+.calendar-shell,
+.timeline-shell,
+.panel,
+.notes-panel,
+.editor-panel,
+.search-shell,
+.viewer-shell,
+.card,
+.status-pill,
+.weather-banner,
+.topbar {
+  color: var(--text) !important;
+}
+
 .today-label,
 .preview-title,
 .panel-title,
@@ -300,6 +355,47 @@ textarea {
   border-color: rgba(255, 255, 255, 0.12) !important;
   color: var(--ink-strong) !important;
   border-radius: 16px !important;
+}
+
+.item-input:focus,
+.owner-select:focus,
+.search-input:focus,
+.title-input:focus,
+.note-textarea:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: rgba(79, 209, 255, 0.55) !important;
+  box-shadow: 0 0 0 4px rgba(79, 209, 255, 0.16) !important;
+  outline: none !important;
+}
+
+.status-bad,
+.status-good,
+#statusPill,
+.status-pill {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.nav-link,
+.preview-open,
+.btn-back {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: var(--text) !important;
+}
+
+.nav-link:hover,
+.btn-back:hover {
+  background: linear-gradient(180deg, #1a3851, #21445f) !important;
+  border-color: rgba(79, 209, 255, 0.22) !important;
+}
+
+.day-cell.today,
+.search-input:focus,
+.title-input:focus,
+.note-textarea:focus {
+  border-color: rgba(79, 209, 255, 0.55) !important;
 }
 
 .tst-grid-2 {
