@@ -214,6 +214,16 @@
       line-height:1.5;
     }
 
+    .credit-link{
+      color:var(--accent);
+      font-weight:850;
+      text-decoration:none;
+    }
+
+    .credit-link:hover{
+      color:var(--text);
+    }
+
     @media (max-width: 980px){
       .settings-grid{
         grid-template-columns:1fr;
@@ -387,6 +397,16 @@
         </div>
 
         <div class="note" id="settingsNote">Open this page any time you want to reconnect Google or jump back home.</div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Data Credits</div>
+          <div class="panel-meta">
+            Disney wait time data is powered by
+            <a class="credit-link" href="https://queue-times.com/en-US" target="_blank" rel="noreferrer">Queue-Times.com</a>.
+          </div>
+        </div>
       </section>
     </section>
   </div>
