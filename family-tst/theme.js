@@ -115,6 +115,17 @@
     .panel { padding: 14px; display: grid; gap: 12px; }
     .panel-title { font-size: 18px; font-weight: 800; letter-spacing: -.01em; }
 
+    .card {
+      padding: var(--card-pad);
+      display: flex;
+      flex-direction: column; /* Stack content vertically */
+      justify-content: center; /* Vertically center content */
+      align-items: center; /* Horizontally center content */
+      text-align: center; /* Center text lines */
+      word-break: break-word; /* Ensures long words break and wrap */
+      overflow-wrap: break-word; /* Modern equivalent for word breaking */
+    }
+
     .select-shell { position: relative; }
     .select-shell::after {
       content: "";
