@@ -44,6 +44,12 @@
       density: "comfortable",
       ...nextSettings,
     };
+
+    // If the accent is still the old default blue, force it to orange
+    if (settings.accent === "#4fd1ff") {
+      settings.accent = "#ff7a18";
+    }
+
     const theme = themes[settings.theme] || themes.arctic;
     const root = document.documentElement;
 
