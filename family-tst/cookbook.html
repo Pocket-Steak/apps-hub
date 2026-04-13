@@ -478,7 +478,6 @@
   </style>
 
   <script async defer src="https://apis.google.com/js/api.js"></script>
-  <script async defer src="https://accounts.google.com/gsi/client"></script>
   <link rel="stylesheet" href="./theme.css" />
   <script defer src="./theme.js"></script>
 </head>
@@ -541,14 +540,8 @@
   </div>
 
   <script>
-    const CLIENT_ID = "82204016171-ta1ipuu88gie0tkq69je3di5uifu1kki.apps.googleusercontent.com";
     const API_KEY = "AIzaSyBPZEeYB8IaheJPJA2Y44msGfDwIhJMpGU";
     const DISCOVERY_DOC = "https://slides.googleapis.com/$discovery/rest?version=v1";
-    const SCOPES = [
-      "https://www.googleapis.com/auth/calendar",
-      "https://www.googleapis.com/auth/spreadsheets",
-      "https://www.googleapis.com/auth/presentations.readonly",
-    ].join(" ");
 
     const PRESENTATION_ID = "1bs7BSxqUOLhLSSHkPafRG8QOsu0nluZGeARFOKHmANU";
     const SLIDES_URL = `https://docs.google.com/presentation/d/${PRESENTATION_ID}/edit?usp=sharing`;
@@ -557,10 +550,7 @@
     const TOKEN_KEY = "pocketsteak_google_access_token";
     const TOKEN_EXP_KEY = "pocketsteak_google_token_exp";
 
-    let tokenClient = null;
     let gapiInited = false;
-    let gisInited = false;
-    let appReady = false;
     let slideIndex = [];
     let currentQuery = "";
 
@@ -571,12 +561,6 @@
 
     function setStatus(text) {
       document.getElementById("statusText").textContent = text;
-    }
-
-    function saveToken(accessToken, expiresInSeconds = 3600) {
-      const expiresAt = Date.now() + (expiresInSeconds * 1000);
-      localStorage.setItem(TOKEN_KEY, accessToken);
-      localStorage.setItem(TOKEN_EXP_KEY, String(expiresAt));
     }
 
     function getSavedToken() {
@@ -814,44 +798,6 @@
       }
     }
 
-    function ensureAppInitialized() {
-      if (appReady) return;
-      if (!gapiInited || !gisInited) return;
-
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPES,
-        callback: async (response) => {
-          if (response.error) {
-            console.error(response);
-            setStatus("Connection failed");
-            document.getElementById("searchMeta").textContent = getReadableError(response);
-            return;
-          }
-
-          const token = gapi.client.getToken()?.access_token;
-          if (token) {
-            saveToken(token, Number(response.expires_in || 3600));
-          }
-
-          document.getElementById("connectBtn").textContent = "Refresh";
-
-          try {
-            await loadCookbookIndex();
-          } catch (error) {
-            console.error(error);
-            setStatus("Load failed");
-            document.getElementById("searchMeta").textContent = getReadableError(error);
-            setSearchMessage("The cookbook loaded Google, but the Slides deck could not be indexed yet.");
-          }
-        },
-      });
-
-      appReady = true;
-      document.getElementById("connectBtn").disabled = false;
-      restoreSessionIfPossible();
-    }
-
     async function handleAuthClick() {
       setStatus("Open Settings…");
       document.getElementById("searchMeta").textContent = "Redirecting to Settings for the shared Google sign-in…";
@@ -870,7 +816,8 @@
                 discoveryDocs: [DISCOVERY_DOC],
               });
               gapiInited = true;
-              ensureAppInitialized();
+              document.getElementById("connectBtn").disabled = false;
+              restoreSessionIfPossible();
             } catch (error) {
               console.error("gapi init error:", error);
               setStatus("Setup failed");
@@ -892,29 +839,6 @@
       };
 
       waitForGapi();
-    }
-
-    function initGisReadyCheck() {
-      const startedAt = Date.now();
-
-      const waitForGoogle = () => {
-        if (window.google && google.accounts && google.accounts.oauth2) {
-          gisInited = true;
-          ensureAppInitialized();
-          return;
-        }
-
-        if (Date.now() - startedAt > 10000) {
-          setStatus("Google failed to load");
-          document.getElementById("searchMeta").textContent = "The Google sign-in script did not finish loading.";
-          setSearchMessage("Check your internet connection or browser extensions, then refresh.");
-          return;
-        }
-
-        window.setTimeout(waitForGoogle, 100);
-      };
-
-      waitForGoogle();
     }
 
     document.getElementById("backHomeBtn").addEventListener("click", () => {
@@ -964,7 +888,6 @@
 
     window.addEventListener("load", () => {
       initGapi();
-      initGisReadyCheck();
     });
   </script>
 </body>

@@ -557,7 +557,6 @@
 
   <!-- Google APIs -->
   <script async defer src="https://apis.google.com/js/api.js"></script>
-  <script async defer src="https://accounts.google.com/gsi/client"></script>
   <link rel="stylesheet" href="./theme.css" />
   <script defer src="./theme.js"></script>
 </head>
@@ -637,8 +636,6 @@
     // REQUIRED CONFIG
     // =========================
     const GOOGLE_API_KEY = "AIzaSyBPZEeYB8IaheJPJA2Y44msGfDwIhJMpGU";
-    const GOOGLE_CLIENT_ID = "82204016171-ta1ipuu88gie0tkq69je3di5uifu1kki.apps.googleusercontent.com";
-
     const SPREADSHEET_ID = "1ccfVTfNqrrzMLkD4uK8fkWs3wRJENs5XQJHJfjkWmmY";
     const SHEET_NAME = "ToDo";
 
@@ -646,15 +643,10 @@
     const SHARED_TOKEN_EXP_KEY = "pocketsteak_google_token_exp";
 
     const DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
-    const SCOPES = "https://www.googleapis.com/auth/spreadsheets";
-
     // =========================
     // STATE
     // =========================
-    let tokenClient = null;
     let gapiReady = false;
-    let gisReady = false;
-    let appReady = false;
     let isConnected = false;
     let groceryRows = [];
     let isBusy = false;
@@ -688,7 +680,7 @@
       isBusy = value;
       addBtn.disabled = value || !isConnected;
       clearAllBtn.disabled = value || !isConnected;
-      connectBtn.disabled = value && appReady;
+      connectBtn.disabled = value;
       itemInput.disabled = value || !isConnected;
       ownerSelect.disabled = value || !isConnected;
       inputCard.classList.toggle("loading", value);
@@ -779,60 +771,9 @@
       return sharedToken;
     }
 
-    function saveAccessTokenToSession(token, expiresInSeconds = 3600) {
-      if (token) {
-        localStorage.setItem(SHARED_TOKEN_KEY, token);
-        localStorage.setItem(
-          SHARED_TOKEN_EXP_KEY,
-          String(Date.now() + (Number(expiresInSeconds || 3600) * 1000))
-        );
-      }
-    }
-
     function clearAccessTokenFromSession() {
       localStorage.removeItem(SHARED_TOKEN_KEY);
       localStorage.removeItem(SHARED_TOKEN_EXP_KEY);
-    }
-
-    function ensureAppInitialized() {
-      if (appReady) return;
-      if (!gapiReady || !gisReady) return;
-
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: GOOGLE_CLIENT_ID,
-        scope: SCOPES,
-        callback: async (response) => {
-          if (response.error) {
-            console.error("OAuth token error:", response);
-            setStatus("Setup failed", false);
-            showMessage(getReadableError(response), "error");
-            return;
-          }
-
-          const token = gapi.client.getToken()?.access_token;
-          if (token) {
-            saveAccessTokenToSession(token, response.expires_in || 3600);
-          }
-
-          isConnected = true;
-          setStatus("Connected", true);
-          connectBtn.textContent = "Reconnect";
-
-          try {
-            await loadGroceries();
-            showMessage("", "");
-          } catch (error) {
-            console.error(error);
-            setStatus("Setup failed", false);
-            showMessage(getReadableError(error), "error");
-          } finally {
-            setBusy(false);
-          }
-        },
-      });
-
-      appReady = true;
-      restoreSessionIfPossible();
     }
 
     function getReadableError(error) {
@@ -865,7 +806,7 @@
                 discoveryDocs: [DISCOVERY_DOC],
               });
               gapiReady = true;
-              ensureAppInitialized();
+              restoreSessionIfPossible();
             } catch (error) {
               console.error("gapi init error:", error);
               setStatus("Setup failed", false);
@@ -888,31 +829,6 @@
       };
 
       waitForGapi();
-    }
-
-    function initGisReadyCheck() {
-      const startedAt = Date.now();
-
-      const waitForGoogle = () => {
-        if (window.google && google.accounts && google.accounts.oauth2) {
-          gisReady = true;
-          ensureAppInitialized();
-          return;
-        }
-
-        if (Date.now() - startedAt > 10000) {
-          setStatus("Google failed to load", false);
-          showMessage(
-            "The Google sign-in script did not finish loading. Check your internet connection and browser extensions, then refresh.",
-            "error"
-          );
-          return;
-        }
-
-        window.setTimeout(waitForGoogle, 100);
-      };
-
-      waitForGoogle();
     }
 
     async function restoreSessionIfPossible() {
@@ -1227,7 +1143,6 @@
       );
     } else {
       initGapi();
-      initGisReadyCheck();
     }
   </script>
 </body>

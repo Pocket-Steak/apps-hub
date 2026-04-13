@@ -502,7 +502,6 @@
   </style>
 
   <script async defer src="https://apis.google.com/js/api.js"></script>
-  <script async defer src="https://accounts.google.com/gsi/client"></script>
   <link rel="stylesheet" href="./theme.css" />
   <script defer src="./theme.js"></script>
 </head>
@@ -542,21 +541,14 @@
   </div>
 
   <script>
-    const CLIENT_ID = "82204016171-ta1ipuu88gie0tkq69je3di5uifu1kki.apps.googleusercontent.com";
     const API_KEY = "AIzaSyBPZEeYB8IaheJPJA2Y44msGfDwIhJMpGU";
     const DISCOVERY_DOC = "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest";
-    const SCOPES = [
-      "https://www.googleapis.com/auth/calendar",
-      "https://www.googleapis.com/auth/spreadsheets",
-    ].join(" ");
 
     const TOKEN_KEY = "pocketsteak_google_access_token";
     const TOKEN_EXP_KEY = "pocketsteak_google_token_exp";
     const STORAGE_KEY = "pocketsteak-family-events";
 
-    let tokenClient = null;
     let gapiInited = false;
-    let gisInited = false;
     let currentDate = new Date();
     let calendarsById = new Map();
     let monthEvents = [];
@@ -568,12 +560,6 @@
 
     function setStatus(text) {
       document.getElementById("statusText").textContent = text;
-    }
-
-    function saveToken(accessToken, expiresInSeconds = 3600) {
-      const expiresAt = Date.now() + (expiresInSeconds * 1000);
-      localStorage.setItem(TOKEN_KEY, accessToken);
-      localStorage.setItem(TOKEN_EXP_KEY, String(expiresAt));
     }
 
     function getSavedToken() {
@@ -727,35 +713,8 @@
       maybeReady();
     }
 
-    function gisLoaded() {
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPES,
-        callback: async (resp) => {
-          if (resp.error) {
-            console.error(resp);
-            setStatus("Connection failed");
-            return;
-          }
-
-          const token = gapi.client.getToken();
-          if (token?.access_token) {
-            saveToken(token.access_token, resp.expires_in || 3600);
-          }
-
-          document.getElementById("authBtn").textContent = "Refresh";
-          document.getElementById("signOutBtn").style.display = "inline-flex";
-
-          await loadGoogleCalendarData();
-        },
-      });
-
-      gisInited = true;
-      maybeReady();
-    }
-
     async function maybeReady() {
-      if (!gapiInited || !gisInited) return;
+      if (!gapiInited) return;
 
       document.getElementById("authBtn").disabled = false;
 
@@ -777,11 +736,6 @@
     }
 
     function handleSignoutClick() {
-      const token = gapi.client.getToken();
-      if (token?.access_token) {
-        google.accounts.oauth2.revoke(token.access_token);
-      }
-
       gapi.client.setToken("");
       clearSavedToken();
       calendarsById = new Map();
@@ -873,7 +827,6 @@
     window.addEventListener("load", async () => {
       try {
         await gapiLoaded();
-        gisLoaded();
       } catch (err) {
         console.error(err);
         setStatus("Setup failed");
