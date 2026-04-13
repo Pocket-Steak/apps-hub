@@ -392,9 +392,9 @@
             <label for="themeSelect">Theme</label>
             <div class="select-shell">
               <select class="settings-select" id="themeSelect">
-                <option value="arctic" selected>Arctic Glass</option>
-                <option value="midnight">Midnight Blue</option>
-                <option value="slate">Slate Utility</option>
+                <option value="commandCenterBlue" selected>Command Center Blue</option>
+                <option value="harborBlue">Harbor Blue</option>
+                <option value="glacierBlue">Glacier Blue</option>
               </select>
             </div>
           </div>
@@ -424,7 +424,7 @@
           <div class="settings-row">
             <div>
               <strong>Current accent</strong>
-              <span id="displayNote">Cyan Blue is applied for this test environment.</span>
+              <span id="displayNote">Command Center Blue is applied for this test environment.</span>
             </div>
             <span class="color-dot" id="accentPreview" aria-hidden="true"></span>
           </div>
@@ -516,7 +516,7 @@
       const accentSelect = document.getElementById("accentSelect");
       const themeSelect = document.getElementById("themeSelect");
       const accentLabel = accentSelect.options[accentSelect.selectedIndex]?.text || "Cyan Blue";
-      const themeLabel = themeSelect.options[themeSelect.selectedIndex]?.text || "Arctic Glass";
+      const themeLabel = themeSelect.options[themeSelect.selectedIndex]?.text || "Command Center Blue";
 
       document.getElementById("accentPreview").style.background = settings.accent;
       document.getElementById("displayNote").textContent = `${accentLabel} is active in the ${themeLabel} theme.`;

@@ -2,26 +2,26 @@
   const STORAGE_KEY = "pocketsteak_tst_display_settings";
 
   const themes = {
-    arctic: {
-      bg: "#0e0f12",
-      panel: "#1a1c22",
-      panel2: "#22252d",
-      text: "#f5f7fb",
-      muted: "#b7bfd3",
+    commandCenterBlue: {
+      bg: "#06131d",
+      panel: "#0f2233",
+      panel2: "#173147",
+      text: "#f7fbff",
+      muted: "#c8d7e6",
     },
-    midnight: {
-      bg: "#050b16",
-      panel: "#0b1a2b",
-      panel2: "#102642",
-      text: "#f5f9ff",
-      muted: "#b9c7da",
+    harborBlue: {
+      bg: "#071823",
+      panel: "#112b40",
+      panel2: "#1a3c57",
+      text: "#f7fbff",
+      muted: "#c7d8e7",
     },
-    slate: {
-      bg: "#0b151c",
-      panel: "#13232d",
-      panel2: "#1d3341",
-      text: "#f4f8fb",
-      muted: "#c0ccd5",
+    glacierBlue: {
+      bg: "#081723",
+      panel: "#102638",
+      panel2: "#1b3950",
+      text: "#f7fbff",
+      muted: "#cad9e7",
     },
   };
 
@@ -147,18 +147,21 @@
 
   function applySettings(nextSettings = readSettings()) {
     const settings = {
-      theme: "arctic",
-      accent: "#ff8a1f",
+      theme: "commandCenterBlue",
+      accent: "#4fd1ff",
       density: "comfortable",
       ...nextSettings,
     };
 
-    // If the accent is still the old default blue or old orange, force it to the new main orange
-    if (settings.accent === "#4fd1ff" || settings.accent === "#ff7a18") {
-      settings.accent = "#ff8a1f";
+    if (["arctic", "midnight", "slate"].includes(settings.theme)) {
+      settings.theme = "commandCenterBlue";
     }
 
-    const theme = themes[settings.theme] || themes.arctic;
+    if (["#ff8a1f", "#ff7a18"].includes(settings.accent)) {
+      settings.accent = "#4fd1ff";
+    }
+
+    const theme = themes[settings.theme] || themes.commandCenterBlue;
     const root = document.documentElement;
 
     // Core Variables from design request
