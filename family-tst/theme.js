@@ -3,11 +3,11 @@
 
   const themes = {
     arctic: {
-      bg: "#0a1a29",
-      panel: "#0f2233",
-      panel2: "#173147",
-      text: "#f3f4f6",
-      muted: "#b8bcc8",
+      bg: "#0e0f12",
+      panel: "#1a1c22",
+      panel2: "#22252d",
+      text: "#f5f7fb",
+      muted: "#b7bfd3",
     },
     midnight: {
       bg: "#050b16",
@@ -148,14 +148,14 @@
   function applySettings(nextSettings = readSettings()) {
     const settings = {
       theme: "arctic",
-      accent: "#ff7a18",
+      accent: "#ff8a1f",
       density: "comfortable",
       ...nextSettings,
     };
 
-    // If the accent is still the old default blue, force it to orange
-    if (settings.accent === "#4fd1ff") {
-      settings.accent = "#ff7a18";
+    // If the accent is still the old default blue or old orange, force it to the new main orange
+    if (settings.accent === "#4fd1ff" || settings.accent === "#ff7a18") {
+      settings.accent = "#ff8a1f";
     }
 
     const theme = themes[settings.theme] || themes.arctic;
@@ -178,8 +178,8 @@
     root.style.setProperty("--text", theme.text, "important");
     root.style.setProperty("--muted", theme.muted, "important");
     root.style.setProperty("--accent", settings.accent, "important");
-    root.style.setProperty("--accent-2", settings.accent === "#ff7a18" ? "#ff9d5c" : settings.accent, "important");
-    root.style.setProperty("--accent-hover", settings.accent, "important");
+    root.style.setProperty("--accent-2", settings.accent === "#ff8a1f" ? "#ffb26f" : settings.accent, "important");
+    root.style.setProperty("--accent-hover", settings.accent === "#ff8a1f" ? "#e97812" : settings.accent, "important");
 
     root.dataset.themeDensity = settings.density;
 

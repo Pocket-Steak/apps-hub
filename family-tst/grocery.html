@@ -10,9 +10,9 @@
 
   <style>
     :root {
-      --bg: #06131d;
-      --panel: #0f2233;
-      --panel-2: #173147;
+      --bg: #0e0f12;
+      --panel: #1a1c22;
+      --panel-2: #22252d;
       --surface: rgba(255, 255, 255, 0.045);
       --border: rgba(255, 255, 255, 0.08);
       --border-strong: rgba(255, 255, 255, 0.12);
@@ -20,11 +20,11 @@
       --muted: #b7bfd3;
       --danger: #d93025;
       --danger-hover: #b3261e;
-      --accent: #ff7a18;
-      --accent-2: #ff9d5c;
-      --accent-hover: #e66a10;
+      --accent: #ff8a1f;
+      --accent-2: #ffb26f;
+      --accent-hover: #e97812;
       --success: #16a34a;
-      --owner-andrew: #ff7a18;
+      --owner-andrew: #ff8a1f;
       --owner-nichol: #8b5cf6;
       --owner-jolie: #22c55e;
       --owner-default: #ec4899;
@@ -54,8 +54,8 @@
     body {
       padding: 16px;
       background:
-        radial-gradient(900px 500px at 0% 0%, rgba(255, 122, 24, 0.18), transparent 55%),
-        linear-gradient(180deg, #041019 0%, #081827 35%, #0d2131 100%);
+        radial-gradient(900px 500px at 0% 0%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 55%),
+        linear-gradient(180deg, #0d0e11 0%, #12141a 35%, #171922 100%);
     }
 
     .app {
@@ -227,8 +227,8 @@
     }
 
     .item-input:focus {
-      border-color: rgba(255, 122, 24, 0.6);
-      box-shadow: 0 0 0 4px rgba(255, 122, 24, 0.16);
+      border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent);
     }
 
     .owner-select {
@@ -247,8 +247,8 @@
     }
 
     .owner-select:focus {
-      border-color: rgba(255, 122, 24, 0.6);
-      box-shadow: 0 0 0 4px rgba(255, 122, 24, 0.16);
+      border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent);
     }
 
     .helper {
