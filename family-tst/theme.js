@@ -40,7 +40,7 @@
   function applySettings(nextSettings = readSettings()) {
     const settings = {
       theme: "arctic",
-      accent: "#4fd1ff",
+      accent: "#ff7a18",
       density: "comfortable",
       ...nextSettings,
     };
