@@ -56,7 +56,7 @@
       min-height: calc(100dvh - 32px);
     }
 
-    .topbar, .hero, .panel, .status-pill {
+    .topbar, .hero, .panel, .card, .status-pill {
       background:
         radial-gradient(circle at top left, rgba(255, 255, 255, .05), transparent 34%),
         linear-gradient(180deg, var(--panel), var(--panel-2));
@@ -178,8 +178,8 @@
     root.style.setProperty("--text", theme.text, "important");
     root.style.setProperty("--muted", theme.muted, "important");
     root.style.setProperty("--accent", settings.accent, "important");
-    root.style.setProperty("--accent-2", settings.accent === "#ff8a1f" ? "#ffb26f" : settings.accent, "important");
-    root.style.setProperty("--accent-hover", settings.accent === "#ff8a1f" ? "#e97812" : settings.accent, "important");
+    root.style.setProperty("--accent-2", `color-mix(in srgb, ${settings.accent}, white 20%)`, "important");
+    root.style.setProperty("--accent-hover", `color-mix(in srgb, ${settings.accent}, black 10%)`, "important");
 
     root.dataset.themeDensity = settings.density;
 
