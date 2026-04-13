@@ -3,7 +3,7 @@
 
   const themes = {
     arctic: {
-      bg: "#06131d",
+      bg: "#0a1a29",
       panel: "#0f2233",
       panel2: "#173147",
       text: "#f3f4f6",

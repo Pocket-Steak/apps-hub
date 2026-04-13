@@ -11,6 +11,7 @@
       --panel:#0f2233;
       --panel-2:#173147;
       --surface:rgba(255,255,255,.045);
+      --bg:#06131d;
       --border:rgba(255,255,255,.08);
       --border-strong:rgba(255,255,255,.12);
       --text:#f3f4f6;
@@ -26,8 +27,8 @@
     body{
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
       background:
-        radial-gradient(900px 500px at 0% 0%, rgba(255,122,24,.18), transparent 55%),
-        linear-gradient(180deg,#041019,#081827 35%, #0d2131 100%);
+        radial-gradient(900px 500px at 0% 0%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 55%),
+        linear-gradient(180deg, var(--bg), var(--panel) 35%, var(--panel-2) 100%);
       color:var(--text);
       padding:16px;
     }
@@ -112,11 +113,12 @@
     }
 
     .eyebrow{
-      font-size:12px;
+      font-size:13px;
       font-weight:900;
       letter-spacing:.12em;
       text-transform:uppercase;
-      color:var(--accent);
+      color:var(--accent-2);
+      text-shadow: 0 0 18px color-mix(in srgb, var(--accent-2) 22%, transparent);
     }
 
     .title{
