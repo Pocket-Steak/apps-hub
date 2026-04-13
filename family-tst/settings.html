@@ -136,8 +136,13 @@
 
     .settings-grid{
       display:grid;
-      grid-template-columns:minmax(320px, .9fr) minmax(360px, 1.1fr);
+      grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);
       gap:16px;
+      align-items:start;
+    }
+
+    .settings-grid .panel:last-child{
+      grid-column:1 / -1;
     }
 
     .panel{
@@ -168,6 +173,99 @@
       display:grid;
       grid-template-columns:repeat(2, minmax(0, 1fr));
       gap:12px;
+    }
+
+    .settings-control{
+      display:grid;
+      gap:8px;
+    }
+
+    .settings-control label{
+      color:var(--muted);
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .settings-select{
+      width:100%;
+      min-height:50px;
+      padding:0 42px 0 14px;
+      border-radius:16px;
+      border:1px solid var(--border-strong);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.035)),
+        var(--surface);
+      color:var(--text);
+      font:inherit;
+      font-weight:850;
+      appearance:none;
+      cursor:pointer;
+    }
+
+    .select-shell{
+      position:relative;
+    }
+
+    .select-shell::after{
+      content:"";
+      position:absolute;
+      right:16px;
+      top:50%;
+      width:9px;
+      height:9px;
+      border-right:2px solid var(--accent);
+      border-bottom:2px solid var(--accent);
+      transform:translateY(-70%) rotate(45deg);
+      pointer-events:none;
+    }
+
+    .settings-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .settings-list{
+      display:grid;
+      gap:12px;
+    }
+
+    .settings-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      padding:14px;
+      border:1px solid var(--border);
+      border-radius:16px;
+      background:var(--surface);
+    }
+
+    .settings-row strong{
+      display:block;
+      font-size:14px;
+      line-height:1.2;
+    }
+
+    .settings-row span{
+      display:block;
+      margin-top:4px;
+      color:var(--muted);
+      font-size:12px;
+      font-weight:700;
+      line-height:1.4;
+    }
+
+    .color-dot{
+      width:22px;
+      height:22px;
+      flex:0 0 auto;
+      border-radius:999px;
+      border:2px solid rgba(255,255,255,.5);
+      background:var(--accent);
+      box-shadow:0 0 0 4px rgba(79,209,255,.12);
     }
 
     .nav-link{
@@ -243,6 +341,10 @@
 
       .action-btn{
         width:100%;
+      }
+
+      .settings-row{
+        align-items:flex-start;
       }
     }
 
@@ -335,6 +437,7 @@
   <script async defer src="https://apis.google.com/js/api.js"></script>
   <script async defer src="https://accounts.google.com/gsi/client"></script>
   <link rel="stylesheet" href="./theme.css" />
+  <script defer src="./theme.js"></script>
 </head>
 <body class="tst-shell">
   <div class="page">
@@ -348,26 +451,36 @@
       </div>
     </div>
 
-    <section class="hero">
+    <section class="hero settings-hero">
       <div class="eyebrow">Command Center TST</div>
       <div class="title">Settings</div>
-      <div class="meta">This is the shared place for navigation and your family Google Calendar connection. Home, month view, and day view all use this connection.</div>
+      <div class="meta">Manage the shared connection, jump between app areas, and tune the test environment without oversized control lists.</div>
     </section>
 
     <section class="settings-grid">
       <section class="panel">
         <div class="panel-head">
           <div class="panel-title">Navigation</div>
-          <div class="panel-meta">Quick links for the family dashboard.</div>
+          <div class="panel-meta">Use one compact dropdown instead of a large block of links.</div>
         </div>
 
-        <div class="nav-grid">
-          <a class="nav-link" href="/family-tst/">TST Home</a>
-          <a class="nav-link" href="/family-tst/calendar.html">Month Calendar</a>
-          <a class="nav-link" href="/family-tst/grocery.html">Grocery List</a>
-          <a class="nav-link" href="/family-tst/todo.html">To-Do List</a>
-          <a class="nav-link" href="/family-tst/cookbook.html">Cookbook</a>
-          <a class="nav-link" href="/family-tst/notes.html">Notes</a>
+        <div class="settings-control">
+          <label for="settingsNavSelect">Go to page</label>
+          <div class="select-shell">
+            <select class="settings-select" id="settingsNavSelect">
+              <option value="/family-tst/">TST Home</option>
+              <option value="/family-tst/calendar.html">Month Calendar</option>
+              <option value="/family-tst/grocery.html">Grocery List</option>
+              <option value="/family-tst/todo.html">To-Do List</option>
+              <option value="/family-tst/cookbook.html">Cookbook</option>
+              <option value="/family-tst/notes.html">Notes</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="settings-actions">
+          <button class="action-btn accent" id="settingsNavGoBtn" type="button">Open Page</button>
+          <a class="action-btn" href="/apps/">Back to Apps</a>
         </div>
       </section>
 
@@ -389,6 +502,56 @@
 
         <div class="note" id="settingsNote">Open this page any time you want to reconnect Google or jump back home.</div>
       </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Display</div>
+          <div class="panel-meta">Compact dropdowns for test-environment appearance choices.</div>
+        </div>
+
+        <div class="settings-list">
+          <div class="settings-control">
+            <label for="themeSelect">Theme</label>
+            <div class="select-shell">
+              <select class="settings-select" id="themeSelect">
+                <option value="arctic" selected>Arctic Glass</option>
+                <option value="midnight">Midnight Blue</option>
+                <option value="slate">Slate Utility</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="settings-control">
+            <label for="accentSelect">Accent Color</label>
+            <div class="select-shell">
+              <select class="settings-select" id="accentSelect">
+                <option value="#4fd1ff" selected>Cyan Blue</option>
+                <option value="#7dd3fc">Sky Blue</option>
+                <option value="#5eead4">Aqua Teal</option>
+                <option value="#a7f3d0">Mint</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="settings-control">
+            <label for="densitySelect">Layout Density</label>
+            <div class="select-shell">
+              <select class="settings-select" id="densitySelect">
+                <option value="comfortable" selected>Comfortable</option>
+                <option value="compact">Compact</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="settings-row">
+            <div>
+              <strong>Current accent</strong>
+              <span id="displayNote">Cyan Blue is applied for this test environment.</span>
+            </div>
+            <span class="color-dot" id="accentPreview" aria-hidden="true"></span>
+          </div>
+        </div>
+      </section>
     </section>
   </div>
 
@@ -407,10 +570,16 @@
 
     const TOKEN_KEY = "pocketsteak_google_access_token";
     const TOKEN_EXP_KEY = "pocketsteak_google_token_exp";
+    const GOOGLE_CONNECT_QUERY = "connect";
+
+    const pageParams = new URLSearchParams(window.location.search);
+    const shouldAutoStartGoogleConnect = pageParams.get("google") === GOOGLE_CONNECT_QUERY;
+    const requestedReturnTo = getSafeReturnTo(pageParams.get("returnTo"));
 
     let gapiInited = false;
     let gisInited = false;
     let tokenClient = null;
+    let autoConnectStarted = false;
 
     function setStatus(text) {
       document.getElementById("statusText").textContent = text;
@@ -442,6 +611,18 @@
       localStorage.removeItem(TOKEN_EXP_KEY);
     }
 
+    function getSafeReturnTo(returnTo) {
+      if (!returnTo || typeof returnTo !== "string") return "";
+      if (!returnTo.startsWith("/")) return "";
+      if (returnTo.startsWith("//")) return "";
+      return returnTo;
+    }
+
+    function redirectBackAfterGoogleConnect() {
+      if (!requestedReturnTo) return;
+      window.location.replace(requestedReturnTo);
+    }
+
     function getReadableError(error) {
       return (
         error?.result?.error?.message ||
@@ -449,6 +630,57 @@
         error?.message ||
         "Something went wrong with Google."
       );
+    }
+
+    function setDisplayNote(settings) {
+      const accentSelect = document.getElementById("accentSelect");
+      const themeSelect = document.getElementById("themeSelect");
+      const accentLabel = accentSelect.options[accentSelect.selectedIndex]?.text || "Cyan Blue";
+      const themeLabel = themeSelect.options[themeSelect.selectedIndex]?.text || "Arctic Glass";
+
+      document.getElementById("accentPreview").style.background = settings.accent;
+      document.getElementById("displayNote").textContent = `${accentLabel} is active in the ${themeLabel} theme.`;
+    }
+
+    function initializeDisplayControls() {
+      const themeApi = window.PocketSteakTheme;
+      if (!themeApi) {
+        window.addEventListener("DOMContentLoaded", initializeDisplayControls, { once: true });
+        return;
+      }
+
+      const settings = themeApi.applySettings(themeApi.readSettings());
+      const themeSelect = document.getElementById("themeSelect");
+      const accentSelect = document.getElementById("accentSelect");
+      const densitySelect = document.getElementById("densitySelect");
+
+      themeSelect.value = settings.theme;
+      accentSelect.value = settings.accent;
+      densitySelect.value = settings.density;
+      setDisplayNote(settings);
+
+      [themeSelect, accentSelect, densitySelect].forEach((select) => {
+        select.addEventListener("change", () => {
+          const nextSettings = {
+            theme: themeSelect.value,
+            accent: accentSelect.value,
+            density: densitySelect.value,
+          };
+
+          themeApi.saveSettings(nextSettings);
+          themeApi.applySettings(nextSettings);
+          setDisplayNote(nextSettings);
+        });
+      });
+    }
+
+    function initializeNavigationControls() {
+      const navSelect = document.getElementById("settingsNavSelect");
+      const navGoBtn = document.getElementById("settingsNavGoBtn");
+
+      navGoBtn.addEventListener("click", () => {
+        window.location.href = navSelect.value;
+      });
     }
 
     async function testGoogleAccess() {
@@ -467,6 +699,12 @@
       if (!gapiInited || !gisInited) return;
 
       document.getElementById("authBtn").disabled = false;
+
+      if (shouldAutoStartGoogleConnect && !autoConnectStarted) {
+        autoConnectStarted = true;
+        await handleAuthClick();
+        return;
+      }
 
       const savedToken = getSavedToken();
       if (!savedToken) {
@@ -529,6 +767,7 @@
             await testGoogleAccess();
             setStatus("Connected");
             setNote("Google Calendar is connected for the family dashboard.");
+            redirectBackAfterGoogleConnect();
           } catch (error) {
             console.error(error);
             setStatus("Connection failed");
@@ -564,6 +803,8 @@
 
     document.getElementById("authBtn").addEventListener("click", handleAuthClick);
     document.getElementById("signOutBtn").addEventListener("click", handleSignoutClick);
+    initializeDisplayControls();
+    initializeNavigationControls();
 
     document.getElementById("authBtn").disabled = true;
 

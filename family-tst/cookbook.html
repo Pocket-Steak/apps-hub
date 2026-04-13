@@ -480,6 +480,7 @@
   <script async defer src="https://apis.google.com/js/api.js"></script>
   <script async defer src="https://accounts.google.com/gsi/client"></script>
   <link rel="stylesheet" href="./theme.css" />
+  <script defer src="./theme.js"></script>
 </head>
 <body class="tst-shell">
   <div class="page">
@@ -562,6 +563,11 @@
     let appReady = false;
     let slideIndex = [];
     let currentQuery = "";
+
+    function getGoogleSettingsConnectUrl() {
+      const returnTo = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+      return `/family-tst/settings.html?google=connect&returnTo=${encodeURIComponent(returnTo)}`;
+    }
 
     function setStatus(text) {
       document.getElementById("statusText").textContent = text;
@@ -743,10 +749,10 @@
 
       metaEl.textContent = slideIndex.length
         ? `${filtered.length} recipe result${filtered.length === 1 ? "" : "s"}`
-        : "No cookbook slides indexed yet.";
+        : "No cookbook slides indexed yet. Connect Google in Settings to load them.";
 
       if (!slideIndex.length) {
-        resultsEl.innerHTML = `<div class="empty-state">Connect Google and load the cookbook to search recipes.</div>`;
+        resultsEl.innerHTML = `<div class="empty-state">Connect Google in Settings to load the cookbook and search recipes.</div>`;
         return;
       }
 
@@ -847,25 +853,9 @@
     }
 
     async function handleAuthClick() {
-      if (!appReady || !tokenClient) {
-        setStatus("Google still loading…");
-        document.getElementById("searchMeta").textContent = "Google tools are still starting. Try again in a second.";
-        return;
-      }
-
-      setStatus("Connecting…");
-      document.getElementById("searchMeta").textContent = "Waiting for Google sign-in approval…";
-
-      try {
-        const existingToken = gapi.client.getToken();
-        tokenClient.requestAccessToken({
-          prompt: existingToken ? "" : "consent",
-        });
-      } catch (error) {
-        console.error(error);
-        setStatus("Connection failed");
-        document.getElementById("searchMeta").textContent = getReadableError(error);
-      }
+      setStatus("Open Settings…");
+      document.getElementById("searchMeta").textContent = "Redirecting to Settings for the shared Google sign-in…";
+      window.location.href = getGoogleSettingsConnectUrl();
     }
 
     function initGapi() {

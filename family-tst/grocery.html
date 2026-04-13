@@ -558,6 +558,7 @@
   <script async defer src="https://apis.google.com/js/api.js"></script>
   <script async defer src="https://accounts.google.com/gsi/client"></script>
   <link rel="stylesheet" href="./theme.css" />
+  <script defer src="./theme.js"></script>
 </head>
 <body class="tst-shell">
   <main class="app">
@@ -650,6 +651,11 @@
     let isConnected = false;
     let groceryRows = [];
     let isBusy = false;
+
+    function getGoogleSettingsConnectUrl() {
+      const returnTo = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+      return `/family-tst/settings.html?google=connect&returnTo=${encodeURIComponent(returnTo)}`;
+    }
 
     // =========================
     // DOM
@@ -902,55 +908,9 @@
     }
 
     async function connectGoogle(forceConsent = false) {
-      if (!appReady || !tokenClient) {
-        showMessage("Google is still loading. Try again in a second.", "error");
-        return;
-      }
-
-      setBusy(true);
-      showMessage("", "");
-
-      try {
-        const existingToken = gapi.client.getToken();
-
-        tokenClient.callback = async (response) => {
-          if (response.error) {
-            console.error("OAuth token error:", response);
-            setStatus("Setup failed", false);
-            showMessage(getReadableError(response), "error");
-            setBusy(false);
-            return;
-          }
-
-          const token = gapi.client.getToken()?.access_token;
-          if (token) {
-            saveAccessTokenToSession(token, response.expires_in || 3600);
-          }
-
-          isConnected = true;
-          setStatus("Connected", true);
-          connectBtn.textContent = "Reconnect";
-
-          try {
-            await loadGroceries();
-          } catch (error) {
-            console.error(error);
-            setStatus("Setup failed", false);
-            showMessage(getReadableError(error), "error");
-          } finally {
-            setBusy(false);
-          }
-        };
-
-        tokenClient.requestAccessToken({
-          prompt: forceConsent || !existingToken ? "consent" : "",
-        });
-      } catch (error) {
-        console.error(error);
-        setStatus("Setup failed", false);
-        showMessage(getReadableError(error), "error");
-        setBusy(false);
-      }
+      setStatus("Open Settings", false);
+      showMessage("Redirecting to Settings for the shared Google sign-in…", "");
+      window.location.href = getGoogleSettingsConnectUrl();
     }
 
     async function testSheetsAccess() {
@@ -996,7 +956,7 @@
     async function addItem() {
       const item = itemInput.value.trim();
       if (!isConnected) {
-        showMessage("Connect Google first.", "error");
+        showMessage("Connect Google in Settings first.", "error");
         return;
       }
 
@@ -1055,7 +1015,7 @@
 
     async function toggleBought(targetRow) {
       if (!isConnected) {
-        showMessage("Connect Google first.", "error");
+        showMessage("Connect Google in Settings first.", "error");
         return;
       }
 
@@ -1085,7 +1045,7 @@
 
     async function clearAllItems() {
       if (!isConnected) {
-        showMessage("Connect Google first.", "error");
+        showMessage("Connect Google in Settings first.", "error");
         return;
       }
 
@@ -1180,14 +1140,6 @@
     // EVENTS
     // =========================
     connectBtn.addEventListener("click", () => {
-      if (!appReady) {
-        setStatus("Retrying Google...", false);
-        showMessage("Trying to load Google services again...", "");
-        initGapi();
-        initGisReadyCheck();
-        return;
-      }
-
       connectGoogle(true);
     });
     addBtn.addEventListener("click", addItem);

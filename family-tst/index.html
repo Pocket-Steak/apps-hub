@@ -1891,6 +1891,7 @@
   <script async defer src="https://apis.google.com/js/api.js"></script>
   <script async defer src="https://accounts.google.com/gsi/client"></script>
   <link rel="stylesheet" href="./theme.css" />
+  <script defer src="./theme.js"></script>
 </head>
 <body class="tst-shell">
   <div class="page">
@@ -2074,6 +2075,11 @@
     let weekEvents = [];
     let groceryPreviewRows = [];
     let todoPreviewRows = [];
+
+    function getGoogleSettingsConnectUrl() {
+      const returnTo = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+      return `/family-tst/settings.html?google=connect&returnTo=${encodeURIComponent(returnTo)}`;
+    }
     let activeOverlayPath = "";
 
     function setStatus(text) {
@@ -2621,9 +2627,8 @@
     }
 
     async function handleAuthClick() {
-      if (!tokenClient) return;
-      setStatus("Connecting…");
-      tokenClient.requestAccessToken({ prompt: "consent" });
+      setStatus("Open Settings…");
+      window.location.href = getGoogleSettingsConnectUrl();
     }
 
     function handleSignoutClick() {

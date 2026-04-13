@@ -560,6 +560,7 @@
   <script async defer src="https://apis.google.com/js/api.js"></script>
   <script async defer src="https://accounts.google.com/gsi/client"></script>
   <link rel="stylesheet" href="./theme.css" />
+  <script defer src="./theme.js"></script>
 </head>
 <body class="tst-shell">
   <div class="page">
@@ -680,6 +681,11 @@
     let dayEvents = [];
     let editingEvent = null;
     let selectedDuration = 30;
+
+    function getGoogleSettingsConnectUrl() {
+      const returnTo = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+      return `/family-tst/settings.html?google=connect&returnTo=${encodeURIComponent(returnTo)}`;
+    }
 
     function setStatus(text) {
       document.getElementById("statusText").textContent = text;
@@ -1009,9 +1015,8 @@
     }
 
     async function handleAuthClick() {
-      if (!tokenClient) return;
-      setStatus("Connecting…");
-      tokenClient.requestAccessToken({ prompt: "consent" });
+      setStatus("Open Settings…");
+      window.location.href = getGoogleSettingsConnectUrl();
     }
 
     function handleSignoutClick() {
@@ -1032,7 +1037,7 @@
 
     function openAddModal() {
       if (calendarsById.size === 0) {
-        alert("Connect Google Calendar first.");
+        alert("Connect Google Calendar in Settings first.");
         return;
       }
 

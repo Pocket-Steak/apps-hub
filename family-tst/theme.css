@@ -429,6 +429,22 @@ textarea:focus {
   gap: 18px;
 }
 
+[data-theme-density="compact"] body,
+[data-theme-density="compact"] .page,
+[data-theme-density="compact"] .app {
+  --shell-gap: 14px;
+}
+
+[data-theme-density="compact"] .topbar,
+[data-theme-density="compact"] .card,
+[data-theme-density="compact"] .panel,
+[data-theme-density="compact"] .hero,
+[data-theme-density="compact"] .weather-banner,
+[data-theme-density="compact"] .today-card,
+[data-theme-density="compact"] .preview-card {
+  padding: 12px 14px !important;
+}
+
 .list-hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

@@ -504,6 +504,7 @@
   <script async defer src="https://apis.google.com/js/api.js"></script>
   <script async defer src="https://accounts.google.com/gsi/client"></script>
   <link rel="stylesheet" href="./theme.css" />
+  <script defer src="./theme.js"></script>
 </head>
 <body class="tst-shell">
   <div class="page">
@@ -559,6 +560,11 @@
     let currentDate = new Date();
     let calendarsById = new Map();
     let monthEvents = [];
+
+    function getGoogleSettingsConnectUrl() {
+      const returnTo = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+      return `/family-tst/settings.html?google=connect&returnTo=${encodeURIComponent(returnTo)}`;
+    }
 
     function setStatus(text) {
       document.getElementById("statusText").textContent = text;
@@ -638,7 +644,7 @@
       const calendars = [...calendarsById.values()].filter(cal => cal.selected !== false);
 
       if (calendars.length === 0) {
-        legend.innerHTML = `<div class="empty-month">Connect Google Calendar to load your calendars.</div>`;
+        legend.innerHTML = `<div class="empty-month">Connect Google Calendar in Settings to load your calendars.</div>`;
         return;
       }
 
@@ -766,9 +772,8 @@
     }
 
     async function handleAuthClick() {
-      if (!tokenClient) return;
-      setStatus("Connecting…");
-      tokenClient.requestAccessToken({ prompt: "consent" });
+      setStatus("Open Settings…");
+      window.location.href = getGoogleSettingsConnectUrl();
     }
 
     function handleSignoutClick() {
