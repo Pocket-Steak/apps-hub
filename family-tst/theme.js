@@ -52,7 +52,7 @@
       max-width: 1320px;
       margin: 0 auto;
       display: grid;
-      gap: 16px;
+      gap: 12px;
       min-height: calc(100dvh - 32px);
     }
 
@@ -71,7 +71,7 @@
       align-items: center;
       gap: 12px;
       flex-wrap: wrap;
-      padding: 14px 16px;
+      padding: 10px 14px;
     }
 
     .top-btn, .nav-link, .action-btn {
@@ -81,10 +81,10 @@
       text-decoration: none;
       border: none;
       color: var(--text);
-      min-height: 48px;
-      padding: 12px 16px;
+      min-height: 40px;
+      padding: 8px 14px;
       font-size: 15px;
-      font-weight: 900;
+      font-weight: 600;
       cursor: pointer;
       border-radius: 16px;
       background: rgba(255, 255, 255, .08);
@@ -101,19 +101,19 @@
       color: #fff;
     }
 
-    .hero { padding: 20px 22px; display: grid; gap: 8px; }
+    .hero { padding: 18px 20px; display: grid; gap: 4px; }
     .eyebrow {
-      font-size: 13px;
-      font-weight: 900;
+      font-size: 11px;
+      font-weight: 700;
       letter-spacing: .12em;
       text-transform: uppercase;
       color: var(--accent-2);
       text-shadow: 0 0 18px color-mix(in srgb, var(--accent-2) 22%, transparent);
     }
 
-    .title { font-size: clamp(2rem, 3vw, 2.8rem); font-weight: 850; letter-spacing: -.02em; line-height: 1.03; }
-    .panel { padding: 18px; display: grid; gap: 16px; }
-    .panel-title { font-size: 22px; font-weight: 850; letter-spacing: -.02em; }
+    .title { font-size: clamp(1.6rem, 2.5vw, 2.2rem); font-weight: 800; letter-spacing: -.02em; line-height: 1.1; }
+    .panel { padding: 14px; display: grid; gap: 12px; }
+    .panel-title { font-size: 18px; font-weight: 800; letter-spacing: -.01em; }
 
     .select-shell { position: relative; }
     .select-shell::after {
