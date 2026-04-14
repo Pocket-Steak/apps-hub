@@ -85,11 +85,12 @@
 
     .top-right{
       display:flex;
-      gap:10px;
+      gap:8px;
       align-items:center;
       flex-wrap:nowrap;
       justify-content:flex-end;
       min-width:0;
+      flex-shrink:0;
     }
 
     .brand-left{
@@ -151,12 +152,12 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      gap:12px;
+      gap:8px;
       width:100%;
       min-width:0;
       max-width:100%;
-      flex-wrap:wrap;
-      padding:6px 10px;
+      flex-wrap:nowrap;
+      padding:5px 8px;
       border-radius:18px;
       background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
       border:1px solid rgba(255,255,255,.08);
@@ -167,17 +168,19 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      gap:8px;
+      gap:6px;
       min-width:0;
-      flex-wrap:wrap;
+      flex:1 1 auto;
+      flex-wrap:nowrap;
     }
 
     .ride-chip{
       display:grid;
       gap:2px;
-      min-width:120px;
+      min-width:0;
+      flex:1 1 0;
       max-width:100%;
-      padding:8px 10px;
+      padding:7px 8px;
       border-radius:14px;
       background:rgba(255,255,255,.05);
       border:1px solid rgba(255,255,255,.06);
@@ -212,8 +215,8 @@
     .countdown-ribbon{
       display:flex;
       align-items:center;
-      gap:10px;
-      flex:0 0 auto;
+      gap:8px;
+      flex:0 1 auto;
       min-width:0;
       max-width:100%;
     }
@@ -241,14 +244,14 @@
     .countdown-units{
       display:flex;
       align-items:center;
-      gap:6px;
+      gap:4px;
     }
 
     .countdown-unit{
       display:grid;
       gap:1px;
-      min-width:52px;
-      padding:8px 9px;
+      min-width:44px;
+      padding:7px 7px;
       border-radius:12px;
       background:rgba(255,255,255,.05);
       border:1px solid rgba(255,255,255,.06);
@@ -275,8 +278,8 @@
       border:none;
       color:var(--text);
       min-height:42px;
-      padding:10px 14px;
-      font-size:14px;
+      padding:9px 12px;
+      font-size:13px;
       font-weight:900;
       cursor:pointer;
       border-radius:16px;
