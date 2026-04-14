@@ -1949,6 +1949,7 @@
       <div class="top-right">
         <button class="top-btn" id="backAppsBtn" type="button" style="display:none;">← Back to Apps</button>
         <button class="top-btn" id="cookbookBtn" type="button">Cookbook</button>
+        <button class="top-btn" id="recipeMakerBtn" type="button">Pitmaster Recipe Maker</button>
         <button class="top-btn" id="notesBtn" type="button" onclick="window.location.href='/tst-notes/'">Notes</button>
         <button class="top-btn" id="settingsBtn" type="button" onclick="window.location.href='/tst-settings/'">Settings</button>
         <div style="display:none;">
@@ -2655,6 +2656,9 @@
     });
     document.getElementById("cookbookBtn").addEventListener("click", () => {
       window.location.href = "/tst-cookbook/";
+    });
+    document.getElementById("recipeMakerBtn").addEventListener("click", () => {
+      window.open("https://pocketsteak-recipes.vercel.app", "_blank", "noopener,noreferrer");
     });
 
     document.getElementById("authBtn").addEventListener("click", handleAuthClick);
