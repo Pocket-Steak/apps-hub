@@ -62,7 +62,7 @@
 
     .topbar{
       display:grid;
-      grid-template-columns:minmax(0, 1fr) auto minmax(0, 1fr);
+      grid-template-columns:auto minmax(0, 1fr) auto;
       align-items:center;
       gap:12px;
       min-height:64px;
@@ -87,8 +87,9 @@
       display:flex;
       gap:10px;
       align-items:center;
-      flex-wrap:wrap;
+      flex-wrap:nowrap;
       justify-content:flex-end;
+      min-width:0;
     }
 
     .brand-left{
@@ -282,6 +283,7 @@
       background:rgba(255,255,255,.08);
       box-shadow:none;
       transition:transform .18s ease, background .18s ease, border-color .18s ease, filter .18s ease;
+      white-space:nowrap;
     }
 
     .top-btn:hover{
