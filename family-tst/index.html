@@ -1955,8 +1955,8 @@
         <button class="top-btn" id="backAppsBtn" type="button" style="display:none;">← Back to Apps</button>
         <button class="top-btn" id="cookbookBtn" type="button">Cookbook</button>
         <button class="top-btn" id="recipeMakerBtn" type="button">Pitmaster Recipe Maker</button>
-        <button class="top-btn" id="notesBtn" type="button" onclick="window.location.href='/tst-notes/'">Notes</button>
-        <button class="top-btn" id="settingsBtn" type="button" onclick="window.location.href='/tst-settings/'">Settings</button>
+        <button class="top-btn" id="notesBtn" type="button" onclick="window.location.href='/family-tst/notes.html'">Notes</button>
+        <button class="top-btn" id="settingsBtn" type="button" onclick="window.location.href='/family-tst/settings.html'">Settings</button>
         <div style="display:none;">
           <div class="status-pill">
             <div class="status-label">Google</div>
@@ -2307,7 +2307,7 @@
         card.addEventListener("click", () => {
           openDashboardOverlay(
             `${getShortDayName(date)} ${formatMonthDay(date)}`,
-            `/tst-day/?date=${key}`
+            `/family-tst/day.html?date=${key}`
           );
         });
 
@@ -2660,7 +2660,7 @@
       window.location.href = "/apps/";
     });
     document.getElementById("cookbookBtn").addEventListener("click", () => {
-      window.location.href = "/tst-cookbook/";
+      window.location.href = "/family-tst/cookbook.html";
     });
     document.getElementById("recipeMakerBtn").addEventListener("click", () => {
       window.open("https://pocketsteak-recipes.vercel.app", "_blank", "noopener,noreferrer");
@@ -2670,31 +2670,31 @@
     document.getElementById("signOutBtn").addEventListener("click", handleSignoutClick);
     document.getElementById("todayCard").addEventListener("click", () => {
       const todayKey = formatDateKey(new Date());
-      openDashboardOverlay("Today", `/tst-day/?date=${todayKey}`);
+      openDashboardOverlay("Today", `/family-tst/day.html?date=${todayKey}`);
     });
     document.getElementById("monthBtn").addEventListener("click", (event) => {
       event.stopPropagation();
-      window.location.href = "/tst-calendar/";
+      window.location.href = "/family-tst/calendar.html";
     });
 
     document.getElementById("quickAddBtn").addEventListener("click", (event) => {
       event.stopPropagation();
       const todayKey = formatDateKey(new Date());
-      window.location.href = `/tst-day/?date=${todayKey}&add=1`;
+      window.location.href = `/family-tst/day.html?date=${todayKey}&add=1`;
     });
     document.getElementById("groceryPreviewCard").addEventListener("click", () => {
-      openDashboardOverlay("Grocery List", "/tst-grocery/");
+      openDashboardOverlay("Grocery List", "/family-tst/grocery.html");
     });
     document.getElementById("todoPreviewCard").addEventListener("click", () => {
-      openDashboardOverlay("To-Do List", "/tst-todo/");
+      openDashboardOverlay("To-Do List", "/family-tst/todo.html");
     });
     document.getElementById("groceryPreviewBtn").addEventListener("click", (event) => {
       event.stopPropagation();
-      openDashboardOverlay("Grocery List", "/tst-grocery/");
+      openDashboardOverlay("Grocery List", "/family-tst/grocery.html");
     });
     document.getElementById("todoPreviewBtn").addEventListener("click", (event) => {
       event.stopPropagation();
-      openDashboardOverlay("To-Do List", "/tst-todo/");
+      openDashboardOverlay("To-Do List", "/family-tst/todo.html");
     });
     document.getElementById("overlayCloseBtn").addEventListener("click", closeDashboardOverlay);
     document.getElementById("overlayOpenPageBtn").addEventListener("click", () => {

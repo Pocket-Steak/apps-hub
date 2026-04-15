@@ -56,41 +56,6 @@
       "permanent": false
     },
     {
-      "source": "/family-tst/cookbook.html",
-      "destination": "/tst-cookbook/",
-      "permanent": false
-    },
-    {
-      "source": "/family-tst/notes.html",
-      "destination": "/tst-notes/",
-      "permanent": false
-    },
-    {
-      "source": "/family-tst/settings.html",
-      "destination": "/tst-settings/",
-      "permanent": false
-    },
-    {
-      "source": "/family-tst/calendar.html",
-      "destination": "/tst-calendar/",
-      "permanent": false
-    },
-    {
-      "source": "/family-tst/day.html",
-      "destination": "/tst-day/",
-      "permanent": false
-    },
-    {
-      "source": "/family-tst/grocery.html",
-      "destination": "/tst-grocery/",
-      "permanent": false
-    },
-    {
-      "source": "/family-tst/todo.html",
-      "destination": "/tst-todo/",
-      "permanent": false
-    },
-    {
       "source": "/countdown",
       "destination": "/countdown/",
       "permanent": false
@@ -132,37 +97,37 @@
     },
     {
       "source": "/tst-cookbook",
-      "destination": "/tst-cookbook/",
+      "destination": "/family-tst/cookbook.html",
       "permanent": false
     },
     {
       "source": "/tst-notes",
-      "destination": "/tst-notes/",
+      "destination": "/family-tst/notes.html",
       "permanent": false
     },
     {
       "source": "/tst-calendar",
-      "destination": "/tst-calendar/",
+      "destination": "/family-tst/calendar.html",
       "permanent": false
     },
     {
       "source": "/tst-day",
-      "destination": "/tst-day/",
+      "destination": "/family-tst/day.html",
       "permanent": false
     },
     {
       "source": "/tst-grocery",
-      "destination": "/tst-grocery/",
+      "destination": "/family-tst/grocery.html",
       "permanent": false
     },
     {
       "source": "/tst-todo",
-      "destination": "/tst-todo/",
+      "destination": "/family-tst/todo.html",
       "permanent": false
     },
     {
       "source": "/tst-settings",
-      "destination": "/tst-settings/",
+      "destination": "/family-tst/settings.html",
       "permanent": false
     }
   ],
