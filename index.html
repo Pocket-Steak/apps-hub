@@ -6,66 +6,77 @@
   <title>PocketSteak's Apps</title>
   <style>
     :root {
-      --bg: #050505;
-      --brand: #FF4500;
-      --brand-glow: rgba(255, 69, 0, 0.35);
-      --card-bg: rgba(255, 255, 255, 0.03);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --text-main: #ffffff;
-      --text-dim: rgba(255, 255, 255, 0.6);
-      --glass: blur(12px);
+      /* Base Colors */
+      --ink: #111;
+      --ink-invert: #fff;
+      --grid-max: 1120px;
+      --brand: #FF4500; /* Keeping your exact orange */
+      --brand-glow: rgba(255, 69, 0, 0.4);
+      --glass: blur(14px);
+      --card-bg-wip: rgba(255, 255, 255, 0.04);
+      --card-border-wip: rgba(255, 255, 255, 0.1);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    
-    body {
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      background-color: var(--bg);
-      color: var(--text-main);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      /* Edgy Mesh Gradient Background */
+    /* THE FLASH: Let's give the background vibrant energy */
+    .theme-night {
+      background-color: #0b0b0d;
       background-image: 
-        radial-gradient(at 0% 0%, rgba(255, 69, 0, 0.15) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(255, 69, 0, 0.1) 0px, transparent 50%);
-      overflow-x: hidden;
+        radial-gradient(1200px 700px at 15% -15%, rgba(255, 255, 255, 0.15), transparent 70%),
+        radial-gradient(1100px 700px at 105% 15%, rgba(255, 255, 255, 0.1), transparent 65%),
+        /* A large, moving gradient blob for extra fun */
+        radial-gradient(circle at 50% 120%, rgba(255, 69, 0, 0.08), transparent 45%),
+        linear-gradient(135deg, #0b0b0d, #141417 35%, #1c1c20 70%, #2a2a2f);
+      background-size: 200% 200%;
+      animation: bgPulse 18s ease-in-out infinite alternate;
     }
 
-    header {
-      max-width: 1100px;
-      margin: 40px auto 20px;
-      padding: 0 20px;
-      text-align: center;
+    @keyframes bgPulse {
+      0% { background-position: 0% 40% }
+      100% { background-position: 100% 60% }
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0 }
+    html, body { min-height: 100%; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--ink-invert);
+    }
+
+    header { max-width: var(--grid-max); margin: 0 auto; padding: 40px 18px 0 }
+    .mast {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      width: 100%;
     }
 
     .logo {
-      width: 80px;
-      filter: drop-shadow(0 0 20px var(--brand-glow));
-      margin-bottom: 10px;
+      width: clamp(100px, 15vw, 150px);
+      height: auto;
+      display: block;
+      filter: brightness(1.1) drop-shadow(0 0 30px rgba(255,255,255,0.1));
     }
 
     .mast-title {
-      font-size: clamp(2rem, 5vw, 3.5rem);
-      font-weight: 900;
+      display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
+      line-height: 1.0;
       letter-spacing: -2px;
       text-transform: uppercase;
-      background: linear-gradient(to bottom, #fff, #888);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+    }
+    .mast-title .line1 { font-weight: 900; font-size: clamp(34px, 4.2vw, 56px); color: #fff; }
+    .mast-title .line2 { font-weight: 900; font-size: clamp(31px, 3.8vw, 52px); color: var(--brand); }
+
+    .mast-bar {
+      height: 8px; border-radius: 999px;
+      background: linear-gradient(to right, transparent, rgba(255,255,255,0.1) 15%, #fff 50%, rgba(255,255,255,0.1) 85%, transparent);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 10px 30px rgba(0,0,0,0.3);
+      margin: 20px 0 25px 0;
     }
 
-    .mast-title span { color: var(--brand); -webkit-text-fill-color: var(--brand); }
+    main { max-width: var(--grid-max); margin: 0 auto; padding: 10px 18px 50px }
 
-    main {
-      max-width: 1100px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 20px;
-      flex: 1;
-    }
-
-    /* Bento Grid Logic */
+    /* The Bento-style hierarchy */
     .grid {
       display: grid;
       gap: 20px;
@@ -74,150 +85,150 @@
 
     .tile {
       position: relative;
-      background: var(--card-bg);
+      background: var(--card-bg-wip);
       backdrop-filter: var(--glass);
       -webkit-backdrop-filter: var(--glass);
-      border: 1px solid var(--card-border);
-      border-radius: 24px;
+      border-radius: 28px;
       padding: 24px;
       display: flex;
       flex-direction: column;
       gap: 12px;
       transition: all 0.3s cubic-bezier(0.2, 1, 0.3, 1);
-      cursor: pointer;
-      text-decoration: none;
-      color: inherit;
       overflow: hidden;
+      cursor: pointer;
     }
 
-    /* Highlighting Active Apps */
-    .tile.featured {
+    /* THE FUN: Large cards glow and pulsate when active */
+    .tile.active {
       grid-column: span 3;
-      background: rgba(255, 69, 0, 0.05);
       border: 1px solid rgba(255, 69, 0, 0.3);
-      box-shadow: 0 0 40px rgba(0,0,0,0.5);
+      background: linear-gradient(160deg, rgba(255, 69, 0, 0.05) 0%, rgba(0,0,0,0.4) 100%);
+      box-shadow: 0 0 50px rgba(0,0,0,0.4);
     }
     
-    .tile.standard { grid-column: span 2; }
-
-    .tile:hover {
-      transform: translateY(-5px) scale(1.01);
-      border-color: rgba(255, 255, 255, 0.2);
-      background: rgba(255, 255, 255, 0.06);
+    .tile.active::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at top right, rgba(255, 69, 0, 0.1), transparent 50%);
+        opacity: 0;
+        transition: opacity 0.5s ease;
     }
 
-    .tile.featured:hover {
+    .tile.active:hover {
+      transform: translateY(-8px);
       border-color: var(--brand);
-      box-shadow: 0 0 30px var(--brand-glow);
+      box-shadow: 0 0 60px var(--brand-glow);
     }
+    .tile.active:hover::after { opacity: 1; }
 
-    /* App Badges */
-    .status-badge {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      font-size: 10px;
-      font-weight: 800;
-      text-transform: uppercase;
-      padding: 4px 8px;
-      border-radius: 6px;
+    /* THE WIP: Smaller, grayscale, blurred */
+    .tile.wip {
+      grid-column: span 2;
+      border: 1px solid var(--card-border-wip);
+      color: rgba(255, 255, 255, 0.5);
+      cursor: default;
+    }
+    .tile.wip .mark, .tile.wip .name, .tile.wip .desc { filter: grayscale(1); opacity: 0.5; }
+
+    /* The Status Badges are key for modern UI */
+    .status {
+      position: absolute; top: 18px; right: 18px;
+      font-size: 10px; font-weight: 800; text-transform: uppercase;
+      padding: 4px 8px; border-radius: 6px;
       background: rgba(255,255,255,0.1);
     }
+    .tile.active .status { background: var(--brand); color: #fff; font-weight: 900; }
+    .tile.wip .status { background: #333; }
+    .status-tst { background: #222 !important; color: #0f0 !important; font-family: monospace; }
 
-    .featured .status-badge { background: var(--brand); color: #fff; }
-    .tst-badge { background: #333 !important; color: #0f0 !important; font-family: monospace; }
-
-    .mark {
-      font-size: 32px;
-      margin-bottom: 10px;
-      filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
-    }
-
-    .name { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
-    .desc { font-size: 14px; color: var(--text-dim); line-height: 1.5; font-weight: 400; }
+    .mark { font-size: 36px; margin-bottom: 5px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.1)); }
+    .name { font-weight: 900; font-size: 24px; line-height: 1.1; letter-spacing: -0.5px; }
+    .desc { font-weight: 400; font-size: 14px; color: rgba(255,255,255,0.7); line-height: 1.5; }
+    
+    .actions { margin-top: auto; display: flex; justify-content: flex-start; }
 
     .btn {
-      margin-top: auto;
-      align-self: flex-start;
-      padding: 10px 20px;
-      border-radius: 12px;
-      background: #fff;
-      color: #000;
-      font-weight: 700;
-      font-size: 13px;
-      border: none;
-      transition: 0.2s;
+      font-weight: 900; padding: 11px 18px; border-radius: 12px;
+      font-size: 14px; cursor: pointer; border: none; transition: 0.2s;
     }
 
-    .featured .btn { background: var(--brand); color: #fff; }
-
-    footer {
-      padding: 40px;
-      text-align: center;
-      font-size: 12px;
-      color: var(--text-dim);
-      letter-spacing: 1px;
+    .tile.active .btn {
+      background: #fff; color: #000;
+      box-shadow: 0 0 20px rgba(255,255,255,0.1);
     }
+    .tile.active .btn:hover { background: var(--brand); color: #fff; transform: scale(1.05); }
+
+    .tile.wip .btn { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.5); cursor: not-allowed; }
+
+    footer { text-align: center; color: rgba(255,255,255,0.4); font-weight: 600; padding-bottom: 25px; font-size: 13px; letter-spacing: 1px; }
 
     /* Mobile Cleanup */
     @media (max-width: 900px) {
       .grid { grid-template-columns: 1fr; }
-      .tile.featured, .tile.standard { grid-column: span 1; }
-      .mast-title { font-size: 2.5rem; }
+      .tile.active, .tile.wip { grid-column: span 1; }
+      .mast-title { align-items: center; text-align: center; }
     }
   </style>
 </head>
-<body>
+<body class="theme-night">
 
   <header>
-    <img class="logo" src="/assets/pocket_steak_logo.png" alt="Logo" />
-    <h1 class="mast-title">POCKETSTEAK <span>APPS</span></h1>
+    <div class="mast">
+      <img class="logo" src="/assets/pocket_steak_logo.png" alt="Logo" />
+      <div class="mast-title">
+        <span class="line1">POCKETSTEAK'S</span>
+        <span class="line2">SYSTEM HUB</span>
+      </div>
+    </div>
+    <div class="mast-bar"></div>
   </header>
 
   <main>
     <div class="grid" id="grid"></div>
   </main>
 
-  <footer>© 2026 POCKETSTEAK — SYSTEM ACTIVE</footer>
+  <footer>© 2026 POCKETSTEAK — SYSTEM ONLINE</footer>
 
   <script>
+    // Priority: FCC & Recipe are larger (span 3), TST and others smaller (span 2)
     const APPS = [
       {
         emoji: "🏠",
         name: "Family Command Center",
-        desc: "The central nervous system for the household. Calendars, lists, and notes.",
+        desc: "Centralized calendar, grocery list, to-do list, and notes.",
         url: "/family/",
-        type: "featured"
+        type: "active"
       },
       {
         emoji: "🍽️",
         name: "Recipe Extractor",
-        desc: "Clean, ad-free recipes stripped from the web in seconds.",
+        desc: "Instantly pull clean, ad-free recipes from across the web.",
         url: "https://pocketsteak-recipes.vercel.app/",
-        type: "featured"
+        type: "active"
       },
       {
         emoji: "🧪",
         name: "Command Center TST",
-        desc: "Sandbox environment for experimental features.",
+        desc: "Sandbox clone for experimental testing.",
         url: "/family-tst/",
-        type: "standard",
+        type: "wip", // Still in the smaller grid but functional
         status: "TEST"
       },
       {
         emoji: "🗳️",
-        name: "Secret Vote",
-        desc: "Anonymous ranking system. WIP.",
+        name: "The Secret Vote",
+        desc: "Anonymous ranking system.",
         url: "https://pocket-steak.github.io/secret-vote/#/",
-        type: "standard",
+        type: "wip",
         status: "WIP"
       },
       {
         emoji: "⏳",
         name: "Countdown",
-        desc: "T-Minus August 15, 2026.",
+        desc: "Countdown to August 15, 2026.",
         url: "/countdown/",
-        type: "standard",
+        type: "wip",
         status: "WIP"
       }
     ];
@@ -225,14 +236,34 @@
     const grid = document.getElementById("grid");
 
     grid.innerHTML = APPS.map((app) => `
-      <a href="${app.url}" class="tile ${app.type}" ${app.url.startsWith('http') ? 'target="_blank"' : ''}>
-        ${app.status ? `<span class="status-badge ${app.status === 'TEST' ? 'tst-badge' : ''}">${app.status}</span>` : '<span class="status-badge">Active</span>'}
+      <div class="tile ${app.type}" data-url="${app.url}">
+        <span class="status ${app.status === 'TEST' ? 'status-tst' : ''}">
+          ${app.status ? app.status : 'Active'}
+        </span>
         <div class="mark">${app.emoji}</div>
         <div class="name">${app.name}</div>
         <div class="desc">${app.desc}</div>
-        <button class="btn">${app.status === 'WIP' ? 'Preview' : 'Launch'}</button>
-      </a>
+        <div class="actions">
+          <button class="btn">${app.status === 'WIP' ? 'Coming soon' : 'Launch'}</button>
+        </div>
+      </div>
     `).join("");
+
+    grid.addEventListener("click", (e) => {
+      const tile = e.target.closest(".tile");
+      if (!tile) return;
+      
+      const url = tile.dataset.url;
+      const status = tile.querySelector('.status').innerText;
+      
+      if (status === "WIP") return;
+
+      if (url.startsWith("/")) {
+        window.location.href = url;
+      } else {
+        window.open(url, "_blank", "noopener,noreferrer");
+      }
+    });
   </script>
 </body>
 </html>
