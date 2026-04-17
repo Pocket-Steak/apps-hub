@@ -4,230 +4,235 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PocketSteak's Apps</title>
-  <meta name="description" content="A bold, fun hub for PocketSteak's projects and apps." />
-
   <style>
-    :root{
-      --ink:#0a0a0a; --ink-invert:#fff;
-      --shadow-1:0 20px 60px rgba(0,0,0,.35);
-      --radius-xxl:28px; --grid-max:1120px;
-      --tile-fg:#0b0b0b; --mark-bg:rgba(255,255,255,.92); --mark-border:rgba(0,0,0,.05);
-      --brand:#FF4500;
+    :root {
+      --bg: #050505;
+      --brand: #FF4500;
+      --brand-glow: rgba(255, 69, 0, 0.35);
+      --card-bg: rgba(255, 255, 255, 0.03);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text-main: #ffffff;
+      --text-dim: rgba(255, 255, 255, 0.6);
+      --glass: blur(12px);
     }
 
-    .theme-night{
-      --bg-a:#0b0b0d; --bg-b:#141417; --bg-c:#1c1c20; --bg-d:#2a2a2f;
-      --tile-1:linear-gradient(135deg,#2c2c31,#16161a);
-      --tile-2:linear-gradient(135deg,#34343a,#1b1b20);
-      --tile-3:linear-gradient(135deg,#3a3a41,#202026);
-      --tile-4:linear-gradient(135deg,#2f2f36,#141419);
-      --tile-fg:#f2f3f5; --mark-bg:rgba(255,255,255,.08); --mark-border:rgba(255,255,255,.15);
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      /* Edgy Mesh Gradient Background */
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(255, 69, 0, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(255, 69, 0, 0.1) 0px, transparent 50%);
+      overflow-x: hidden;
     }
 
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%}
-    body{
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      color:var(--ink-invert);
-      background:
-        radial-gradient(1200px 600px at 10% -10%, rgba(255,255,255,.18), transparent 60%),
-        radial-gradient(1000px 600px at 110% 10%, rgba(255,255,255,.12), transparent 55%),
-        linear-gradient(135deg,var(--bg-a),var(--bg-b) 35%,var(--bg-c) 70%,var(--bg-d));
-      background-size:200% 200%;
-      animation:bgShift 18s ease-in-out infinite alternate;
-    }
-    @keyframes bgShift{from{background-position:0% 40%}to{background-position:100% 60%}}
-
-    header{max-width:var(--grid-max);margin:0 auto;padding:20px 18px 0}
-    .mast{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:10px;
-      width:100%;
+    header {
+      max-width: 1100px;
+      margin: 40px auto 20px;
+      padding: 0 20px;
+      text-align: center;
     }
 
-    .logo{
-      width:clamp(118px,18vw,210px);
-      height:auto; display:block;
-      filter:brightness(1.1) drop-shadow(0 6px 18px rgba(0,0,0,.6));
+    .logo {
+      width: 80px;
+      filter: drop-shadow(0 0 20px var(--brand-glow));
+      margin-bottom: 10px;
     }
 
-    .mast-title{
-      display:flex; flex-direction:column; align-items:center; justify-content:center;
-      line-height:1.02;
-      text-align:center;
-    }
-    .mast-title .line1{ font-weight:900; font-size:clamp(34px,4.9vw,72px); }
-    .mast-title .line2{ font-weight:900; font-size:clamp(31px,4.4vw,66px); }
-
-    .mast-title .line1,
-    .mast-title .line2 {
-      background:#FF4500;
+    .mast-title {
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 900;
+      letter-spacing: -2px;
+      text-transform: uppercase;
+      background: linear-gradient(to bottom, #fff, #888);
       -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+      -webkit-text-fill-color: transparent;
     }
 
-    .mast-bar{
-      height:8px; border-radius:999px;
-      background:rgba(255,255,255,.14);
-      box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 10px 26px rgba(0,0,0,.18);
-      margin:12px 0 14px 0;
+    .mast-title span { color: var(--brand); -webkit-text-fill-color: var(--brand); }
+
+    main {
+      max-width: 1100px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px;
+      flex: 1;
     }
 
-    main{max-width:var(--grid-max);margin:0 auto;padding:8px 18px 42px}
-    .grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(235px,1fr))}
-
-    .tile{
-      display:flex;flex-direction:column;gap:10px;padding:18px;
-      border-radius:24px;
-      background:var(--tile-1);
-      color:var(--tile-fg);
-      box-shadow:var(--shadow-1);
-      border:1px solid rgba(255,255,255,.2);
-      cursor:pointer;
-      transition:transform .18s ease, box-shadow .18s ease;
-    }
-    .tile:hover{transform:translateY(-3px);box-shadow:0 22px 56px rgba(0,0,0,.42)}
-
-    .mark{
-      width:54px;height:54px;display:grid;place-items:center;
-      border-radius:16px;font-size:28px;
-      background:var(--mark-bg);
-      border:1px solid var(--mark-border);
+    /* Bento Grid Logic */
+    .grid {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: repeat(6, 1fr);
     }
 
-    .name{font-weight:900;font-size:21px;line-height:1.08}
-    .desc{opacity:.9;font-weight:600;font-size:14px;line-height:1.4}
-
-    .actions{margin-top:auto;display:flex;justify-content:flex-end}
-
-    .btn{
-      font-weight:900;
-      padding:9px 13px;
-      border-radius:12px;
-      background:var(--brand);
-      color:#fff;
-      border:none;
-      cursor:pointer;
-      font-size:14px;
+    .tile {
+      position: relative;
+      background: var(--card-bg);
+      backdrop-filter: var(--glass);
+      -webkit-backdrop-filter: var(--glass);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: all 0.3s cubic-bezier(0.2, 1, 0.3, 1);
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      overflow: hidden;
     }
 
-    .btn.disabled{
-      background:rgba(255,255,255,.18);
-      cursor:not-allowed;
+    /* Highlighting Active Apps */
+    .tile.featured {
+      grid-column: span 3;
+      background: rgba(255, 69, 0, 0.05);
+      border: 1px solid rgba(255, 69, 0, 0.3);
+      box-shadow: 0 0 40px rgba(0,0,0,0.5);
+    }
+    
+    .tile.standard { grid-column: span 2; }
+
+    .tile:hover {
+      transform: translateY(-5px) scale(1.01);
+      border-color: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.06);
     }
 
-    footer{text-align:center;color:rgba(255,255,255,.75);font-weight:600;padding-bottom:20px;font-size:13px}
-
-    @media (max-height: 900px){
-      header{padding:16px 16px 0}
-      .logo{width:clamp(108px,15vw,180px)}
-      .mast-title .line1{font-size:clamp(28px,4.2vw,60px)}
-      .mast-title .line2{font-size:clamp(26px,3.8vw,54px)}
-      .mast-bar{margin:10px 0 12px 0}
-      main{padding:6px 16px 30px}
-      .grid{gap:14px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
-      .tile{padding:16px;gap:8px}
-      .mark{width:48px;height:48px;font-size:24px}
-      .name{font-size:19px}
-      .desc{font-size:13px}
+    .tile.featured:hover {
+      border-color: var(--brand);
+      box-shadow: 0 0 30px var(--brand-glow);
     }
 
-    @media (max-width: 700px){
-      header{padding:16px 14px 0}
-      .mast{gap:8px}
-      .logo{width:110px}
-      main{padding:6px 14px 28px}
-      .grid{gap:14px;grid-template-columns:1fr}
+    /* App Badges */
+    .status-badge {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .featured .status-badge { background: var(--brand); color: #fff; }
+    .tst-badge { background: #333 !important; color: #0f0 !important; font-family: monospace; }
+
+    .mark {
+      font-size: 32px;
+      margin-bottom: 10px;
+      filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
+    }
+
+    .name { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
+    .desc { font-size: 14px; color: var(--text-dim); line-height: 1.5; font-weight: 400; }
+
+    .btn {
+      margin-top: auto;
+      align-self: flex-start;
+      padding: 10px 20px;
+      border-radius: 12px;
+      background: #fff;
+      color: #000;
+      font-weight: 700;
+      font-size: 13px;
+      border: none;
+      transition: 0.2s;
+    }
+
+    .featured .btn { background: var(--brand); color: #fff; }
+
+    footer {
+      padding: 40px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+    }
+
+    /* Mobile Cleanup */
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+      .tile.featured, .tile.standard { grid-column: span 1; }
+      .mast-title { font-size: 2.5rem; }
     }
   </style>
 </head>
+<body>
 
-<body class="theme-night">
   <header>
-    <div class="mast">
-      <img class="logo" src="/assets/pocket_steak_logo.png" alt="PocketSteak logo" />
-      <div class="mast-title">
-        <span class="line1">PocketSteak's</span>
-        <span class="line2">Apps</span>
-      </div>
-    </div>
-    <div class="mast-bar"></div>
+    <img class="logo" src="/assets/pocket_steak_logo.png" alt="Logo" />
+    <h1 class="mast-title">POCKETSTEAK <span>APPS</span></h1>
   </header>
 
   <main>
     <div class="grid" id="grid"></div>
   </main>
 
-  <footer>© PocketSteak — Built to tap.</footer>
+  <footer>© 2026 POCKETSTEAK — SYSTEM ACTIVE</footer>
 
   <script>
     const APPS = [
       {
-        emoji: "🗳️",
-        name: "The Secret Vote",
-        desc: "Anonymous room-based ranking magic.",
-        url: "https://pocket-steak.github.io/secret-vote/#/"
-      },
-      {
-        emoji: "⏳",
-        name: "Countdown",
-        desc: "Live countdown to August 15, 2026.",
-        url: "/countdown/"
-      },
-      {
         emoji: "🏠",
         name: "Family Command Center",
-        desc: "Weekly calendar, grocery list, to-do list, and family notes.",
-        url: "/family/"
+        desc: "The central nervous system for the household. Calendars, lists, and notes.",
+        url: "/family/",
+        type: "featured"
       },
       {
         emoji: "🍽️",
         name: "Recipe Extractor",
-        desc: "Pull clean recipes from the web.",
-        url: "https://pocketsteak-recipes.vercel.app/"
+        desc: "Clean, ad-free recipes stripped from the web in seconds.",
+        url: "https://pocketsteak-recipes.vercel.app/",
+        type: "featured"
       },
       {
         emoji: "🧪",
         name: "Command Center TST",
-        desc: "Test copy of the family command center for trying changes safely.",
-        url: "/family-tst/"
+        desc: "Sandbox environment for experimental features.",
+        url: "/family-tst/",
+        type: "standard",
+        status: "TEST"
+      },
+      {
+        emoji: "🗳️",
+        name: "Secret Vote",
+        desc: "Anonymous ranking system. WIP.",
+        url: "https://pocket-steak.github.io/secret-vote/#/",
+        type: "standard",
+        status: "WIP"
+      },
+      {
+        emoji: "⏳",
+        name: "Countdown",
+        desc: "T-Minus August 15, 2026.",
+        url: "/countdown/",
+        type: "standard",
+        status: "WIP"
       }
     ];
 
     const grid = document.getElementById("grid");
 
     grid.innerHTML = APPS.map((app) => `
-      <article class="tile" data-url="${app.url}" data-wip="${app.underConstruction ? 1 : 0}">
+      <a href="${app.url}" class="tile ${app.type}" ${app.url.startsWith('http') ? 'target="_blank"' : ''}>
+        ${app.status ? `<span class="status-badge ${app.status === 'TEST' ? 'tst-badge' : ''}">${app.status}</span>` : '<span class="status-badge">Active</span>'}
         <div class="mark">${app.emoji}</div>
         <div class="name">${app.name}</div>
         <div class="desc">${app.desc}</div>
-        <div class="actions">
-          ${
-            app.underConstruction
-              ? `<button class="btn disabled">Coming Soon</button>`
-              : `<button class="btn">Open</button>`
-          }
-        </div>
-      </article>
+        <button class="btn">${app.status === 'WIP' ? 'Preview' : 'Launch'}</button>
+      </a>
     `).join("");
-
-    grid.addEventListener("click", (e) => {
-      const tile = e.target.closest(".tile");
-      if (!tile) return;
-      if (tile.dataset.wip === "1") return;
-
-      const url = tile.dataset.url;
-      if (!url) return;
-
-      if (url.startsWith("/")) {
-        window.location.href = url;
-      } else {
-        window.open(url, "_blank", "noopener,noreferrer");
-      }
-    });
   </script>
 </body>
 </html>
