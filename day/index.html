@@ -282,6 +282,12 @@
       gap:12px;
     }
 
+    .date-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:12px;
+    }
+
     .duration-row{
       display:flex;
       gap:8px;
@@ -409,6 +415,7 @@
         width:100%;
       }
 
+      .date-grid,
       .time-grid{
         grid-template-columns:1fr;
       }
@@ -610,9 +617,16 @@
           <input id="eventName" type="text" placeholder="Enter event name" />
         </div>
 
-        <div class="field">
-          <label for="eventDate">Date</label>
-          <input id="eventDate" type="date" />
+        <div class="date-grid">
+          <div class="field">
+            <label for="eventDate">Start Date</label>
+            <input id="eventDate" type="date" />
+          </div>
+
+          <div class="field">
+            <label for="eventEndDate">End Date</label>
+            <input id="eventEndDate" type="date" />
+          </div>
         </div>
 
         <div class="time-grid">
@@ -857,6 +871,28 @@
       });
     }
 
+    function formatDateTimeLabel(date) {
+      return date.toLocaleString([], {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
+      });
+    }
+
+    function formatEventTimeRange(event) {
+      const start = new Date(event.start.dateTime);
+      const end = new Date(event.end.dateTime);
+      const startsOn = formatDateKey(start);
+      const endsOn = formatDateKey(end);
+
+      if (startsOn === endsOn) {
+        return `${formatTimeLabel(event.start.dateTime)} - ${formatTimeLabel(event.end.dateTime)}`;
+      }
+
+      return `${formatDateTimeLabel(start)} - ${formatDateTimeLabel(end)}`;
+    }
+
     function renderHeader() {
       document.getElementById("dayTitle").textContent = formatLongDate(selectedDate);
     }
@@ -879,9 +915,15 @@
       timedEvents.forEach(event => {
         const startDate = new Date(event.start.dateTime);
         const endDate = new Date(event.end.dateTime);
+        const visibleStart = buildDateTime(selectedDate, minutesToTime(START_HOUR * 60));
+        const visibleEnd = buildDateTime(selectedDate, minutesToTime(END_HOUR * 60));
+        const displayStart = startDate < visibleStart ? visibleStart : startDate;
+        const displayEnd = endDate > visibleEnd ? visibleEnd : endDate;
 
-        const startMinutes = (startDate.getHours() * 60) + startDate.getMinutes();
-        const endMinutes = (endDate.getHours() * 60) + endDate.getMinutes();
+        if (displayEnd <= displayStart) return;
+
+        const startMinutes = (displayStart.getHours() * 60) + displayStart.getMinutes();
+        const endMinutes = (displayEnd.getHours() * 60) + displayEnd.getMinutes();
         const baseMinutes = START_HOUR * 60;
 
         const top = ((startMinutes - baseMinutes) / SLOT_MINUTES) * SLOT_HEIGHT;
@@ -894,7 +936,7 @@
         block.style.background = getCalendarColor(event.calendarId);
 
         block.innerHTML = `
-          <div class="event-time">${formatTimeLabel(event.start.dateTime)} - ${formatTimeLabel(event.end.dateTime)}</div>
+          <div class="event-time">${formatEventTimeRange(event)}</div>
           <div class="event-title">${event.summary || "(Untitled event)"}</div>
         `;
 
@@ -1044,6 +1086,7 @@
       document.getElementById("eventCalendar").value = "";
       document.getElementById("eventName").value = "";
       document.getElementById("eventDate").value = selectedDate;
+      document.getElementById("eventEndDate").value = selectedDate;
       document.getElementById("eventStart").value = "";
       document.getElementById("eventEnd").value = "";
       setDurationButtonsActive(30);
@@ -1060,19 +1103,22 @@
       getCalendarOptions();
       document.getElementById("eventCalendar").value = event.calendarId || "";
       document.getElementById("eventName").value = event.summary || "";
-      document.getElementById("eventDate").value = selectedDate;
 
       if (event.start?.dateTime) {
         const start = new Date(event.start.dateTime);
+        document.getElementById("eventDate").value = formatDateKey(start);
         document.getElementById("eventStart").value = `${String(start.getHours()).padStart(2, "0")}:${String(start.getMinutes()).padStart(2, "0")}`;
       } else {
+        document.getElementById("eventDate").value = selectedDate;
         document.getElementById("eventStart").value = "";
       }
 
       if (event.end?.dateTime) {
         const end = new Date(event.end.dateTime);
+        document.getElementById("eventEndDate").value = formatDateKey(end);
         document.getElementById("eventEnd").value = `${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes()).padStart(2, "0")}`;
       } else {
+        document.getElementById("eventEndDate").value = selectedDate;
         document.getElementById("eventEnd").value = "";
       }
 
@@ -1097,15 +1143,18 @@
       const calendarId = document.getElementById("eventCalendar").value.trim();
       const title = document.getElementById("eventName").value.trim();
       const date = document.getElementById("eventDate").value;
+      const endDate = document.getElementById("eventEndDate").value;
       const start = document.getElementById("eventStart").value;
       const end = document.getElementById("eventEnd").value;
 
       if (!calendarId) return "Choose a calendar.";
       if (!title) return "Enter an event name.";
-      if (!date) return "Choose a date.";
+      if (!date) return "Choose a start date.";
+      if (!endDate) return "Choose an end date.";
+      if (endDate < date) return "End date must be on or after the start date.";
       if (!start) return "Choose a start time.";
       if (!end) return "Choose an end time.";
-      if (start >= end) return "End time must be after start time.";
+      if (date === endDate && start >= end) return "End time must be after start time.";
 
       const minTime = "06:00";
       const maxTime = "22:00";
@@ -1128,11 +1177,12 @@
       const calendarId = document.getElementById("eventCalendar").value.trim();
       const title = document.getElementById("eventName").value.trim();
       const date = document.getElementById("eventDate").value;
+      const endDate = document.getElementById("eventEndDate").value;
       const start = document.getElementById("eventStart").value;
       const end = document.getElementById("eventEnd").value;
 
       const startDateTime = buildDateTime(date, start).toISOString();
-      const endDateTime = buildDateTime(date, end).toISOString();
+      const endDateTime = buildDateTime(endDate, end).toISOString();
 
       const resource = {
         summary: title,
@@ -1235,6 +1285,14 @@
     document.getElementById("cancelBtn").addEventListener("click", closeModal);
     document.getElementById("saveBtn").addEventListener("click", saveForm);
     document.getElementById("deleteBtn").addEventListener("click", deleteEvent);
+    document.getElementById("eventDate").addEventListener("change", () => {
+      const startDate = document.getElementById("eventDate").value;
+      const endDateInput = document.getElementById("eventEndDate");
+
+      if (startDate && (!endDateInput.value || endDateInput.value < startDate)) {
+        endDateInput.value = startDate;
+      }
+    });
     document.getElementById("eventStart").addEventListener("change", () => {
       const startValue = document.getElementById("eventStart").value;
       const endValue = document.getElementById("eventEnd").value;
