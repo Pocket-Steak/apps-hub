@@ -78,7 +78,17 @@
     }
 
     main{max-width:var(--grid-max);margin:0 auto;padding:8px 18px 42px}
-    .grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(235px,1fr))}
+    .app-layout{display:flex;flex-direction:column;gap:18px}
+    .grid{display:grid;gap:18px}
+    .row-primary{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .row-secondary{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+    .row-divider{
+      height:6px;
+      border-radius:999px;
+      background:rgba(0,0,0,.72);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.05), 0 12px 28px rgba(0,0,0,.24);
+    }
 
     .tile{
       display:flex;flex-direction:column;gap:10px;padding:18px;
@@ -129,7 +139,8 @@
       .mast-title .line2{font-size:clamp(26px,3.8vw,54px)}
       .mast-bar{margin:10px 0 12px 0}
       main{padding:6px 16px 30px}
-      .grid{gap:14px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+      .app-layout{gap:14px}
+      .grid{gap:14px}
       .tile{padding:16px;gap:8px}
       .mark{width:48px;height:48px;font-size:24px}
       .name{font-size:19px}
@@ -141,6 +152,7 @@
       .mast{gap:8px}
       .logo{width:96px}
       main{padding:6px 14px 28px}
+      .app-layout{gap:14px}
       .grid{gap:14px;grid-template-columns:1fr}
     }
   </style>
@@ -159,24 +171,22 @@
   </header>
 
   <main>
-    <div class="grid" id="grid"></div>
+    <div class="app-layout">
+      <div class="grid row-primary" id="primary-grid"></div>
+      <div class="row-divider" aria-hidden="true"></div>
+      <div class="grid row-secondary" id="secondary-grid"></div>
+    </div>
   </main>
 
   <footer>© PocketSteak — Built to tap.</footer>
 
   <script>
-    const APPS = [
+    const PRIMARY_APPS = [
       {
-        emoji: "🗳️",
-        name: "The Secret Vote",
-        desc: "Anonymous room-based ranking magic.",
-        url: "https://pocket-steak.github.io/secret-vote/#/"
-      },
-      {
-        emoji: "⏳",
-        name: "Countdown",
-        desc: "Live countdown to August 15, 2026.",
-        url: "/countdown/"
+        emoji: "🍽️",
+        name: "Recipe Extractor",
+        desc: "Pull clean recipes from the web.",
+        url: "https://pocketsteak-recipes.vercel.app/"
       },
       {
         emoji: "🏠",
@@ -185,16 +195,19 @@
         url: "/family/"
       },
       {
-        emoji: "🍽️",
-        name: "Recipe Extractor",
-        desc: "Pull clean recipes from the web.",
-        url: "https://pocketsteak-recipes.vercel.app/"
-      },
-      {
         emoji: "⭐",
         name: "FAVES",
         desc: "Store your top favorite things in ranked lists.",
         url: "https://pocket-faves.vercel.app/"
+      }
+    ];
+
+    const SECONDARY_APPS = [
+      {
+        emoji: "⏳",
+        name: "Countdown",
+        desc: "Live countdown to August 15, 2026.",
+        url: "/countdown/"
       },
       {
         emoji: "🧪",
@@ -204,9 +217,10 @@
       }
     ];
 
-    const grid = document.getElementById("grid");
+    const primaryGrid = document.getElementById("primary-grid");
+    const secondaryGrid = document.getElementById("secondary-grid");
 
-    grid.innerHTML = APPS.map((app) => `
+    const renderTiles = (apps) => apps.map((app) => `
       <article class="tile" data-url="${app.url}" data-wip="${app.underConstruction ? 1 : 0}">
         <div class="mark">${app.emoji}</div>
         <div class="name">${app.name}</div>
@@ -221,7 +235,10 @@
       </article>
     `).join("");
 
-    grid.addEventListener("click", (e) => {
+    primaryGrid.innerHTML = renderTiles(PRIMARY_APPS);
+    secondaryGrid.innerHTML = renderTiles(SECONDARY_APPS);
+
+    document.querySelector("main").addEventListener("click", (e) => {
       const tile = e.target.closest(".tile");
       if (!tile) return;
       if (tile.dataset.wip === "1") return;
