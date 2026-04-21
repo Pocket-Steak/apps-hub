@@ -2027,7 +2027,7 @@
         <div class="preview-head">
           <div class="preview-heading">
             <div class="preview-title">Family Tasks</div>
-            <div class="preview-meta" id="chorePreviewMeta">Connect Google to load weekly tasks.</div>
+            <div class="preview-meta" id="chorePreviewMeta">Connect Google to load daily tasks.</div>
           </div>
           <button class="preview-open" id="chorePreviewBtn" type="button">Open Tasks</button>
         </div>
@@ -2064,6 +2064,7 @@
     const GROCERY_SHEET_NAME = "Groceries";
     const TODO_SHEET_NAME = "ToDo";
     const TASKS_SHEET_NAME = "Tasks";
+    const TASK_HISTORY_SHEET_NAME = "Task History";
     const SCOPES = [
       "https://www.googleapis.com/auth/calendar",
       "https://www.googleapis.com/auth/spreadsheets",
@@ -2089,6 +2090,7 @@
     let groceryPreviewRows = [];
     let todoPreviewRows = [];
     let choresPreviewRows = [];
+    let chorePreviewHistoryEntries = [];
     let groceryPreviewError = "";
     let todoPreviewError = "";
     let chorePreviewError = "";
@@ -2158,10 +2160,32 @@
       return String(num).padStart(2, "0");
     }
 
-    function getCurrentWeekStartKey() {
-      const date = new Date();
+    function getStartOfDay(dateInput = new Date()) {
+      const date = new Date(dateInput);
       date.setHours(0, 0, 0, 0);
-      date.setDate(date.getDate() - date.getDay());
+      return date;
+    }
+
+    function getWeekStartDateFor(dateInput = new Date()) {
+      const date = getStartOfDay(dateInput);
+      const day = date.getDay();
+      const diff = day === 0 ? -6 : 1 - day;
+      date.setDate(date.getDate() + diff);
+      return date;
+    }
+
+    function getCurrentDayKey() {
+      return formatDateKey(getStartOfDay());
+    }
+
+    function getCurrentWeekStartKey() {
+      return formatDateKey(getWeekStartDateFor(new Date()));
+    }
+
+    function getDayKeyForTimestamp(value) {
+      if (!value) return "";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "";
       return formatDateKey(date);
     }
 
@@ -2275,6 +2299,26 @@
         ["owner", "person", "addedby", "added by", "who"].includes(fourth) ||
         ["point", "points", "score", "scores", "pts"].includes(String(row?.[4] || "").trim().toLowerCase()) ||
         ["week", "weekstart", "week start"].includes(String(row?.[5] || "").trim().toLowerCase())
+      );
+    }
+
+    function isTaskHistoryHeaderRow(row) {
+      const first = String(row?.[0] || "").trim().toLowerCase();
+      const second = String(row?.[1] || "").trim().toLowerCase();
+      const third = String(row?.[2] || "").trim().toLowerCase();
+      const fourth = String(row?.[3] || "").trim().toLowerCase();
+      const fifth = String(row?.[4] || "").trim().toLowerCase();
+      const sixth = String(row?.[5] || "").trim().toLowerCase();
+      const seventh = String(row?.[6] || "").trim().toLowerCase();
+
+      return (
+        ["task row", "source row", "row", "taskrow", "sourcerow"].includes(first) ||
+        ["task", "item", "title", "name"].includes(second) ||
+        ["person", "owner", "completed by", "completedby"].includes(third) ||
+        ["point", "points", "score", "scores", "pts"].includes(fourth) ||
+        ["completedat", "completed at", "timestamp", "date"].includes(fifth) ||
+        ["week", "weekstart", "week start"].includes(sixth) ||
+        ["day", "daykey", "day key", "date key"].includes(seventh)
       );
     }
 
@@ -2425,25 +2469,26 @@
         : `<div class="preview-empty">Everything here is completed.</div>`;
     }
 
-    function buildChoreLeaderboard(rows) {
+    function buildChoreLeaderboard(historyEntries) {
       const entries = new Map();
 
-      rows.forEach((row) => {
-        const owner = getOwnerLabel(row.done ? (row.completedBy || row.owner) : row.owner);
+      historyEntries.forEach((entry) => {
+        const owner = getOwnerLabel(entry.person);
         if (!entries.has(owner)) {
           entries.set(owner, {
             owner,
+            completed: 0,
             points: 0,
           });
         }
 
-        if (row.done) {
-          entries.get(owner).points += row.points;
-        }
+        entries.get(owner).completed += 1;
+        entries.get(owner).points += entry.points;
       });
 
       return Array.from(entries.values()).sort((a, b) => {
         if (b.points !== a.points) return b.points - a.points;
+        if (b.completed !== a.completed) return b.completed - a.completed;
         return a.owner.localeCompare(b.owner);
       });
     }
@@ -2460,18 +2505,18 @@
 
       if (!choresPreviewRows.length) {
         metaEl.textContent = "No tasks loaded yet.";
-        listEl.innerHTML = `<div class="preview-empty">Open the Tasks board to add weekly tasks.</div>`;
+        listEl.innerHTML = `<div class="preview-empty">Open the Tasks board to add daily tasks.</div>`;
         return;
       }
 
       const activeRows = choresPreviewRows.filter((row) => !row.done);
       const doneRows = choresPreviewRows.filter((row) => row.done);
-      const leaderboard = buildChoreLeaderboard(choresPreviewRows);
+      const leaderboard = buildChoreLeaderboard(chorePreviewHistoryEntries);
       const leader = leaderboard[0];
 
       metaEl.textContent = leader && leader.points > 0
-        ? `${activeRows.length} tasks left • ${doneRows.length} done • ${leader.owner} leads with ${leader.points} pt${leader.points === 1 ? "" : "s"}`
-        : `${activeRows.length} tasks left • ${doneRows.length} done`;
+        ? `${activeRows.length} tasks left today • ${doneRows.length} done today • ${leader.owner} leads with ${leader.points} pt${leader.points === 1 ? "" : "s"}`
+        : `${activeRows.length} tasks left today • ${doneRows.length} done today`;
 
       const previewRows = activeRows.slice(0, 4);
       listEl.innerHTML = previewRows.length
@@ -2484,7 +2529,7 @@
               </div>
             </div>
           `).join("")
-        : `<div class="preview-empty">Every task is done for this week.</div>`;
+        : `<div class="preview-empty">Every task is done for today.</div>`;
     }
 
     function openDashboardOverlay(title, path) {
@@ -2530,29 +2575,68 @@
         .filter((row) => row.title);
     }
 
+    async function loadTaskHistoryPreview() {
+      try {
+        const response = await gapi.client.sheets.spreadsheets.values.get({
+          spreadsheetId: SPREADSHEET_ID,
+          range: `${TASK_HISTORY_SHEET_NAME}!A:G`,
+        });
+
+        const values = response.result.values || [];
+        const startIndex = values.length > 0 && isTaskHistoryHeaderRow(values[0]) ? 1 : 0;
+        const currentWeekKey = getCurrentWeekStartKey();
+
+        return values.slice(startIndex)
+          .map((row) => ({
+            sourceRowNumber: Number(row[0] || 0),
+            title: String(row[1] || "").trim(),
+            person: normalizeOwner(row[2]),
+            points: normalizePoints(row[3]),
+            completedAt: String(row[4] || "").trim(),
+            weekStart: String(row[5] || "").trim(),
+            dayKey: String(row[6] || "").trim(),
+          }))
+          .filter((row) => row.sourceRowNumber && row.person && row.weekStart === currentWeekKey && row.dayKey);
+      } catch (error) {
+        const message = String(error?.result?.error?.message || error?.message || "").toLowerCase();
+        if (message.includes("unable to parse range") || message.includes(TASK_HISTORY_SHEET_NAME.toLowerCase())) {
+          return [];
+        }
+        throw error;
+      }
+    }
+
     async function loadChorePreview() {
-      const response = await gapi.client.sheets.spreadsheets.values.get({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `${TASKS_SHEET_NAME}!A:G`,
-      });
+      const [response, historyEntries] = await Promise.all([
+        gapi.client.sheets.spreadsheets.values.get({
+          spreadsheetId: SPREADSHEET_ID,
+          range: `${TASKS_SHEET_NAME}!A:G`,
+        }),
+        loadTaskHistoryPreview(),
+      ]);
 
       const values = response.result.values || [];
       const startIndex = values.length > 0 && isLikelyHeaderRow(values[0]) ? 1 : 0;
-      const currentWeekKey = getCurrentWeekStartKey();
+      const currentDayKey = getCurrentDayKey();
 
-      return values.slice(startIndex)
+      const rows = values.slice(startIndex)
         .map((row) => {
-          const weekStart = String(row[5] || "").trim();
+          const completedAt = String(row[2] || "").trim();
           return {
             title: String(row[0] || "").trim(),
-            done: normalizeBool(row[1]) && (!weekStart || weekStart === currentWeekKey),
-            completedAt: String(row[2] || "").trim(),
+            done: normalizeBool(row[1]) && getDayKeyForTimestamp(completedAt) === currentDayKey,
+            completedAt,
             owner: normalizeOwner(row[3]),
             points: normalizePoints(row[4]),
             completedBy: normalizeOwner(row[6]),
           };
         })
         .filter((row) => row.title);
+
+      return {
+        rows,
+        historyEntries,
+      };
     }
 
     async function loadDashboardLists() {
@@ -2581,12 +2665,14 @@
       }
 
       if (results[2].status === "fulfilled") {
-        choresPreviewRows = results[2].value;
+        choresPreviewRows = results[2].value.rows;
+        chorePreviewHistoryEntries = results[2].value.historyEntries;
         chorePreviewError = "";
       } else {
         console.error(results[2].reason);
         choresPreviewRows = [];
-        chorePreviewError = "Open Tasks to initialize the weekly tasks sheet.";
+        chorePreviewHistoryEntries = [];
+        chorePreviewError = "Open Tasks to initialize the daily tasks sheet.";
       }
 
       renderAll();
@@ -2789,6 +2875,7 @@
       groceryPreviewRows = [];
       todoPreviewRows = [];
       choresPreviewRows = [];
+      chorePreviewHistoryEntries = [];
       groceryPreviewError = "";
       todoPreviewError = "";
       chorePreviewError = "";
