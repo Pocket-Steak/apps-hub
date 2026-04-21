@@ -60,6 +60,10 @@
         linear-gradient(180deg, #0d0e11 0%, #12141a 35%, #171922 100%);
     }
 
+    body.modal-open {
+      overflow: hidden;
+    }
+
     .app {
       max-width: var(--maxw);
       margin: 0 auto;
@@ -439,6 +443,13 @@
       filter: saturate(0.82);
     }
 
+    .chore-tile.claimable {
+      background:
+        radial-gradient(circle at top right, rgba(255, 157, 47, 0.15), transparent 38%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.03));
+      border-color: rgba(255, 197, 123, 0.3);
+    }
+
     .chore-header {
       display: flex;
       align-items: flex-start;
@@ -511,9 +522,156 @@
       background: var(--success-soft);
     }
 
+    .claim-hint {
+      margin-top: -2px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      min-height: 24px;
+    }
+
+    .claim-hint-label {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent-2);
+    }
+
+    .claim-dots {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .claim-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      border: 2px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.04);
+    }
+
     .loading {
       opacity: 0.7;
       pointer-events: none;
+    }
+
+    .task-picker-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(7, 9, 13, 0.72);
+      backdrop-filter: blur(12px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .task-picker-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .task-picker-shell {
+      width: min(100%, 620px);
+      border-radius: 26px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background:
+        radial-gradient(circle at top left, rgba(255, 157, 47, 0.14), transparent 32%),
+        linear-gradient(180deg, #1a1c22, #22252d);
+      box-shadow: 0 26px 80px rgba(0, 0, 0, 0.48);
+      padding: 24px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .task-picker-label {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 900;
+      color: var(--accent-2);
+    }
+
+    .task-picker-title {
+      margin: 0;
+      font-size: clamp(1.7rem, 3vw, 2.15rem);
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      font-weight: 900;
+    }
+
+    .task-picker-copy {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.55;
+      font-weight: 700;
+    }
+
+    .task-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .task-picker-choice {
+      min-height: 144px;
+      border: 1px solid color-mix(in srgb, var(--choice-color, var(--owner-default)) 34%, rgba(255, 255, 255, 0.12));
+      border-radius: 20px;
+      padding: 16px;
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--choice-color, var(--owner-default)) 18%, rgba(255, 255, 255, 0.04)), rgba(255, 255, 255, 0.03)),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+      color: var(--text);
+      cursor: pointer;
+      display: grid;
+      gap: 12px;
+      align-content: start;
+      text-align: left;
+      transition: transform 0.18s ease, border-color 0.18s ease, filter 0.18s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .task-picker-choice:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.04);
+    }
+
+    .task-picker-choice:active {
+      transform: scale(0.985);
+    }
+
+    .task-picker-choice-swatch {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: var(--choice-color, var(--owner-default));
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--choice-color, var(--owner-default)) 20%, transparent);
+    }
+
+    .task-picker-choice-name {
+      font-size: 20px;
+      line-height: 1.08;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+
+    .task-picker-choice-note {
+      font-size: 12px;
+      line-height: 1.4;
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .task-picker-actions {
+      display: flex;
+      justify-content: flex-end;
     }
 
     @media (max-width: 1240px) {
@@ -573,6 +731,14 @@
       .point-badge {
         min-width: 0;
       }
+
+      .task-picker-shell {
+        padding: 20px;
+      }
+
+      .task-picker-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 
@@ -605,8 +771,8 @@
         <h1>Tasks</h1>
         <div class="hero-copy">
           Assigned tasks sync from Google Sheets. Tap any task when it is finished and the weekly leaderboard
-          updates automatically from the point values you set in Google. If a task is unassigned, the app will ask
-          who completed it so the right person gets the points.
+          updates automatically from the point values you set in Google. If a task is unassigned, you can just tap
+          your family color in the picker so the right person gets the points.
         </div>
       </div>
     </section>
@@ -659,7 +825,7 @@
     <section class="card">
       <div class="panel-head">
         <h2 class="section-title">Active Tasks</h2>
-        <div class="panel-meta">Tap a task tile to mark it done.</div>
+        <div class="panel-meta">Tap a task tile to mark it done. Unassigned tasks let you pick a color.</div>
       </div>
       <div id="activeList" class="tile-grid"></div>
       <div id="activeEmpty" class="empty">No tasks assigned for this week.</div>
@@ -675,6 +841,18 @@
     </section>
   </main>
 
+  <div class="task-picker-backdrop" id="taskPicker" aria-hidden="true">
+    <section class="task-picker-shell" role="dialog" aria-modal="true" aria-labelledby="taskPickerTitle">
+      <div class="task-picker-label">Choose Your Color</div>
+      <h2 class="task-picker-title" id="taskPickerTitle">Who finished this task?</h2>
+      <div class="task-picker-copy" id="taskPickerCopy">Tap your family color to claim the points.</div>
+      <div class="task-picker-grid" id="taskPickerGrid"></div>
+      <div class="task-picker-actions">
+        <button class="btn btn-back" id="taskPickerCancelBtn" type="button">Cancel</button>
+      </div>
+    </section>
+  </div>
+
   <script>
     const GOOGLE_API_KEY = "AIzaSyBPZEeYB8IaheJPJA2Y44msGfDwIhJMpGU";
     const GOOGLE_CLIENT_ID = "82204016171-ta1ipuu88gie0tkq69je3di5uifu1kki.apps.googleusercontent.com";
@@ -687,6 +865,7 @@
 
     const DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
     const SCOPES = "https://www.googleapis.com/auth/spreadsheets";
+    const COMPLETION_CHOICES = ["Andrew", "Nichol", "Jolie"];
 
     const HEADER_ROW = ["Task", "Done", "Completed At", "Owner", "Points", "Week Start", "Completed By"];
 
@@ -712,6 +891,13 @@
     const doneEmptyEl = document.getElementById("doneEmpty");
     const scoreGridEl = document.getElementById("scoreGrid");
     const scoreEmptyEl = document.getElementById("scoreEmpty");
+    const taskPickerEl = document.getElementById("taskPicker");
+    const taskPickerTitleEl = document.getElementById("taskPickerTitle");
+    const taskPickerCopyEl = document.getElementById("taskPickerCopy");
+    const taskPickerGridEl = document.getElementById("taskPickerGrid");
+    const taskPickerCancelBtn = document.getElementById("taskPickerCancelBtn");
+
+    let completionPickerResolve = null;
 
     function setBusy(value) {
       isBusy = value;
@@ -795,6 +981,66 @@
 
     function getOwnerForDisplay(row) {
       return row.done ? getCompletedOwner(row) : row.owner;
+    }
+
+    function getClaimHintHtml() {
+      return `
+        <div class="claim-hint" aria-hidden="true">
+          <span class="claim-hint-label">Choose a color</span>
+          <span class="claim-dots">
+            ${COMPLETION_CHOICES.map((owner) => `
+              <span class="claim-dot" style="background:${getOwnerColor(owner)}" title="${escapeHtml(owner)}"></span>
+            `).join("")}
+          </span>
+        </div>
+      `;
+    }
+
+    function closeCompletionPicker(selectedOwner = "") {
+      const resolve = completionPickerResolve;
+      completionPickerResolve = null;
+      taskPickerEl.classList.remove("open");
+      taskPickerEl.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+      taskPickerGridEl.innerHTML = "";
+      if (resolve) {
+        resolve(selectedOwner);
+      }
+    }
+
+    function openCompletionPicker(row) {
+      if (completionPickerResolve) {
+        closeCompletionPicker("");
+      }
+
+      taskPickerTitleEl.textContent = `Who finished "${row.title}"?`;
+      taskPickerCopyEl.textContent = `Tap your family color to claim ${formatPoints(row.points)} for this task.`;
+      taskPickerGridEl.innerHTML = "";
+
+      COMPLETION_CHOICES.forEach((owner) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "task-picker-choice";
+        button.style.setProperty("--choice-color", getOwnerColor(owner));
+        button.innerHTML = `
+          <span class="task-picker-choice-swatch"></span>
+          <span class="task-picker-choice-name">${escapeHtml(owner)}</span>
+          <span class="task-picker-choice-note">Tap to give ${escapeHtml(owner)} the points.</span>
+        `;
+        button.addEventListener("click", () => closeCompletionPicker(owner));
+        taskPickerGridEl.appendChild(button);
+      });
+
+      taskPickerEl.classList.add("open");
+      taskPickerEl.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+
+      return new Promise((resolve) => {
+        completionPickerResolve = resolve;
+        requestAnimationFrame(() => {
+          taskPickerGridEl.querySelector(".task-picker-choice")?.focus();
+        });
+      });
     }
 
     function formatDateKey(date) {
@@ -1343,6 +1589,9 @@
 
     function getTaskStatusText(row) {
       if (!row.done) {
+        if (!row.owner) {
+          return "Tap to choose your color";
+        }
         return "Ready for action";
       }
 
@@ -1356,21 +1605,25 @@
 
     function createChoreTile(row) {
       const displayOwner = getOwnerForDisplay(row);
+      const isClaimable = !row.done && !row.owner;
+      const ownerBadgeColor = isClaimable ? "var(--accent)" : getOwnerColor(displayOwner);
+      const ownerBadgeLabel = isClaimable ? "Pick a color" : getOwnerLabel(displayOwner);
       const button = document.createElement("button");
       button.type = "button";
-      button.className = `chore-tile${row.done ? " done" : ""}`;
-      button.style.borderLeftColor = getOwnerColor(displayOwner);
+      button.className = `chore-tile${row.done ? " done" : ""}${isClaimable ? " claimable" : ""}`;
+      button.style.borderLeftColor = ownerBadgeColor;
       button.innerHTML = `
         <div class="chore-header">
           <div class="chore-title">${escapeHtml(row.title)}</div>
           <div class="point-badge">${escapeHtml(formatPoints(row.points))}</div>
         </div>
         <div class="chore-meta">
-          <span class="owner-pill" style="background:${getOwnerColor(displayOwner)}">${escapeHtml(getOwnerLabel(displayOwner))}</span>
+          <span class="owner-pill" style="background:${ownerBadgeColor}">${escapeHtml(ownerBadgeLabel)}</span>
           <span class="chore-status${row.done ? " done" : ""}">
             ${escapeHtml(getTaskStatusText(row))}
           </span>
         </div>
+        ${isClaimable ? getClaimHintHtml() : ""}
       `;
       button.addEventListener("click", () => toggleDone(row));
       return button;
@@ -1407,7 +1660,6 @@
         return;
       }
 
-      setBusy(true);
       showMessage("", "");
 
       const nextDone = !targetRow.done;
@@ -1416,24 +1668,14 @@
       let completedBy = "";
 
       if (nextDone && !targetRow.owner) {
-        const enteredName = window.prompt(
-          `Who completed "${targetRow.title}"? Enter a name so the points go to the right person.`,
-          targetRow.completedBy || ""
-        );
-
-        if (enteredName === null) {
-          setBusy(false);
+        completedBy = await openCompletionPicker(targetRow);
+        if (!completedBy) {
           showMessage("Task completion canceled.", "");
           return;
         }
-
-        completedBy = normalizeOwner(enteredName);
-        if (!completedBy) {
-          setBusy(false);
-          showMessage("Enter who completed the task so the points can be credited.", "error");
-          return;
-        }
       }
+
+      setBusy(true);
 
       try {
         await gapi.client.sheets.spreadsheets.values.batchUpdate({
@@ -1550,6 +1792,17 @@
 
     resetWeekBtn.addEventListener("click", resetWeek);
     openSheetBtn.addEventListener("click", openSheet);
+    taskPickerCancelBtn.addEventListener("click", () => closeCompletionPicker(""));
+    taskPickerEl.addEventListener("click", (event) => {
+      if (event.target === taskPickerEl) {
+        closeCompletionPicker("");
+      }
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && taskPickerEl.classList.contains("open")) {
+        closeCompletionPicker("");
+      }
+    });
 
     if (new URLSearchParams(window.location.search).has("overlay")) {
       const backBtn = document.getElementById("backHomeBtn");
