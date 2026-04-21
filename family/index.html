@@ -727,7 +727,7 @@
     .preview-grid{
       grid-area:previews;
       display:grid;
-      grid-template-columns:repeat(2, minmax(0, 1fr));
+      grid-template-columns:repeat(3, minmax(0, 1fr));
       grid-template-rows:minmax(0, 1fr);
       gap:12px;
       height:100%;
@@ -1948,6 +1948,7 @@
       <div class="top-right">
         <button class="top-btn" id="backAppsBtn" type="button" style="display:none;">← Back to Apps</button>
         <button class="top-btn" id="cookbookBtn" type="button">Cookbook</button>
+        <button class="top-btn" id="choresBtn" type="button">Chores</button>
         <button class="top-btn" id="notesBtn" type="button" onclick="window.location.href='/notes/'">Notes</button>
         <button class="top-btn" id="settingsBtn" type="button" onclick="window.location.href='/settings/'">Settings</button>
         <div style="display:none;">
@@ -2021,6 +2022,19 @@
           <div class="preview-empty">Waiting for Google Sheets…</div>
         </div>
         </article>
+
+        <article class="preview-card" id="chorePreviewCard">
+        <div class="preview-head">
+          <div class="preview-heading">
+            <div class="preview-title">Family Chores</div>
+            <div class="preview-meta" id="chorePreviewMeta">Connect Google to load weekly chores.</div>
+          </div>
+          <button class="preview-open" id="chorePreviewBtn" type="button">Open Board</button>
+        </div>
+        <div class="preview-list" id="chorePreviewList">
+          <div class="preview-empty">Waiting for Google Sheets…</div>
+        </div>
+        </article>
       </section>
     </section>
   </div>
@@ -2049,6 +2063,7 @@
     const SPREADSHEET_ID = "1ccfVTfNqrrzMLkD4uK8fkWs3wRJENs5XQJHJfjkWmmY";
     const GROCERY_SHEET_NAME = "Groceries";
     const TODO_SHEET_NAME = "ToDo";
+    const CHORES_SHEET_NAME = "Chores";
     const SCOPES = [
       "https://www.googleapis.com/auth/calendar",
       "https://www.googleapis.com/auth/spreadsheets",
@@ -2073,6 +2088,10 @@
     let weekEvents = [];
     let groceryPreviewRows = [];
     let todoPreviewRows = [];
+    let choresPreviewRows = [];
+    let groceryPreviewError = "";
+    let todoPreviewError = "";
+    let chorePreviewError = "";
     let activeOverlayPath = "";
 
     function setStatus(text) {
@@ -2137,6 +2156,13 @@
 
     function padNumber(num) {
       return String(num).padStart(2, "0");
+    }
+
+    function getCurrentWeekStartKey() {
+      const date = new Date();
+      date.setHours(0, 0, 0, 0);
+      date.setDate(date.getDate() - date.getDay());
+      return formatDateKey(date);
     }
 
     function renderRideWaits(values) {
@@ -2212,6 +2238,14 @@
       return "";
     }
 
+    function normalizePoints(value) {
+      const numeric = Number(String(value || "").trim());
+      if (!Number.isFinite(numeric) || numeric <= 0) {
+        return 1;
+      }
+      return Math.max(1, Math.round(numeric));
+    }
+
     function getOwnerColor(owner) {
       if (owner === "Andrew") return "#ff8a1f";
       if (owner === "Nichol") return "#8b5cf6";
@@ -2230,10 +2264,12 @@
       const fourth = String(row?.[3] || "").trim().toLowerCase();
 
       return (
-        ["item", "items", "task", "tasks", "todo", "to-do", "grocery", "groceries", "name"].includes(first) ||
+        ["item", "items", "task", "tasks", "todo", "to-do", "grocery", "groceries", "chore", "chores", "name"].includes(first) ||
         ["bought", "done", "status", "checked", "complete", "completed"].includes(second) ||
         ["created", "createdat", "timestamp", "date"].includes(third) ||
-        ["owner", "person", "addedby", "added by", "who"].includes(fourth)
+        ["owner", "person", "addedby", "added by", "who"].includes(fourth) ||
+        ["point", "points", "score", "scores", "pts"].includes(String(row?.[4] || "").trim().toLowerCase()) ||
+        ["week", "weekstart", "week start"].includes(String(row?.[5] || "").trim().toLowerCase())
       );
     }
 
@@ -2324,6 +2360,7 @@
         rows: groceryPreviewRows,
         listId: "groceryPreviewList",
         metaId: "groceryPreviewMeta",
+        errorText: groceryPreviewError,
         emptyText: "No grocery items right now.",
         activeLabel: "items to grab",
         doneLabel: "bought",
@@ -2334,16 +2371,24 @@
         rows: todoPreviewRows,
         listId: "todoPreviewList",
         metaId: "todoPreviewMeta",
+        errorText: todoPreviewError,
         emptyText: "No to-do items right now.",
         activeLabel: "active tasks",
         doneLabel: "done",
         showOwner: true,
       });
+      renderChorePreviewCard();
     }
 
-    function renderPreviewCard({ rows, listId, metaId, emptyText, activeLabel, doneLabel, accentColor = null, showOwner = true }) {
+    function renderPreviewCard({ rows, listId, metaId, emptyText, activeLabel, doneLabel, accentColor = null, showOwner = true, errorText = "" }) {
       const listEl = document.getElementById(listId);
       const metaEl = document.getElementById(metaId);
+
+      if (errorText) {
+        metaEl.textContent = errorText;
+        listEl.innerHTML = `<div class="preview-empty">${escapeHtml(errorText)}</div>`;
+        return;
+      }
 
       const activeRows = rows.filter(row => !row.done);
       const doneRows = rows.filter(row => row.done);
@@ -2373,6 +2418,68 @@
             </div>
           `).join("")
         : `<div class="preview-empty">Everything here is completed.</div>`;
+    }
+
+    function buildChoreLeaderboard(rows) {
+      const entries = new Map();
+
+      rows.forEach((row) => {
+        const owner = getOwnerLabel(row.owner);
+        if (!entries.has(owner)) {
+          entries.set(owner, {
+            owner,
+            points: 0,
+          });
+        }
+
+        if (row.done) {
+          entries.get(owner).points += row.points;
+        }
+      });
+
+      return Array.from(entries.values()).sort((a, b) => {
+        if (b.points !== a.points) return b.points - a.points;
+        return a.owner.localeCompare(b.owner);
+      });
+    }
+
+    function renderChorePreviewCard() {
+      const listEl = document.getElementById("chorePreviewList");
+      const metaEl = document.getElementById("chorePreviewMeta");
+
+      if (chorePreviewError) {
+        metaEl.textContent = chorePreviewError;
+        listEl.innerHTML = `<div class="preview-empty">${escapeHtml(chorePreviewError)}</div>`;
+        return;
+      }
+
+      if (!choresPreviewRows.length) {
+        metaEl.textContent = "No chores loaded yet.";
+        listEl.innerHTML = `<div class="preview-empty">Open the Chores board to add weekly chores.</div>`;
+        return;
+      }
+
+      const activeRows = choresPreviewRows.filter((row) => !row.done);
+      const doneRows = choresPreviewRows.filter((row) => row.done);
+      const leaderboard = buildChoreLeaderboard(choresPreviewRows);
+      const leader = leaderboard[0];
+
+      metaEl.textContent = leader && leader.points > 0
+        ? `${activeRows.length} chores left • ${doneRows.length} done • ${leader.owner} leads with ${leader.points} pt${leader.points === 1 ? "" : "s"}`
+        : `${activeRows.length} chores left • ${doneRows.length} done`;
+
+      const previewRows = activeRows.slice(0, 4);
+      listEl.innerHTML = previewRows.length
+        ? previewRows.map((row) => `
+            <div class="preview-item" style="border-left-color:${getOwnerColor(row.owner)}">
+              <div class="preview-item-title">${escapeHtml(row.title)}</div>
+              <div class="preview-item-meta">
+                <span class="owner-dot" style="background:${getOwnerColor(row.owner)}"></span>
+                ${escapeHtml(getOwnerLabel(row.owner))} • ${row.points} pt${row.points === 1 ? "" : "s"}
+              </div>
+            </div>
+          `).join("")
+        : `<div class="preview-empty">Every chore is done for this week.</div>`;
     }
 
     function openDashboardOverlay(title, path) {
@@ -2418,24 +2525,62 @@
         .filter((row) => row.title);
     }
 
-    async function loadDashboardLists() {
-      try {
-        const [groceryRows, todoRows] = await Promise.all([
-          loadSheetPreview(GROCERY_SHEET_NAME, false),
-          loadSheetPreview(TODO_SHEET_NAME, true),
-        ]);
+    async function loadChorePreview() {
+      const response = await gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${CHORES_SHEET_NAME}!A:F`,
+      });
 
-        groceryPreviewRows = groceryRows;
-        todoPreviewRows = todoRows;
-      } catch (err) {
-        console.error(err);
+      const values = response.result.values || [];
+      const startIndex = values.length > 0 && isLikelyHeaderRow(values[0]) ? 1 : 0;
+      const currentWeekKey = getCurrentWeekStartKey();
+
+      return values.slice(startIndex)
+        .map((row) => {
+          const weekStart = String(row[5] || "").trim();
+          return {
+            title: String(row[0] || "").trim(),
+            done: normalizeBool(row[1]) && (!weekStart || weekStart === currentWeekKey),
+            completedAt: String(row[2] || "").trim(),
+            owner: normalizeOwner(row[3]),
+            points: normalizePoints(row[4]),
+          };
+        })
+        .filter((row) => row.title);
+    }
+
+    async function loadDashboardLists() {
+      const results = await Promise.allSettled([
+        loadSheetPreview(GROCERY_SHEET_NAME, false),
+        loadSheetPreview(TODO_SHEET_NAME, true),
+        loadChorePreview(),
+      ]);
+
+      if (results[0].status === "fulfilled") {
+        groceryPreviewRows = results[0].value;
+        groceryPreviewError = "";
+      } else {
+        console.error(results[0].reason);
         groceryPreviewRows = [];
+        groceryPreviewError = "Could not load grocery preview.";
+      }
+
+      if (results[1].status === "fulfilled") {
+        todoPreviewRows = results[1].value;
+        todoPreviewError = "";
+      } else {
+        console.error(results[1].reason);
         todoPreviewRows = [];
-        document.getElementById("groceryPreviewMeta").textContent = "Could not load grocery preview.";
-        document.getElementById("todoPreviewMeta").textContent = "Could not load to-do preview.";
-        document.getElementById("groceryPreviewList").innerHTML = `<div class="preview-empty">Refresh Google access to load this list.</div>`;
-        document.getElementById("todoPreviewList").innerHTML = `<div class="preview-empty">Refresh Google access to load this list.</div>`;
-        return;
+        todoPreviewError = "Could not load to-do preview.";
+      }
+
+      if (results[2].status === "fulfilled") {
+        choresPreviewRows = results[2].value;
+        chorePreviewError = "";
+      } else {
+        console.error(results[2].reason);
+        choresPreviewRows = [];
+        chorePreviewError = "Open Chores to initialize the weekly chore sheet.";
       }
 
       renderAll();
@@ -2637,6 +2782,10 @@
       weekEvents = [];
       groceryPreviewRows = [];
       todoPreviewRows = [];
+      choresPreviewRows = [];
+      groceryPreviewError = "";
+      todoPreviewError = "";
+      chorePreviewError = "";
       document.getElementById("authBtn").textContent = "Connect";
       document.getElementById("signOutBtn").style.display = "none";
       setStatus("Not connected");
@@ -2697,6 +2846,9 @@
     document.getElementById("cookbookBtn").addEventListener("click", () => {
       window.location.href = "/cookbook/";
     });
+    document.getElementById("choresBtn").addEventListener("click", () => {
+      window.location.href = "/chores/";
+    });
 
     document.getElementById("authBtn").addEventListener("click", handleAuthClick);
     document.getElementById("signOutBtn").addEventListener("click", handleSignoutClick);
@@ -2720,6 +2872,9 @@
     document.getElementById("todoPreviewCard").addEventListener("click", () => {
       openDashboardOverlay("To-Do List", "/todo/");
     });
+    document.getElementById("chorePreviewCard").addEventListener("click", () => {
+      openDashboardOverlay("Family Chores", "/chores/");
+    });
     document.getElementById("groceryPreviewBtn").addEventListener("click", (event) => {
       event.stopPropagation();
       openDashboardOverlay("Grocery List", "/grocery/");
@@ -2727,6 +2882,10 @@
     document.getElementById("todoPreviewBtn").addEventListener("click", (event) => {
       event.stopPropagation();
       openDashboardOverlay("To-Do List", "/todo/");
+    });
+    document.getElementById("chorePreviewBtn").addEventListener("click", (event) => {
+      event.stopPropagation();
+      openDashboardOverlay("Family Chores", "/chores/");
     });
     document.getElementById("overlayCloseBtn").addEventListener("click", closeDashboardOverlay);
     document.getElementById("overlayOpenPageBtn").addEventListener("click", () => {

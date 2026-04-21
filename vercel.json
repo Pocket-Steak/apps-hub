@@ -16,6 +16,11 @@
       "permanent": false
     },
     {
+      "source": "/family/chores.html",
+      "destination": "/chores/",
+      "permanent": false
+    },
+    {
       "source": "/family-tst",
       "destination": "/family-tst/",
       "permanent": false
@@ -63,6 +68,11 @@
     {
       "source": "/cookbook",
       "destination": "/cookbook/",
+      "permanent": false
+    },
+    {
+      "source": "/chores",
+      "destination": "/chores/",
       "permanent": false
     },
     {

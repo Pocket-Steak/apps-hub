@@ -1,0 +1,1504 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  />
+  <title>PocketSteak Family - Chores</title>
+
+  <style>
+    :root {
+      --bg: #0e0f12;
+      --panel: #1a1c22;
+      --panel-2: #22252d;
+      --surface: rgba(255, 255, 255, 0.045);
+      --surface-strong: rgba(255, 255, 255, 0.075);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.12);
+      --text: #f5f7fb;
+      --muted: #b7bfd3;
+      --danger: #d93025;
+      --danger-hover: #b3261e;
+      --accent: #ff9d2f;
+      --accent-2: #ffc57b;
+      --accent-hover: #f18b1e;
+      --success: #16a34a;
+      --success-soft: rgba(22, 163, 74, 0.14);
+      --owner-andrew: #ff9d2f;
+      --owner-nichol: #8b5cf6;
+      --owner-jolie: #22c55e;
+      --owner-default: #ec4899;
+      --shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+      --shadow-soft: 0 8px 20px rgba(0, 0, 0, 0.22);
+      --radius-xl: 22px;
+      --radius-lg: 16px;
+      --radius-md: 14px;
+      --tap: 54px;
+      --maxw: 1600px;
+      --card-pad: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    }
+
+    body {
+      padding: 16px;
+      background:
+        radial-gradient(920px 520px at 0% 0%, rgba(255, 157, 47, 0.14), transparent 55%),
+        linear-gradient(180deg, #0d0e11 0%, #12141a 35%, #171922 100%);
+    }
+
+    .app {
+      max-width: var(--maxw);
+      margin: 0 auto;
+      display: grid;
+      gap: 16px;
+      min-height: calc(100dvh - 32px);
+    }
+
+    .card {
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.05), transparent 34%),
+        linear-gradient(180deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      padding: var(--card-pad);
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .toolbar-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .toolbar-group.right {
+      margin-left: auto;
+    }
+
+    .brand-logo {
+      width: 52px;
+      height: 52px;
+      object-fit: contain;
+      filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.28));
+    }
+
+    .hero {
+      margin-top: 20px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: var(--accent-2);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 2.8vw, 2.7rem);
+      line-height: 1.02;
+      font-weight: 850;
+      letter-spacing: -0.025em;
+    }
+
+    .hero-copy {
+      max-width: 880px;
+      font-size: 15px;
+      line-height: 1.55;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .btn {
+      min-height: var(--tap);
+      border: none;
+      border-radius: 16px;
+      padding: 14px 18px;
+      font-size: 15px;
+      font-weight: 900;
+      cursor: pointer;
+      color: white;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      transition: transform 0.18s ease, opacity 0.18s ease, background 0.18s ease, filter 0.18s ease;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    .btn:active {
+      transform: scale(0.985);
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .btn-back {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+    }
+
+    .btn-back:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-1px);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+    }
+
+    .btn-danger:hover {
+      background: var(--danger-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-accent {
+      background: var(--accent);
+    }
+
+    .btn-accent:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .status-pill {
+      min-height: 54px;
+      min-width: 250px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      padding: 10px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 2px;
+      line-height: 1;
+    }
+
+    .status-label {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      font-weight: 900;
+      color: var(--muted);
+    }
+
+    .status-text {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .status-ok .status-text {
+      color: #b9f8c8;
+    }
+
+    .status-bad .status-text {
+      color: #ffb4ab;
+    }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.25fr);
+      gap: 16px;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .section-title {
+      margin: 0;
+      font-size: clamp(1.5rem, 2vw, 2rem);
+      font-weight: 850;
+      letter-spacing: -0.02em;
+    }
+
+    .panel-meta {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 800;
+      line-height: 1.45;
+    }
+
+    .week-stats {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .stat-chip {
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: linear-gradient(180deg, var(--surface-strong), rgba(255, 255, 255, 0.03));
+      padding: 14px 16px;
+      display: grid;
+      gap: 6px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .stat-label {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 900;
+      color: var(--muted);
+    }
+
+    .stat-value {
+      font-size: 28px;
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+    }
+
+    .helper {
+      margin-top: 16px;
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 700;
+      line-height: 1.55;
+    }
+
+    .message {
+      margin-top: 10px;
+      min-height: 28px;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .message.error {
+      color: #ffb4ab;
+    }
+
+    .message.success {
+      color: #b9f8c8;
+    }
+
+    .score-grid {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 12px;
+    }
+
+    .score-tile {
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-top: 4px solid var(--owner-color, var(--owner-default));
+      background: linear-gradient(180deg, var(--surface-strong), rgba(255, 255, 255, 0.03));
+      padding: 14px 16px;
+      display: grid;
+      gap: 10px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .score-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .score-owner {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .owner-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+      background: var(--owner-color, var(--owner-default));
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--owner-color, var(--owner-default)) 22%, transparent);
+    }
+
+    .score-badge {
+      min-height: 28px;
+      padding: 0 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .score-badge.leader {
+      background: color-mix(in srgb, var(--owner-color, var(--owner-default)) 28%, transparent);
+      color: white;
+    }
+
+    .score-points {
+      font-size: 40px;
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .score-label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 800;
+      margin-top: -4px;
+    }
+
+    .score-meta {
+      font-size: 13px;
+      color: var(--text);
+      font-weight: 800;
+      line-height: 1.45;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 800;
+      padding-top: 8px;
+    }
+
+    .tile-grid {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
+    }
+
+    .chore-tile {
+      min-height: 138px;
+      width: 100%;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-left: 6px solid var(--owner-default);
+      border-radius: 18px;
+      background: linear-gradient(180deg, var(--surface), rgba(255, 255, 255, 0.03));
+      color: var(--text);
+      padding: 16px;
+      text-align: left;
+      cursor: pointer;
+      transition: transform 0.18s ease, background 0.18s ease, opacity 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+      -webkit-tap-highlight-color: transparent;
+      display: grid;
+      gap: 12px;
+      align-content: start;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .chore-tile:hover {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+      transform: translateY(-2px);
+    }
+
+    .chore-tile:active {
+      transform: scale(0.985);
+    }
+
+    .chore-tile.done {
+      opacity: 0.72;
+      filter: saturate(0.82);
+    }
+
+    .chore-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .chore-title {
+      font-size: 17px;
+      font-weight: 850;
+      line-height: 1.25;
+      word-break: break-word;
+    }
+
+    .chore-tile.done .chore-title {
+      color: rgba(245, 247, 251, 0.72);
+      text-decoration: line-through;
+      text-decoration-thickness: 2px;
+    }
+
+    .point-badge {
+      min-width: 64px;
+      min-height: 34px;
+      padding: 0 12px;
+      border-radius: 999px;
+      background: rgba(255, 157, 47, 0.16);
+      color: var(--accent-2);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      flex: 0 0 auto;
+      white-space: nowrap;
+    }
+
+    .chore-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .owner-pill,
+    .chore-status {
+      min-height: 32px;
+      padding: 0 12px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+    }
+
+    .owner-pill {
+      color: white;
+      background: var(--owner-default);
+    }
+
+    .chore-status {
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .chore-status.done {
+      color: #b9f8c8;
+      background: var(--success-soft);
+    }
+
+    .loading {
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    @media (max-width: 1240px) {
+      .overview-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 1080px) {
+      .status-pill {
+        min-width: min(100%, 320px);
+        flex: 1 1 280px;
+      }
+
+      .toolbar-group,
+      .toolbar-group.right {
+        width: 100%;
+      }
+
+      .toolbar-group.right {
+        margin-left: 0;
+      }
+
+      .toolbar-group .btn {
+        flex: 1 1 220px;
+      }
+
+      .week-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      body {
+        padding: 14px;
+      }
+
+      .toolbar-group,
+      .toolbar-group.right,
+      .toolbar-group .btn {
+        width: 100%;
+        flex: 1 1 100%;
+      }
+
+      .week-stats {
+        grid-template-columns: 1fr;
+      }
+
+      .tile-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .chore-header {
+        flex-direction: column;
+      }
+
+      .point-badge {
+        min-width: 0;
+      }
+    }
+  </style>
+
+  <script async defer src="https://apis.google.com/js/api.js"></script>
+  <script async defer src="https://accounts.google.com/gsi/client"></script>
+</head>
+<body>
+  <main class="app">
+    <section class="card">
+      <div class="topbar">
+        <div class="toolbar-group">
+          <img class="brand-logo" src="/pocket_steak_logo.png" alt="PocketSteak logo" />
+          <a class="btn btn-back" id="backHomeBtn" href="/family/">← Back to Home</a>
+          <button id="resetWeekBtn" class="btn btn-danger" type="button">Reset Week</button>
+        </div>
+
+        <div class="toolbar-group right">
+          <button class="btn btn-back" type="button" onclick="window.location.href='/settings/'">Settings</button>
+          <button id="openSheetBtn" class="btn btn-back" type="button">Open Sheet</button>
+          <div id="statusPill" class="status-pill status-bad">
+            <div class="status-label">GOOGLE</div>
+            <div id="statusText" class="status-text">Not connected</div>
+          </div>
+          <button id="connectBtn" class="btn btn-accent" type="button">Connect</button>
+        </div>
+      </div>
+
+      <div class="hero">
+        <div class="eyebrow">Family</div>
+        <h1>Chores</h1>
+        <div class="hero-copy">
+          Assigned chores sync from Google Sheets. Tap any chore when it is finished and the weekly leaderboard
+          updates automatically from the point values you set in Google.
+        </div>
+      </div>
+    </section>
+
+    <section class="overview-grid">
+      <section id="summaryCard" class="card">
+        <div class="panel-head">
+          <h2 class="section-title">This Week</h2>
+          <div id="weekLabel" class="panel-meta">Loading week...</div>
+        </div>
+
+        <div class="week-stats">
+          <div class="stat-chip">
+            <div class="stat-label">Active</div>
+            <div id="activeCount" class="stat-value">0</div>
+          </div>
+          <div class="stat-chip">
+            <div class="stat-label">Completed</div>
+            <div id="doneCount" class="stat-value">0</div>
+          </div>
+          <div class="stat-chip">
+            <div class="stat-label">Points Awarded</div>
+            <div id="pointTotal" class="stat-value">0</div>
+          </div>
+          <div class="stat-chip">
+            <div class="stat-label">Families In Play</div>
+            <div id="ownerCount" class="stat-value">0</div>
+          </div>
+        </div>
+
+        <div class="helper">
+          Manage the chore list inside Google Sheets. Recommended columns are:
+          <strong>Chore</strong>, <strong>Done</strong>, <strong>Completed At</strong>,
+          <strong>Owner</strong>, <strong>Points</strong>, and <strong>Week Start</strong>.
+        </div>
+        <div id="message" class="message"></div>
+      </section>
+
+      <section class="card">
+        <div class="panel-head">
+          <h2 class="section-title">Leaderboard</h2>
+          <div id="leaderSummary" class="panel-meta">No chores loaded yet.</div>
+        </div>
+        <div id="scoreGrid" class="score-grid"></div>
+        <div id="scoreEmpty" class="empty">Connect Google and add chores to start the weekly scoreboard.</div>
+      </section>
+    </section>
+
+    <section class="card">
+      <div class="panel-head">
+        <h2 class="section-title">Active Chores</h2>
+        <div class="panel-meta">Tap a chore tile to mark it done.</div>
+      </div>
+      <div id="activeList" class="tile-grid"></div>
+      <div id="activeEmpty" class="empty">No chores assigned for this week.</div>
+    </section>
+
+    <section class="card">
+      <div class="panel-head">
+        <h2 class="section-title">Completed This Week</h2>
+        <div class="panel-meta">Completed chores stay here until you start a new week.</div>
+      </div>
+      <div id="doneList" class="tile-grid"></div>
+      <div id="doneEmpty" class="empty">No chores finished yet this week.</div>
+    </section>
+  </main>
+
+  <script>
+    const GOOGLE_API_KEY = "AIzaSyBPZEeYB8IaheJPJA2Y44msGfDwIhJMpGU";
+    const GOOGLE_CLIENT_ID = "82204016171-ta1ipuu88gie0tkq69je3di5uifu1kki.apps.googleusercontent.com";
+
+    const SPREADSHEET_ID = "1ccfVTfNqrrzMLkD4uK8fkWs3wRJENs5XQJHJfjkWmmY";
+    const SHEET_NAME = "Chores";
+
+    const SHARED_TOKEN_KEY = "pocketsteak_google_access_token";
+    const SHARED_TOKEN_EXP_KEY = "pocketsteak_google_token_exp";
+
+    const DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
+    const SCOPES = "https://www.googleapis.com/auth/spreadsheets";
+
+    const HEADER_ROW = ["Chore", "Done", "Completed At", "Owner", "Points", "Week Start"];
+
+    let tokenClient = null;
+    let gapiReady = false;
+    let gisReady = false;
+    let appReady = false;
+    let sheetReady = false;
+    let isConnected = false;
+    let isBusy = false;
+    let choreRows = [];
+
+    const statusPill = document.getElementById("statusPill");
+    const statusText = document.getElementById("statusText");
+    const connectBtn = document.getElementById("connectBtn");
+    const resetWeekBtn = document.getElementById("resetWeekBtn");
+    const openSheetBtn = document.getElementById("openSheetBtn");
+    const messageEl = document.getElementById("message");
+    const summaryCard = document.getElementById("summaryCard");
+    const activeListEl = document.getElementById("activeList");
+    const activeEmptyEl = document.getElementById("activeEmpty");
+    const doneListEl = document.getElementById("doneList");
+    const doneEmptyEl = document.getElementById("doneEmpty");
+    const scoreGridEl = document.getElementById("scoreGrid");
+    const scoreEmptyEl = document.getElementById("scoreEmpty");
+
+    function setBusy(value) {
+      isBusy = value;
+      connectBtn.disabled = value && appReady;
+      resetWeekBtn.disabled = value || !isConnected;
+      openSheetBtn.disabled = value;
+      summaryCard.classList.toggle("loading", value);
+    }
+
+    function setStatus(text, ok = false) {
+      statusText.textContent = text;
+      statusPill.classList.toggle("status-ok", ok);
+      statusPill.classList.toggle("status-bad", !ok);
+    }
+
+    function showMessage(text = "", type = "") {
+      messageEl.textContent = text;
+      messageEl.className = "message";
+      if (type) {
+        messageEl.classList.add(type);
+      }
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function normalizeBool(value) {
+      const str = String(value || "").trim().toLowerCase();
+      return str === "true" || str === "yes" || str === "1" || str === "y";
+    }
+
+    function titleCase(value) {
+      return String(value || "")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+        .join(" ");
+    }
+
+    function normalizeOwner(value) {
+      return titleCase(value);
+    }
+
+    function normalizePoints(value) {
+      const numeric = Number(String(value || "").trim());
+      if (!Number.isFinite(numeric) || numeric <= 0) {
+        return 1;
+      }
+      return Math.max(1, Math.round(numeric));
+    }
+
+    function formatPoints(points) {
+      return `${points} pt${points === 1 ? "" : "s"}`;
+    }
+
+    function getOwnerColor(owner) {
+      if (owner === "Andrew") return "var(--owner-andrew)";
+      if (owner === "Nichol") return "var(--owner-nichol)";
+      if (owner === "Jolie") return "var(--owner-jolie)";
+      return "var(--owner-default)";
+    }
+
+    function getOwnerLabel(owner) {
+      return owner || "Unassigned";
+    }
+
+    function formatDateKey(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function getCurrentWeekStartDate() {
+      const date = new Date();
+      date.setHours(0, 0, 0, 0);
+      date.setDate(date.getDate() - date.getDay());
+      return date;
+    }
+
+    function getCurrentWeekKey() {
+      return formatDateKey(getCurrentWeekStartDate());
+    }
+
+    function formatWeekLabel() {
+      const start = getCurrentWeekStartDate();
+      const end = new Date(start);
+      end.setDate(end.getDate() + 6);
+
+      const startLabel = start.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+      });
+      const endLabel = end.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+      });
+
+      return `${startLabel} - ${endLabel}`;
+    }
+
+    function formatCompletedAt(value) {
+      if (!value) return "Completed this week";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) {
+        return "Completed this week";
+      }
+
+      return `Done ${date.toLocaleDateString(undefined, {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+      })}`;
+    }
+
+    function isLikelyHeaderRow(row) {
+      const first = String(row?.[0] || "").trim().toLowerCase();
+      const second = String(row?.[1] || "").trim().toLowerCase();
+      const third = String(row?.[2] || "").trim().toLowerCase();
+      const fourth = String(row?.[3] || "").trim().toLowerCase();
+      const fifth = String(row?.[4] || "").trim().toLowerCase();
+      const sixth = String(row?.[5] || "").trim().toLowerCase();
+
+      return (
+        ["chore", "chores", "item", "items", "task", "tasks", "name"].includes(first) ||
+        ["done", "status", "checked", "complete", "completed"].includes(second) ||
+        ["completedat", "completed at", "timestamp", "date"].includes(third) ||
+        ["owner", "person", "assigned", "assignedto", "assigned to"].includes(fourth) ||
+        ["point", "points", "score", "scores", "pts"].includes(fifth) ||
+        ["week", "weekstart", "week start"].includes(sixth)
+      );
+    }
+
+    function getAccessTokenFromSession() {
+      const sharedToken = localStorage.getItem(SHARED_TOKEN_KEY);
+      const sharedExp = Number(localStorage.getItem(SHARED_TOKEN_EXP_KEY) || "0");
+
+      if (!sharedToken || !sharedExp) {
+        return null;
+      }
+
+      if (Date.now() >= sharedExp) {
+        localStorage.removeItem(SHARED_TOKEN_KEY);
+        localStorage.removeItem(SHARED_TOKEN_EXP_KEY);
+        return null;
+      }
+
+      return sharedToken;
+    }
+
+    function saveAccessTokenToSession(token, expiresInSeconds = 3600) {
+      if (token) {
+        localStorage.setItem(SHARED_TOKEN_KEY, token);
+        localStorage.setItem(
+          SHARED_TOKEN_EXP_KEY,
+          String(Date.now() + (Number(expiresInSeconds || 3600) * 1000))
+        );
+      }
+    }
+
+    function clearAccessTokenFromSession() {
+      localStorage.removeItem(SHARED_TOKEN_KEY);
+      localStorage.removeItem(SHARED_TOKEN_EXP_KEY);
+    }
+
+    function getReadableError(error) {
+      const message =
+        error?.result?.error?.message ||
+        error?.details ||
+        error?.message ||
+        error?.error ||
+        "Something went wrong with Google Sheets.";
+
+      const code = error?.code || error?.result?.error?.code;
+      const status = error?.status || error?.result?.error?.status;
+      const suffix = [code, status].filter(Boolean).join(" / ");
+
+      return suffix ? `${message} (${suffix})` : message;
+    }
+
+    async function ensureAppInitialized() {
+      if (appReady) return;
+      if (!gapiReady || !gisReady) return;
+
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID,
+        scope: SCOPES,
+        callback: async (response) => {
+          if (response.error) {
+            console.error("OAuth token error:", response);
+            setStatus("Setup failed", false);
+            showMessage(getReadableError(response), "error");
+            return;
+          }
+
+          const token = gapi.client.getToken()?.access_token;
+          if (token) {
+            saveAccessTokenToSession(token, response.expires_in || 3600);
+          }
+
+          isConnected = true;
+          setStatus("Connected", true);
+          connectBtn.textContent = "Reconnect";
+
+          try {
+            await loadChores();
+            showMessage("", "");
+          } catch (error) {
+            console.error(error);
+            setStatus("Setup failed", false);
+            showMessage(getReadableError(error), "error");
+          } finally {
+            setBusy(false);
+          }
+        },
+      });
+
+      appReady = true;
+      restoreSessionIfPossible();
+    }
+
+    function initGapi() {
+      const startedAt = Date.now();
+
+      const waitForGapi = () => {
+        if (window.gapi && typeof window.gapi.load === "function") {
+          window.gapi.load("client", async () => {
+            try {
+              await window.gapi.client.init({
+                apiKey: GOOGLE_API_KEY,
+                discoveryDocs: [DISCOVERY_DOC],
+              });
+              gapiReady = true;
+              ensureAppInitialized();
+            } catch (error) {
+              console.error("gapi init error:", error);
+              setStatus("Setup failed", false);
+              showMessage(getReadableError(error), "error");
+            }
+          });
+          return;
+        }
+
+        if (Date.now() - startedAt > 10000) {
+          setStatus("Google failed to load", false);
+          showMessage(
+            "The Google API script did not finish loading. Check your internet connection and browser extensions, then refresh.",
+            "error"
+          );
+          return;
+        }
+
+        window.setTimeout(waitForGapi, 100);
+      };
+
+      waitForGapi();
+    }
+
+    function initGisReadyCheck() {
+      const startedAt = Date.now();
+
+      const waitForGoogle = () => {
+        if (window.google && google.accounts && google.accounts.oauth2) {
+          gisReady = true;
+          ensureAppInitialized();
+          return;
+        }
+
+        if (Date.now() - startedAt > 10000) {
+          setStatus("Google failed to load", false);
+          showMessage(
+            "The Google sign-in script did not finish loading. Check your internet connection and browser extensions, then refresh.",
+            "error"
+          );
+          return;
+        }
+
+        window.setTimeout(waitForGoogle, 100);
+      };
+
+      waitForGoogle();
+    }
+
+    async function restoreSessionIfPossible() {
+      const savedToken = getAccessTokenFromSession();
+
+      if (!savedToken) {
+        setStatus("Not connected", false);
+        setBusy(false);
+        return;
+      }
+
+      try {
+        gapi.client.setToken({ access_token: savedToken });
+        await loadChores();
+        isConnected = true;
+        setStatus("Connected", true);
+        connectBtn.textContent = "Reconnect";
+        setBusy(false);
+      } catch (error) {
+        console.warn("Saved token no longer valid:", error);
+        gapi.client.setToken(null);
+        clearAccessTokenFromSession();
+        isConnected = false;
+        sheetReady = false;
+        setStatus("Not connected", false);
+        connectBtn.textContent = "Connect";
+        setBusy(false);
+      }
+    }
+
+    async function connectGoogle(forceConsent = false) {
+      if (!appReady || !tokenClient) {
+        showMessage("Google is still loading. Try again in a second.", "error");
+        return;
+      }
+
+      setBusy(true);
+      showMessage("", "");
+
+      try {
+        const existingToken = gapi.client.getToken();
+
+        tokenClient.callback = async (response) => {
+          if (response.error) {
+            console.error("OAuth token error:", response);
+            setStatus("Setup failed", false);
+            showMessage(getReadableError(response), "error");
+            setBusy(false);
+            return;
+          }
+
+          const token = gapi.client.getToken()?.access_token;
+          if (token) {
+            saveAccessTokenToSession(token, response.expires_in || 3600);
+          }
+
+          isConnected = true;
+          setStatus("Connected", true);
+          connectBtn.textContent = "Reconnect";
+
+          try {
+            await loadChores();
+          } catch (error) {
+            console.error(error);
+            setStatus("Setup failed", false);
+            showMessage(getReadableError(error), "error");
+          } finally {
+            setBusy(false);
+          }
+        };
+
+        tokenClient.requestAccessToken({
+          prompt: forceConsent || !existingToken ? "consent" : "",
+        });
+      } catch (error) {
+        console.error(error);
+        setStatus("Setup failed", false);
+        showMessage(getReadableError(error), "error");
+        setBusy(false);
+      }
+    }
+
+    async function ensureSheetReady() {
+      if (sheetReady) return;
+
+      const workbook = await gapi.client.sheets.spreadsheets.get({
+        spreadsheetId: SPREADSHEET_ID,
+        fields: "sheets(properties(title))",
+      });
+
+      const sheets = workbook.result.sheets || [];
+      const hasSheet = sheets.some((sheet) => sheet.properties?.title === SHEET_NAME);
+
+      if (!hasSheet) {
+        await gapi.client.sheets.spreadsheets.batchUpdate({
+          spreadsheetId: SPREADSHEET_ID,
+          resource: {
+            requests: [
+              {
+                addSheet: {
+                  properties: {
+                    title: SHEET_NAME,
+                  },
+                },
+              },
+            ],
+          },
+        });
+      }
+
+      const headerResponse = await gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${SHEET_NAME}!A1:F1`,
+      });
+
+      const headerValues = headerResponse.result.values || [];
+      if (!headerValues.length) {
+        await gapi.client.sheets.spreadsheets.values.update({
+          spreadsheetId: SPREADSHEET_ID,
+          range: `${SHEET_NAME}!A1:F1`,
+          valueInputOption: "USER_ENTERED",
+          resource: {
+            values: [HEADER_ROW],
+          },
+        });
+      }
+
+      sheetReady = true;
+    }
+
+    async function syncRowsToCurrentWeek(rows) {
+      if (!rows.length) return;
+
+      const currentWeekKey = getCurrentWeekKey();
+      const updates = rows.flatMap((row) => ([
+        {
+          range: `${SHEET_NAME}!B${row.rowNumber}`,
+          values: [["FALSE"]],
+        },
+        {
+          range: `${SHEET_NAME}!C${row.rowNumber}`,
+          values: [[""]],
+        },
+        {
+          range: `${SHEET_NAME}!F${row.rowNumber}`,
+          values: [[currentWeekKey]],
+        },
+      ]));
+
+      await gapi.client.sheets.spreadsheets.values.batchUpdate({
+        spreadsheetId: SPREADSHEET_ID,
+        resource: {
+          valueInputOption: "USER_ENTERED",
+          data: updates,
+        },
+      });
+    }
+
+    async function loadChores() {
+      setBusy(true);
+      showMessage("", "");
+      await ensureSheetReady();
+
+      const response = await gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${SHEET_NAME}!A:F`,
+      });
+
+      const values = response.result.values || [];
+      const startIndex = values.length > 0 && isLikelyHeaderRow(values[0]) ? 1 : 0;
+      const currentWeekKey = getCurrentWeekKey();
+
+      let nextRows = values.slice(startIndex).map((row, index) => {
+        const rowNumber = startIndex + index + 1;
+        const rawDone = normalizeBool(row[1]);
+        const weekStart = String(row[5] || "").trim();
+        const done = rawDone && (!weekStart || weekStart === currentWeekKey);
+
+        return {
+          rowNumber,
+          title: String(row[0] || "").trim(),
+          rawDone,
+          done,
+          completedAt: String(row[2] || "").trim(),
+          owner: normalizeOwner(row[3]),
+          points: normalizePoints(row[4]),
+          weekStart,
+        };
+      }).filter((row) => row.title);
+
+      const staleCompletedRows = nextRows.filter((row) => row.rawDone && row.weekStart && row.weekStart !== currentWeekKey);
+      if (staleCompletedRows.length) {
+        await syncRowsToCurrentWeek(staleCompletedRows);
+        return loadChores();
+      }
+
+      choreRows = nextRows;
+      renderAll();
+      setBusy(false);
+    }
+
+    function buildLeaderboard(rows) {
+      const entries = new Map();
+
+      for (const row of rows) {
+        const owner = getOwnerLabel(row.owner);
+        if (!entries.has(owner)) {
+          entries.set(owner, {
+            owner,
+            assigned: 0,
+            completed: 0,
+            points: 0,
+            color: getOwnerColor(row.owner),
+          });
+        }
+
+        const entry = entries.get(owner);
+        entry.assigned += 1;
+
+        if (row.done) {
+          entry.completed += 1;
+          entry.points += row.points;
+        }
+      }
+
+      return Array.from(entries.values()).sort((a, b) => {
+        if (b.points !== a.points) return b.points - a.points;
+        if (b.completed !== a.completed) return b.completed - a.completed;
+        return a.owner.localeCompare(b.owner);
+      });
+    }
+
+    function renderSummary() {
+      const activeRows = choreRows.filter((row) => !row.done);
+      const doneRows = choreRows.filter((row) => row.done);
+      const uniqueOwners = new Set(choreRows.map((row) => getOwnerLabel(row.owner)));
+      const totalPoints = doneRows.reduce((sum, row) => sum + row.points, 0);
+
+      document.getElementById("weekLabel").textContent = formatWeekLabel();
+      document.getElementById("activeCount").textContent = String(activeRows.length);
+      document.getElementById("doneCount").textContent = String(doneRows.length);
+      document.getElementById("pointTotal").textContent = String(totalPoints);
+      document.getElementById("ownerCount").textContent = String(choreRows.length ? uniqueOwners.size : 0);
+    }
+
+    function renderLeaderboard() {
+      const leaderboard = buildLeaderboard(choreRows);
+      const leaderPoints = leaderboard[0]?.points || 0;
+      const leaderCount = leaderboard.filter((entry) => entry.points === leaderPoints && leaderPoints > 0).length;
+
+      scoreGridEl.innerHTML = "";
+      scoreEmptyEl.style.display = leaderboard.length ? "none" : "block";
+
+      if (!leaderboard.length) {
+        document.getElementById("leaderSummary").textContent = "No chores loaded yet.";
+        return;
+      }
+
+      if (leaderPoints === 0) {
+        document.getElementById("leaderSummary").textContent = "No points awarded yet this week.";
+      } else if (leaderCount > 1) {
+        document.getElementById("leaderSummary").textContent = `It is tied at ${leaderPoints} point${leaderPoints === 1 ? "" : "s"}.`;
+      } else {
+        document.getElementById("leaderSummary").textContent = `${leaderboard[0].owner} is leading with ${leaderPoints} point${leaderPoints === 1 ? "" : "s"}.`;
+      }
+
+      leaderboard.forEach((entry) => {
+        const badgeText =
+          entry.points === 0
+            ? "Waiting"
+            : entry.points === leaderPoints && leaderCount === 1
+              ? "Leader"
+              : entry.points === leaderPoints
+                ? "Tied"
+                : "Chasing";
+
+        const tile = document.createElement("div");
+        tile.className = "score-tile";
+        tile.style.setProperty("--owner-color", getOwnerColor(entry.owner));
+        tile.innerHTML = `
+          <div class="score-top">
+            <div class="score-owner">
+              <span class="owner-dot" style="background:${getOwnerColor(entry.owner)}"></span>
+              ${escapeHtml(entry.owner)}
+            </div>
+            <div class="score-badge${badgeText === "Leader" ? " leader" : ""}">${escapeHtml(badgeText)}</div>
+          </div>
+          <div class="score-points">${entry.points}</div>
+          <div class="score-label">points this week</div>
+          <div class="score-meta">${entry.completed} of ${entry.assigned} chores finished</div>
+        `;
+        scoreGridEl.appendChild(tile);
+      });
+    }
+
+    function sortActiveRows(rows) {
+      return [...rows].sort((a, b) => {
+        const ownerCompare = getOwnerLabel(a.owner).localeCompare(getOwnerLabel(b.owner));
+        if (ownerCompare !== 0) return ownerCompare;
+        if (b.points !== a.points) return b.points - a.points;
+        return a.title.localeCompare(b.title);
+      });
+    }
+
+    function sortDoneRows(rows) {
+      return [...rows].sort((a, b) => {
+        const aTime = new Date(a.completedAt || 0).getTime();
+        const bTime = new Date(b.completedAt || 0).getTime();
+        if (bTime !== aTime) return bTime - aTime;
+        return a.title.localeCompare(b.title);
+      });
+    }
+
+    function createChoreTile(row) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `chore-tile${row.done ? " done" : ""}`;
+      button.style.borderLeftColor = getOwnerColor(row.owner);
+      button.innerHTML = `
+        <div class="chore-header">
+          <div class="chore-title">${escapeHtml(row.title)}</div>
+          <div class="point-badge">${escapeHtml(formatPoints(row.points))}</div>
+        </div>
+        <div class="chore-meta">
+          <span class="owner-pill" style="background:${getOwnerColor(row.owner)}">${escapeHtml(getOwnerLabel(row.owner))}</span>
+          <span class="chore-status${row.done ? " done" : ""}">
+            ${escapeHtml(row.done ? formatCompletedAt(row.completedAt) : "Ready for action")}
+          </span>
+        </div>
+      `;
+      button.addEventListener("click", () => toggleDone(row));
+      return button;
+    }
+
+    function renderLists() {
+      activeListEl.innerHTML = "";
+      doneListEl.innerHTML = "";
+
+      const activeRows = sortActiveRows(choreRows.filter((row) => !row.done));
+      const doneRows = sortDoneRows(choreRows.filter((row) => row.done));
+
+      activeEmptyEl.style.display = activeRows.length ? "none" : "block";
+      doneEmptyEl.style.display = doneRows.length ? "none" : "block";
+
+      activeRows.forEach((row) => {
+        activeListEl.appendChild(createChoreTile(row));
+      });
+
+      doneRows.forEach((row) => {
+        doneListEl.appendChild(createChoreTile(row));
+      });
+    }
+
+    function renderAll() {
+      renderSummary();
+      renderLeaderboard();
+      renderLists();
+    }
+
+    async function toggleDone(targetRow) {
+      if (!isConnected) {
+        showMessage("Connect Google first.", "error");
+        return;
+      }
+
+      setBusy(true);
+      showMessage("", "");
+
+      const nextDone = !targetRow.done;
+      const completedAt = nextDone ? new Date().toISOString() : "";
+      const currentWeekKey = getCurrentWeekKey();
+
+      try {
+        await gapi.client.sheets.spreadsheets.values.batchUpdate({
+          spreadsheetId: SPREADSHEET_ID,
+          resource: {
+            valueInputOption: "USER_ENTERED",
+            data: [
+              {
+                range: `${SHEET_NAME}!B${targetRow.rowNumber}`,
+                values: [[nextDone ? "TRUE" : "FALSE"]],
+              },
+              {
+                range: `${SHEET_NAME}!C${targetRow.rowNumber}`,
+                values: [[completedAt]],
+              },
+              {
+                range: `${SHEET_NAME}!F${targetRow.rowNumber}`,
+                values: [[currentWeekKey]],
+              },
+            ],
+          },
+        });
+
+        await loadChores();
+        showMessage(
+          nextDone ? `Marked "${targetRow.title}" done.` : `Moved "${targetRow.title}" back to active.`,
+          "success"
+        );
+      } catch (error) {
+        console.error(error);
+        showMessage(getReadableError(error), "error");
+        setBusy(false);
+      }
+    }
+
+    async function resetWeek() {
+      if (!isConnected) {
+        showMessage("Connect Google first.", "error");
+        return;
+      }
+
+      if (!choreRows.length) {
+        showMessage("There are no chores to reset yet.", "error");
+        return;
+      }
+
+      const confirmed = window.confirm("Start a fresh chore week and clear every completed chore?");
+      if (!confirmed) return;
+
+      setBusy(true);
+      showMessage("", "");
+
+      const currentWeekKey = getCurrentWeekKey();
+      const updates = choreRows.flatMap((row) => ([
+        {
+          range: `${SHEET_NAME}!B${row.rowNumber}`,
+          values: [["FALSE"]],
+        },
+        {
+          range: `${SHEET_NAME}!C${row.rowNumber}`,
+          values: [[""]],
+        },
+        {
+          range: `${SHEET_NAME}!F${row.rowNumber}`,
+          values: [[currentWeekKey]],
+        },
+      ]));
+
+      try {
+        await gapi.client.sheets.spreadsheets.values.batchUpdate({
+          spreadsheetId: SPREADSHEET_ID,
+          resource: {
+            valueInputOption: "USER_ENTERED",
+            data: updates,
+          },
+        });
+
+        await loadChores();
+        showMessage("Started a fresh week of chores.", "success");
+      } catch (error) {
+        console.error(error);
+        showMessage(getReadableError(error), "error");
+        setBusy(false);
+      }
+    }
+
+    function openSheet() {
+      window.open(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/edit`, "_blank", "noopener,noreferrer");
+    }
+
+    connectBtn.addEventListener("click", () => {
+      if (!appReady) {
+        setStatus("Retrying Google...", false);
+        showMessage("Trying to load Google services again...", "");
+        initGapi();
+        initGisReadyCheck();
+        return;
+      }
+
+      connectGoogle(true);
+    });
+
+    resetWeekBtn.addEventListener("click", resetWeek);
+    openSheetBtn.addEventListener("click", openSheet);
+
+    if (new URLSearchParams(window.location.search).has("overlay")) {
+      const backBtn = document.getElementById("backHomeBtn");
+      backBtn.textContent = "Close";
+      backBtn.setAttribute("href", "#");
+      backBtn.addEventListener("click", (event) => {
+        event.preventDefault();
+        window.parent.postMessage({ type: "family-overlay-close" }, "*");
+      });
+    }
+
+    setBusy(true);
+    setStatus("Loading Google...", false);
+    document.getElementById("weekLabel").textContent = formatWeekLabel();
+
+    if (window.location.protocol === "file:") {
+      setBusy(false);
+      setStatus("Serve from localhost", false);
+      showMessage(
+        "Google sign-in will not work from a file:// page. Open this through a local server like http://localhost:5500 or your hosted site.",
+        "error"
+      );
+    } else {
+      initGapi();
+      initGisReadyCheck();
+    }
+  </script>
+</body>
+</html>
