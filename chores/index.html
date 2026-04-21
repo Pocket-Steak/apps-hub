@@ -6,7 +6,7 @@
     name="viewport"
     content="width=device-width, initial-scale=1, viewport-fit=cover"
   />
-  <title>PocketSteak Family - Chores</title>
+  <title>PocketSteak Family - Tasks</title>
 
   <style>
     :root {
@@ -602,10 +602,11 @@
 
       <div class="hero">
         <div class="eyebrow">Family</div>
-        <h1>Chores</h1>
+        <h1>Tasks</h1>
         <div class="hero-copy">
-          Assigned chores sync from Google Sheets. Tap any chore when it is finished and the weekly leaderboard
-          updates automatically from the point values you set in Google.
+          Assigned tasks sync from Google Sheets. Tap any task when it is finished and the weekly leaderboard
+          updates automatically from the point values you set in Google. If a task is unassigned, the app will ask
+          who completed it so the right person gets the points.
         </div>
       </div>
     </section>
@@ -631,15 +632,16 @@
             <div id="pointTotal" class="stat-value">0</div>
           </div>
           <div class="stat-chip">
-            <div class="stat-label">Families In Play</div>
+            <div class="stat-label">People In Play</div>
             <div id="ownerCount" class="stat-value">0</div>
           </div>
         </div>
 
         <div class="helper">
-          Manage the chore list inside Google Sheets. Recommended columns are:
-          <strong>Chore</strong>, <strong>Done</strong>, <strong>Completed At</strong>,
-          <strong>Owner</strong>, <strong>Points</strong>, and <strong>Week Start</strong>.
+          Manage the task list inside Google Sheets. Recommended columns are:
+          <strong>Task</strong>, <strong>Done</strong>, <strong>Completed At</strong>,
+          <strong>Owner</strong>, <strong>Points</strong>, <strong>Week Start</strong>, and
+          <strong>Completed By</strong>.
         </div>
         <div id="message" class="message"></div>
       </section>
@@ -647,29 +649,29 @@
       <section class="card">
         <div class="panel-head">
           <h2 class="section-title">Leaderboard</h2>
-          <div id="leaderSummary" class="panel-meta">No chores loaded yet.</div>
+          <div id="leaderSummary" class="panel-meta">No tasks loaded yet.</div>
         </div>
         <div id="scoreGrid" class="score-grid"></div>
-        <div id="scoreEmpty" class="empty">Connect Google and add chores to start the weekly scoreboard.</div>
+        <div id="scoreEmpty" class="empty">Connect Google and add tasks to start the weekly scoreboard.</div>
       </section>
     </section>
 
     <section class="card">
       <div class="panel-head">
-        <h2 class="section-title">Active Chores</h2>
-        <div class="panel-meta">Tap a chore tile to mark it done.</div>
+        <h2 class="section-title">Active Tasks</h2>
+        <div class="panel-meta">Tap a task tile to mark it done.</div>
       </div>
       <div id="activeList" class="tile-grid"></div>
-      <div id="activeEmpty" class="empty">No chores assigned for this week.</div>
+      <div id="activeEmpty" class="empty">No tasks assigned for this week.</div>
     </section>
 
     <section class="card">
       <div class="panel-head">
         <h2 class="section-title">Completed This Week</h2>
-        <div class="panel-meta">Completed chores stay here until you start a new week.</div>
+        <div class="panel-meta">Completed tasks stay here until you start a new week.</div>
       </div>
       <div id="doneList" class="tile-grid"></div>
-      <div id="doneEmpty" class="empty">No chores finished yet this week.</div>
+      <div id="doneEmpty" class="empty">No tasks finished yet this week.</div>
     </section>
   </main>
 
@@ -678,7 +680,7 @@
     const GOOGLE_CLIENT_ID = "82204016171-ta1ipuu88gie0tkq69je3di5uifu1kki.apps.googleusercontent.com";
 
     const SPREADSHEET_ID = "1ccfVTfNqrrzMLkD4uK8fkWs3wRJENs5XQJHJfjkWmmY";
-    const SHEET_NAME = "Chores";
+    const SHEET_NAME = "Tasks";
 
     const SHARED_TOKEN_KEY = "pocketsteak_google_access_token";
     const SHARED_TOKEN_EXP_KEY = "pocketsteak_google_token_exp";
@@ -686,7 +688,7 @@
     const DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
     const SCOPES = "https://www.googleapis.com/auth/spreadsheets";
 
-    const HEADER_ROW = ["Chore", "Done", "Completed At", "Owner", "Points", "Week Start"];
+    const HEADER_ROW = ["Task", "Done", "Completed At", "Owner", "Points", "Week Start", "Completed By"];
 
     let tokenClient = null;
     let gapiReady = false;
@@ -783,6 +785,18 @@
       return owner || "Unassigned";
     }
 
+    function getCompletedOwner(row) {
+      return row.completedBy || row.owner;
+    }
+
+    function getOwnerForLeaderboard(row) {
+      return row.done ? getCompletedOwner(row) : row.owner;
+    }
+
+    function getOwnerForDisplay(row) {
+      return row.done ? getCompletedOwner(row) : row.owner;
+    }
+
     function formatDateKey(date) {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -839,6 +853,7 @@
       const fourth = String(row?.[3] || "").trim().toLowerCase();
       const fifth = String(row?.[4] || "").trim().toLowerCase();
       const sixth = String(row?.[5] || "").trim().toLowerCase();
+      const seventh = String(row?.[6] || "").trim().toLowerCase();
 
       return (
         ["chore", "chores", "item", "items", "task", "tasks", "name"].includes(first) ||
@@ -846,7 +861,8 @@
         ["completedat", "completed at", "timestamp", "date"].includes(third) ||
         ["owner", "person", "assigned", "assignedto", "assigned to"].includes(fourth) ||
         ["point", "points", "score", "scores", "pts"].includes(fifth) ||
-        ["week", "weekstart", "week start"].includes(sixth)
+        ["week", "weekstart", "week start"].includes(sixth) ||
+        ["completed by", "completedby", "done by"].includes(seventh)
       );
     }
 
@@ -1110,17 +1126,26 @@
 
       const headerResponse = await gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!A1:F1`,
+        range: `${SHEET_NAME}!A1:G1`,
       });
 
       const headerValues = headerResponse.result.values || [];
       if (!headerValues.length) {
         await gapi.client.sheets.spreadsheets.values.update({
           spreadsheetId: SPREADSHEET_ID,
-          range: `${SHEET_NAME}!A1:F1`,
+          range: `${SHEET_NAME}!A1:G1`,
           valueInputOption: "USER_ENTERED",
           resource: {
             values: [HEADER_ROW],
+          },
+        });
+      } else if (isLikelyHeaderRow(headerValues[0]) && String(headerValues[0][6] || "").trim().toLowerCase() !== "completed by") {
+        await gapi.client.sheets.spreadsheets.values.update({
+          spreadsheetId: SPREADSHEET_ID,
+          range: `${SHEET_NAME}!G1`,
+          valueInputOption: "USER_ENTERED",
+          resource: {
+            values: [["Completed By"]],
           },
         });
       }
@@ -1145,6 +1170,10 @@
           range: `${SHEET_NAME}!F${row.rowNumber}`,
           values: [[currentWeekKey]],
         },
+        {
+          range: `${SHEET_NAME}!G${row.rowNumber}`,
+          values: [[""]],
+        },
       ]));
 
       await gapi.client.sheets.spreadsheets.values.batchUpdate({
@@ -1163,7 +1192,7 @@
 
       const response = await gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!A:F`,
+        range: `${SHEET_NAME}!A:G`,
       });
 
       const values = response.result.values || [];
@@ -1185,6 +1214,7 @@
           owner: normalizeOwner(row[3]),
           points: normalizePoints(row[4]),
           weekStart,
+          completedBy: normalizeOwner(row[6]),
         };
       }).filter((row) => row.title);
 
@@ -1203,14 +1233,14 @@
       const entries = new Map();
 
       for (const row of rows) {
-        const owner = getOwnerLabel(row.owner);
+        const owner = getOwnerLabel(getOwnerForLeaderboard(row));
         if (!entries.has(owner)) {
           entries.set(owner, {
             owner,
             assigned: 0,
             completed: 0,
             points: 0,
-            color: getOwnerColor(row.owner),
+            color: getOwnerColor(getOwnerForLeaderboard(row)),
           });
         }
 
@@ -1233,7 +1263,7 @@
     function renderSummary() {
       const activeRows = choreRows.filter((row) => !row.done);
       const doneRows = choreRows.filter((row) => row.done);
-      const uniqueOwners = new Set(choreRows.map((row) => getOwnerLabel(row.owner)));
+      const uniqueOwners = new Set(choreRows.map((row) => getOwnerLabel(getOwnerForLeaderboard(row))));
       const totalPoints = doneRows.reduce((sum, row) => sum + row.points, 0);
 
       document.getElementById("weekLabel").textContent = formatWeekLabel();
@@ -1252,7 +1282,7 @@
       scoreEmptyEl.style.display = leaderboard.length ? "none" : "block";
 
       if (!leaderboard.length) {
-        document.getElementById("leaderSummary").textContent = "No chores loaded yet.";
+        document.getElementById("leaderSummary").textContent = "No tasks loaded yet.";
         return;
       }
 
@@ -1287,7 +1317,7 @@
           </div>
           <div class="score-points">${entry.points}</div>
           <div class="score-label">points this week</div>
-          <div class="score-meta">${entry.completed} of ${entry.assigned} chores finished</div>
+          <div class="score-meta">${entry.completed} of ${entry.assigned} tasks finished</div>
         `;
         scoreGridEl.appendChild(tile);
       });
@@ -1311,20 +1341,34 @@
       });
     }
 
+    function getTaskStatusText(row) {
+      if (!row.done) {
+        return "Ready for action";
+      }
+
+      const baseText = row.completedAt ? formatCompletedAt(row.completedAt) : "Completed this week";
+      if (row.completedBy && !row.owner) {
+        return `${baseText} • Completed by ${row.completedBy}`;
+      }
+
+      return baseText;
+    }
+
     function createChoreTile(row) {
+      const displayOwner = getOwnerForDisplay(row);
       const button = document.createElement("button");
       button.type = "button";
       button.className = `chore-tile${row.done ? " done" : ""}`;
-      button.style.borderLeftColor = getOwnerColor(row.owner);
+      button.style.borderLeftColor = getOwnerColor(displayOwner);
       button.innerHTML = `
         <div class="chore-header">
           <div class="chore-title">${escapeHtml(row.title)}</div>
           <div class="point-badge">${escapeHtml(formatPoints(row.points))}</div>
         </div>
         <div class="chore-meta">
-          <span class="owner-pill" style="background:${getOwnerColor(row.owner)}">${escapeHtml(getOwnerLabel(row.owner))}</span>
+          <span class="owner-pill" style="background:${getOwnerColor(displayOwner)}">${escapeHtml(getOwnerLabel(displayOwner))}</span>
           <span class="chore-status${row.done ? " done" : ""}">
-            ${escapeHtml(row.done ? formatCompletedAt(row.completedAt) : "Ready for action")}
+            ${escapeHtml(getTaskStatusText(row))}
           </span>
         </div>
       `;
@@ -1369,6 +1413,27 @@
       const nextDone = !targetRow.done;
       const completedAt = nextDone ? new Date().toISOString() : "";
       const currentWeekKey = getCurrentWeekKey();
+      let completedBy = "";
+
+      if (nextDone && !targetRow.owner) {
+        const enteredName = window.prompt(
+          `Who completed "${targetRow.title}"? Enter a name so the points go to the right person.`,
+          targetRow.completedBy || ""
+        );
+
+        if (enteredName === null) {
+          setBusy(false);
+          showMessage("Task completion canceled.", "");
+          return;
+        }
+
+        completedBy = normalizeOwner(enteredName);
+        if (!completedBy) {
+          setBusy(false);
+          showMessage("Enter who completed the task so the points can be credited.", "error");
+          return;
+        }
+      }
 
       try {
         await gapi.client.sheets.spreadsheets.values.batchUpdate({
@@ -1388,13 +1453,21 @@
                 range: `${SHEET_NAME}!F${targetRow.rowNumber}`,
                 values: [[currentWeekKey]],
               },
+              {
+                range: `${SHEET_NAME}!G${targetRow.rowNumber}`,
+                values: [[nextDone ? completedBy : ""]],
+              },
             ],
           },
         });
 
         await loadChores();
         showMessage(
-          nextDone ? `Marked "${targetRow.title}" done.` : `Moved "${targetRow.title}" back to active.`,
+          nextDone
+            ? completedBy
+              ? `Marked "${targetRow.title}" done for ${completedBy}.`
+              : `Marked "${targetRow.title}" done.`
+            : `Moved "${targetRow.title}" back to active.`,
           "success"
         );
       } catch (error) {
@@ -1411,11 +1484,11 @@
       }
 
       if (!choreRows.length) {
-        showMessage("There are no chores to reset yet.", "error");
+        showMessage("There are no tasks to reset yet.", "error");
         return;
       }
 
-      const confirmed = window.confirm("Start a fresh chore week and clear every completed chore?");
+      const confirmed = window.confirm("Start a fresh task week and clear every completed task?");
       if (!confirmed) return;
 
       setBusy(true);
@@ -1435,6 +1508,10 @@
           range: `${SHEET_NAME}!F${row.rowNumber}`,
           values: [[currentWeekKey]],
         },
+        {
+          range: `${SHEET_NAME}!G${row.rowNumber}`,
+          values: [[""]],
+        },
       ]));
 
       try {
@@ -1447,7 +1524,7 @@
         });
 
         await loadChores();
-        showMessage("Started a fresh week of chores.", "success");
+        showMessage("Started a fresh week of tasks.", "success");
       } catch (error) {
         console.error(error);
         showMessage(getReadableError(error), "error");

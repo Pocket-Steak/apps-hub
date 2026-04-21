@@ -1948,7 +1948,7 @@
       <div class="top-right">
         <button class="top-btn" id="backAppsBtn" type="button" style="display:none;">← Back to Apps</button>
         <button class="top-btn" id="cookbookBtn" type="button">Cookbook</button>
-        <button class="top-btn" id="choresBtn" type="button">Chores</button>
+        <button class="top-btn" id="choresBtn" type="button">Tasks</button>
         <button class="top-btn" id="notesBtn" type="button" onclick="window.location.href='/notes/'">Notes</button>
         <button class="top-btn" id="settingsBtn" type="button" onclick="window.location.href='/settings/'">Settings</button>
         <div style="display:none;">
@@ -2026,10 +2026,10 @@
         <article class="preview-card" id="chorePreviewCard">
         <div class="preview-head">
           <div class="preview-heading">
-            <div class="preview-title">Family Chores</div>
-            <div class="preview-meta" id="chorePreviewMeta">Connect Google to load weekly chores.</div>
+            <div class="preview-title">Family Tasks</div>
+            <div class="preview-meta" id="chorePreviewMeta">Connect Google to load weekly tasks.</div>
           </div>
-          <button class="preview-open" id="chorePreviewBtn" type="button">Open Board</button>
+          <button class="preview-open" id="chorePreviewBtn" type="button">Open Tasks</button>
         </div>
         <div class="preview-list" id="chorePreviewList">
           <div class="preview-empty">Waiting for Google Sheets…</div>
@@ -2063,7 +2063,7 @@
     const SPREADSHEET_ID = "1ccfVTfNqrrzMLkD4uK8fkWs3wRJENs5XQJHJfjkWmmY";
     const GROCERY_SHEET_NAME = "Groceries";
     const TODO_SHEET_NAME = "ToDo";
-    const CHORES_SHEET_NAME = "Chores";
+    const TASKS_SHEET_NAME = "Tasks";
     const SCOPES = [
       "https://www.googleapis.com/auth/calendar",
       "https://www.googleapis.com/auth/spreadsheets",
@@ -2230,12 +2230,17 @@
       return str === "true" || str === "yes" || str === "1" || str === "y";
     }
 
+    function titleCase(value) {
+      return String(value || "")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+        .join(" ");
+    }
+
     function normalizeOwner(value) {
-      const str = String(value || "").trim().toLowerCase();
-      if (str === "andrew") return "Andrew";
-      if (str === "nichol") return "Nichol";
-      if (str === "jolie") return "Jolie";
-      return "";
+      return titleCase(value);
     }
 
     function normalizePoints(value) {
@@ -2424,7 +2429,7 @@
       const entries = new Map();
 
       rows.forEach((row) => {
-        const owner = getOwnerLabel(row.owner);
+        const owner = getOwnerLabel(row.done ? (row.completedBy || row.owner) : row.owner);
         if (!entries.has(owner)) {
           entries.set(owner, {
             owner,
@@ -2454,8 +2459,8 @@
       }
 
       if (!choresPreviewRows.length) {
-        metaEl.textContent = "No chores loaded yet.";
-        listEl.innerHTML = `<div class="preview-empty">Open the Chores board to add weekly chores.</div>`;
+        metaEl.textContent = "No tasks loaded yet.";
+        listEl.innerHTML = `<div class="preview-empty">Open the Tasks board to add weekly tasks.</div>`;
         return;
       }
 
@@ -2465,8 +2470,8 @@
       const leader = leaderboard[0];
 
       metaEl.textContent = leader && leader.points > 0
-        ? `${activeRows.length} chores left • ${doneRows.length} done • ${leader.owner} leads with ${leader.points} pt${leader.points === 1 ? "" : "s"}`
-        : `${activeRows.length} chores left • ${doneRows.length} done`;
+        ? `${activeRows.length} tasks left • ${doneRows.length} done • ${leader.owner} leads with ${leader.points} pt${leader.points === 1 ? "" : "s"}`
+        : `${activeRows.length} tasks left • ${doneRows.length} done`;
 
       const previewRows = activeRows.slice(0, 4);
       listEl.innerHTML = previewRows.length
@@ -2479,7 +2484,7 @@
               </div>
             </div>
           `).join("")
-        : `<div class="preview-empty">Every chore is done for this week.</div>`;
+        : `<div class="preview-empty">Every task is done for this week.</div>`;
     }
 
     function openDashboardOverlay(title, path) {
@@ -2528,7 +2533,7 @@
     async function loadChorePreview() {
       const response = await gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
-        range: `${CHORES_SHEET_NAME}!A:F`,
+        range: `${TASKS_SHEET_NAME}!A:G`,
       });
 
       const values = response.result.values || [];
@@ -2544,6 +2549,7 @@
             completedAt: String(row[2] || "").trim(),
             owner: normalizeOwner(row[3]),
             points: normalizePoints(row[4]),
+            completedBy: normalizeOwner(row[6]),
           };
         })
         .filter((row) => row.title);
@@ -2580,7 +2586,7 @@
       } else {
         console.error(results[2].reason);
         choresPreviewRows = [];
-        chorePreviewError = "Open Chores to initialize the weekly chore sheet.";
+        chorePreviewError = "Open Tasks to initialize the weekly tasks sheet.";
       }
 
       renderAll();
@@ -2873,7 +2879,7 @@
       openDashboardOverlay("To-Do List", "/todo/");
     });
     document.getElementById("chorePreviewCard").addEventListener("click", () => {
-      openDashboardOverlay("Family Chores", "/chores/");
+      openDashboardOverlay("Family Tasks", "/chores/");
     });
     document.getElementById("groceryPreviewBtn").addEventListener("click", (event) => {
       event.stopPropagation();
@@ -2885,7 +2891,7 @@
     });
     document.getElementById("chorePreviewBtn").addEventListener("click", (event) => {
       event.stopPropagation();
-      openDashboardOverlay("Family Chores", "/chores/");
+      openDashboardOverlay("Family Tasks", "/chores/");
     });
     document.getElementById("overlayCloseBtn").addEventListener("click", closeDashboardOverlay);
     document.getElementById("overlayOpenPageBtn").addEventListener("click", () => {
