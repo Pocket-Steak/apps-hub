@@ -742,8 +742,8 @@
     }
   </style>
 
-  <script async defer src="https://apis.google.com/js/api.js"></script>
-  <script async defer src="https://accounts.google.com/gsi/client"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/assets/family-supabase.js"></script>
 </head>
 <body>
   <main class="app">
@@ -757,12 +757,12 @@
 
         <div class="toolbar-group right">
           <button class="btn btn-back" type="button" onclick="window.location.href='/settings/'">Settings</button>
-          <button id="openSheetBtn" class="btn btn-back" type="button">Open Sheet</button>
+          <button id="openSheetBtn" class="btn btn-back" type="button">Reload</button>
           <div id="statusPill" class="status-pill status-bad">
-            <div class="status-label">GOOGLE</div>
-            <div id="statusText" class="status-text">Not connected</div>
+            <div class="status-label">SUPABASE</div>
+            <div id="statusText" class="status-text">Not configured</div>
           </div>
-          <button id="connectBtn" class="btn btn-accent" type="button">Connect</button>
+          <button id="connectBtn" class="btn btn-accent" type="button">Configure</button>
         </div>
       </div>
 
@@ -771,7 +771,7 @@
         <h1>Tasks</h1>
         <div class="hero-copy">
           Daily tasks stay on your list and reset every new day automatically. Tap any task when it is finished,
-          and the weekly leaderboard keeps score from Monday through Sunday based on the point values in Google.
+          and the weekly leaderboard keeps score from Monday through Sunday based on the point values in Supabase.
           If a task is unassigned, you can just tap your family color in the picker so the right person gets
           the points.
         </div>
@@ -805,11 +805,9 @@
         </div>
 
         <div class="helper">
-          Manage the task list inside Google Sheets. Recommended columns are:
-          <strong>Task</strong>, <strong>Done</strong>, <strong>Completed At</strong>,
-          <strong>Owner</strong>, <strong>Points</strong>, <strong>Week Start</strong>, and
-          <strong>Completed By</strong>. The app also keeps a separate <strong>Task History</strong> tab so
-          daily resets do not erase this week's points.
+          Manage recurring tasks in <strong>family_tasks</strong>. Daily checkmarks and weekly scoring live in
+          <strong>family_task_completions</strong>, and <strong>family_members</strong> powers the color picker.
+          Nothing needs to be manually reset each day because today's board is built from today's completion rows.
         </div>
         <div id="message" class="message"></div>
       </section>
@@ -869,6 +867,9 @@
     const DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
     const SCOPES = "https://www.googleapis.com/auth/spreadsheets";
     const COMPLETION_CHOICES = ["Andrew", "Nichol", "Jolie"];
+    const TASKS_TABLE = "family_tasks";
+    const COMPLETIONS_TABLE = "family_task_completions";
+    const MEMBERS_TABLE = "family_members";
 
     const HEADER_ROW = ["Task", "Done", "Completed At", "Owner", "Points", "Week Start", "Completed By"];
     const HISTORY_HEADER_ROW = ["Task Row", "Task", "Person", "Points", "Completed At", "Week Start", "Day Key"];
@@ -882,6 +883,9 @@
     let isBusy = false;
     let choreRows = [];
     let weeklyHistoryEntries = [];
+    let familyMembers = [];
+    let supabaseClient = null;
+    let supabaseConfigSignature = "";
 
     const statusPill = document.getElementById("statusPill");
     const statusText = document.getElementById("statusText");
@@ -904,10 +908,56 @@
 
     let completionPickerResolve = null;
 
+    function getDefaultMembers() {
+      return (window.PocketSteakSupabase?.defaultMembers || []).map((member) => ({
+        name: normalizeOwner(member.name),
+        color: member.color,
+      }));
+    }
+
+    function buildMembers(records) {
+      const fallback = getDefaultMembers();
+      if (!Array.isArray(records) || !records.length) {
+        return fallback;
+      }
+
+      const mapped = records
+        .map((record) => ({
+          name: normalizeOwner(record?.name),
+          color: String(record?.color || "").trim(),
+        }))
+        .filter((record) => record.name);
+
+      return mapped.length ? mapped : fallback;
+    }
+
+    function getMemberChoices() {
+      return familyMembers.length ? familyMembers : getDefaultMembers();
+    }
+
+    function hasSupabaseConfig() {
+      return Boolean(window.PocketSteakSupabase?.getConfig().configured);
+    }
+
+    function ensureSupabaseClient() {
+      const config = window.PocketSteakSupabase?.getConfig();
+      if (!config?.configured) {
+        throw new Error("Open Settings to add your Supabase Tasks project URL and public key.");
+      }
+
+      const signature = `${config.url}::${config.anonKey}`;
+      if (!supabaseClient || supabaseConfigSignature !== signature) {
+        supabaseClient = window.PocketSteakSupabase.createClient();
+        supabaseConfigSignature = signature;
+      }
+
+      return supabaseClient;
+    }
+
     function setBusy(value) {
       isBusy = value;
-      connectBtn.disabled = value && appReady;
-      resetWeekBtn.disabled = value || !isConnected;
+      connectBtn.disabled = value;
+      resetWeekBtn.disabled = value || !hasSupabaseConfig();
       openSheetBtn.disabled = value;
       summaryCard.classList.toggle("loading", value);
     }
@@ -950,7 +1000,7 @@
     }
 
     function normalizeOwner(value) {
-      return titleCase(value);
+      return window.PocketSteakSupabase?.normalizeOwner(value) || titleCase(value);
     }
 
     function normalizePoints(value) {
@@ -966,22 +1016,25 @@
     }
 
     function getOwnerColor(owner) {
-      if (owner === "Andrew") return "var(--owner-andrew)";
-      if (owner === "Nichol") return "var(--owner-nichol)";
-      if (owner === "Jolie") return "var(--owner-jolie)";
+      const normalizedOwner = normalizeOwner(owner);
+      const match = getMemberChoices().find((member) => member.name === normalizedOwner);
+      if (match?.color) return match.color;
+      if (normalizedOwner === "Andrew") return "var(--owner-andrew)";
+      if (normalizedOwner === "Nichol") return "var(--owner-nichol)";
+      if (normalizedOwner === "Jolie") return "var(--owner-jolie)";
       return "var(--owner-default)";
     }
 
     function getOwnerLabel(owner) {
-      return owner || "Unassigned";
+      return normalizeOwner(owner) || "Unassigned";
     }
 
     function getCompletedOwner(row) {
-      return row.completedBy || row.owner;
+      return normalizeOwner(row.completedBy) || normalizeOwner(row.owner);
     }
 
     function getOwnerForDisplay(row) {
-      return row.done ? getCompletedOwner(row) : row.owner;
+      return row.done ? getCompletedOwner(row) : normalizeOwner(row.owner);
     }
 
     function getClaimHintHtml() {
@@ -989,8 +1042,8 @@
         <div class="claim-hint" aria-hidden="true">
           <span class="claim-hint-label">Choose a color</span>
           <span class="claim-dots">
-            ${COMPLETION_CHOICES.map((owner) => `
-              <span class="claim-dot" style="background:${getOwnerColor(owner)}" title="${escapeHtml(owner)}"></span>
+            ${getMemberChoices().map((member) => `
+              <span class="claim-dot" style="background:${getOwnerColor(member.name)}" title="${escapeHtml(member.name)}"></span>
             `).join("")}
           </span>
         </div>
@@ -1015,20 +1068,20 @@
       }
 
       taskPickerTitleEl.textContent = `Who finished "${row.title}"?`;
-      taskPickerCopyEl.textContent = `Tap your family color to claim ${formatPoints(row.points)} for this task.`;
+      taskPickerCopyEl.textContent = `Tap a family color to claim ${formatPoints(row.points)} for this task.`;
       taskPickerGridEl.innerHTML = "";
 
-      COMPLETION_CHOICES.forEach((owner) => {
+      getMemberChoices().forEach((member) => {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "task-picker-choice";
-        button.style.setProperty("--choice-color", getOwnerColor(owner));
+        button.style.setProperty("--choice-color", getOwnerColor(member.name));
         button.innerHTML = `
           <span class="task-picker-choice-swatch"></span>
-          <span class="task-picker-choice-name">${escapeHtml(owner)}</span>
-          <span class="task-picker-choice-note">Tap to give ${escapeHtml(owner)} the points.</span>
+          <span class="task-picker-choice-name">${escapeHtml(member.name)}</span>
+          <span class="task-picker-choice-note">Tap to give ${escapeHtml(member.name)} the points.</span>
         `;
-        button.addEventListener("click", () => closeCompletionPicker(owner));
+        button.addEventListener("click", () => closeCompletionPicker(member.name));
         taskPickerGridEl.appendChild(button);
       });
 
@@ -1192,7 +1245,7 @@
         error?.details ||
         error?.message ||
         error?.error ||
-        "Something went wrong with Google Sheets.";
+        "Something went wrong loading Family Tasks.";
 
       const code = error?.code || error?.result?.error?.code;
       const status = error?.status || error?.result?.error?.status;
@@ -1621,53 +1674,129 @@
       });
     }
 
+    function normalizeHistoryEntry(record) {
+      return {
+        id: record.id,
+        taskId: record.task_id,
+        person: normalizeOwner(record.completed_by),
+        points: normalizePoints(record.points),
+        completedAt: String(record.completed_at || "").trim(),
+        weekStart: String(record.week_start || "").trim(),
+        dayKey: String(record.day_key || "").trim(),
+      };
+    }
+
+    async function loadMembers(client) {
+      const result = await client
+        .from(MEMBERS_TABLE)
+        .select("name,color")
+        .order("name", { ascending: true });
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      return buildMembers(result.data);
+    }
+
     async function loadChores() {
       setBusy(true);
       showMessage("", "");
-      await ensureSheetReady();
+      document.getElementById("weekLabel").textContent = formatWeekLabel();
 
-      const [response, historyValues] = await Promise.all([
-        gapi.client.sheets.spreadsheets.values.get({
-          spreadsheetId: SPREADSHEET_ID,
-          range: `${SHEET_NAME}!A:G`,
-        }),
-        getHistorySheetValues(),
-      ]);
-      const values = response.result.values || [];
-      const startIndex = values.length > 0 && isLikelyHeaderRow(values[0]) ? 1 : 0;
-      const currentDayKey = getCurrentDayKey();
-
-      let nextRows = values.slice(startIndex).map((row, index) => {
-        const rowNumber = startIndex + index + 1;
-        const rawDone = normalizeBool(row[1]);
-        const completedAt = String(row[2] || "").trim();
-        const completedDayKey = getDayKeyForTimestamp(completedAt);
-        const done = rawDone && completedDayKey === currentDayKey;
-
-        return {
-          rowNumber,
-          title: String(row[0] || "").trim(),
-          rawDone,
-          done,
-          completedAt,
-          completedDayKey,
-          owner: normalizeOwner(row[3]),
-          points: normalizePoints(row[4]),
-          weekStart: String(row[5] || "").trim(),
-          completedBy: normalizeOwner(row[6]),
-        };
-      }).filter((row) => row.title);
-
-      const staleCompletedRows = nextRows.filter((row) => row.rawDone && row.completedDayKey !== currentDayKey);
-      if (staleCompletedRows.length) {
-        await syncRowsToCurrentDay(staleCompletedRows);
-        return loadChores();
+      if (!hasSupabaseConfig()) {
+        isConnected = false;
+        familyMembers = buildMembers([]);
+        choreRows = [];
+        weeklyHistoryEntries = [];
+        setStatus("Not configured", false);
+        showMessage("Open Settings to add your Supabase project URL and public key for Family Tasks.", "error");
+        renderAll();
+        setBusy(false);
+        return;
       }
 
-      choreRows = nextRows;
-      weeklyHistoryEntries = parseWeeklyHistoryEntries(historyValues);
-      renderAll();
-      setBusy(false);
+      try {
+        const client = ensureSupabaseClient();
+        const currentDayKey = window.PocketSteakSupabase.getCurrentDayKey();
+        const currentWeekKey = window.PocketSteakSupabase.getCurrentWeekKey();
+
+        const [memberResult, taskResult, completionResult] = await Promise.allSettled([
+          loadMembers(client),
+          client
+            .from(TASKS_TABLE)
+            .select("id,title,owner_name,points,active,sort_order,created_at")
+            .eq("active", true)
+            .order("sort_order", { ascending: true })
+            .order("created_at", { ascending: true }),
+          client
+            .from(COMPLETIONS_TABLE)
+            .select("id,task_id,completed_by,points,completed_at,day_key,week_start")
+            .eq("week_start", currentWeekKey)
+            .order("completed_at", { ascending: false }),
+        ]);
+
+        familyMembers = memberResult.status === "fulfilled"
+          ? memberResult.value
+          : buildMembers([]);
+
+        if (taskResult.status !== "fulfilled") {
+          throw taskResult.reason;
+        }
+        if (taskResult.value.error) {
+          throw taskResult.value.error;
+        }
+        if (completionResult.status !== "fulfilled") {
+          throw completionResult.reason;
+        }
+        if (completionResult.value.error) {
+          throw completionResult.value.error;
+        }
+
+        weeklyHistoryEntries = (completionResult.value.data || [])
+          .map(normalizeHistoryEntry)
+          .filter((entry) => entry.person && entry.weekStart === currentWeekKey);
+
+        const todayCompletionByTask = new Map();
+        weeklyHistoryEntries
+          .filter((entry) => entry.dayKey === currentDayKey)
+          .forEach((entry) => {
+            if (!todayCompletionByTask.has(entry.taskId)) {
+              todayCompletionByTask.set(entry.taskId, entry);
+            }
+          });
+
+        choreRows = (taskResult.value.data || [])
+          .map((task) => {
+            const completion = todayCompletionByTask.get(task.id);
+            return {
+              id: task.id,
+              title: String(task.title || "").trim(),
+              owner: normalizeOwner(task.owner_name),
+              points: normalizePoints(task.points),
+              sortOrder: Number.isFinite(Number(task.sort_order)) ? Number(task.sort_order) : 0,
+              done: Boolean(completion),
+              completedAt: completion?.completedAt || "",
+              completedBy: completion?.person || "",
+            };
+          })
+          .filter((row) => row.title);
+
+        isConnected = true;
+        setStatus("Connected", true);
+        renderAll();
+      } catch (error) {
+        console.error(error);
+        isConnected = false;
+        familyMembers = buildMembers([]);
+        choreRows = [];
+        weeklyHistoryEntries = [];
+        setStatus("Load failed", false);
+        showMessage(getReadableError(error), "error");
+        renderAll();
+      } finally {
+        setBusy(false);
+      }
     }
 
     function buildLeaderboard(historyEntries) {
@@ -1763,6 +1892,7 @@
       return [...rows].sort((a, b) => {
         const ownerCompare = getOwnerLabel(a.owner).localeCompare(getOwnerLabel(b.owner));
         if (ownerCompare !== 0) return ownerCompare;
+        if ((a.sortOrder || 0) !== (b.sortOrder || 0)) return (a.sortOrder || 0) - (b.sortOrder || 0);
         if (b.points !== a.points) return b.points - a.points;
         return a.title.localeCompare(b.title);
       });
@@ -1829,6 +1959,16 @@
       activeEmptyEl.style.display = activeRows.length ? "none" : "block";
       doneEmptyEl.style.display = doneRows.length ? "none" : "block";
 
+      if (!choreRows.length) {
+        activeEmptyEl.textContent = hasSupabaseConfig()
+          ? "No tasks yet. Add rows to family_tasks in Supabase."
+          : "Open Settings to connect Supabase Tasks.";
+      } else {
+        activeEmptyEl.textContent = "No tasks left for today.";
+      }
+
+      doneEmptyEl.textContent = "No tasks finished yet today.";
+
       activeRows.forEach((row) => {
         activeListEl.appendChild(createChoreTile(row));
       });
@@ -1845,18 +1985,17 @@
     }
 
     async function toggleDone(targetRow) {
-      if (!isConnected) {
-        showMessage("Connect Google first.", "error");
+      if (!hasSupabaseConfig()) {
+        showMessage("Open Settings to configure Supabase Tasks first.", "error");
         return;
       }
 
       showMessage("", "");
 
       const nextDone = !targetRow.done;
-      const completedAt = nextDone ? new Date().toISOString() : "";
-      const currentWeekKey = getCurrentWeekKey();
-      const currentDayKey = getCurrentDayKey();
-      let completedBy = "";
+      const currentWeekKey = window.PocketSteakSupabase.getCurrentWeekKey();
+      const currentDayKey = window.PocketSteakSupabase.getCurrentDayKey();
+      let completedBy = normalizeOwner(targetRow.owner);
 
       if (nextDone && !targetRow.owner) {
         completedBy = await openCompletionPicker(targetRow);
@@ -1869,43 +2008,32 @@
       setBusy(true);
 
       try {
-        await gapi.client.sheets.spreadsheets.values.batchUpdate({
-          spreadsheetId: SPREADSHEET_ID,
-          resource: {
-            valueInputOption: "USER_ENTERED",
-            data: [
-              {
-                range: `${SHEET_NAME}!B${targetRow.rowNumber}`,
-                values: [[nextDone ? "TRUE" : "FALSE"]],
-              },
-              {
-                range: `${SHEET_NAME}!C${targetRow.rowNumber}`,
-                values: [[completedAt]],
-              },
-              {
-                range: `${SHEET_NAME}!F${targetRow.rowNumber}`,
-                values: [[nextDone ? currentWeekKey : ""]],
-              },
-              {
-                range: `${SHEET_NAME}!G${targetRow.rowNumber}`,
-                values: [[nextDone ? completedBy : ""]],
-              },
-            ],
-          },
-        });
+        const client = ensureSupabaseClient();
+        const deleteResult = await client
+          .from(COMPLETIONS_TABLE)
+          .delete()
+          .eq("task_id", targetRow.id)
+          .eq("day_key", currentDayKey);
+
+        if (deleteResult.error) {
+          throw deleteResult.error;
+        }
 
         if (nextDone) {
-          await upsertHistoryEntry({
-            sourceRowNumber: targetRow.rowNumber,
-            title: targetRow.title,
-            person: normalizeOwner(completedBy || targetRow.owner),
-            points: targetRow.points,
-            completedAt,
-            weekStart: currentWeekKey,
-            dayKey: currentDayKey,
-          });
-        } else {
-          await removeHistoryEntry(targetRow.rowNumber, currentDayKey);
+          const insertResult = await client
+            .from(COMPLETIONS_TABLE)
+            .insert({
+              task_id: targetRow.id,
+              completed_by: normalizeOwner(completedBy || targetRow.owner),
+              points: targetRow.points,
+              completed_at: new Date().toISOString(),
+              day_key: currentDayKey,
+              week_start: currentWeekKey,
+            });
+
+          if (insertResult.error) {
+            throw insertResult.error;
+          }
         }
 
         await loadChores();
@@ -1925,55 +2053,35 @@
     }
 
     async function resetWeek() {
-      if (!isConnected) {
-        showMessage("Connect Google first.", "error");
+      if (!hasSupabaseConfig()) {
+        showMessage("Open Settings to configure Supabase Tasks first.", "error");
         return;
       }
 
       if (!choreRows.length && !weeklyHistoryEntries.length) {
-        showMessage("There are no tasks to reset yet.", "error");
+        showMessage("There are no task completions to reset yet.", "error");
         return;
       }
 
-      const confirmed = window.confirm("Clear today's task states and remove this week's score history?");
+      const confirmed = window.confirm("Clear this week's task completions and reset the leaderboard?");
       if (!confirmed) return;
 
       setBusy(true);
       showMessage("", "");
 
-      const updates = choreRows.flatMap((row) => ([
-        {
-          range: `${SHEET_NAME}!B${row.rowNumber}`,
-          values: [["FALSE"]],
-        },
-        {
-          range: `${SHEET_NAME}!C${row.rowNumber}`,
-          values: [[""]],
-        },
-        {
-          range: `${SHEET_NAME}!F${row.rowNumber}`,
-          values: [[""]],
-        },
-        {
-          range: `${SHEET_NAME}!G${row.rowNumber}`,
-          values: [[""]],
-        },
-      ]));
-
       try {
-        if (updates.length) {
-          await gapi.client.sheets.spreadsheets.values.batchUpdate({
-            spreadsheetId: SPREADSHEET_ID,
-            resource: {
-              valueInputOption: "USER_ENTERED",
-              data: updates,
-            },
-          });
+        const client = ensureSupabaseClient();
+        const deleteResult = await client
+          .from(COMPLETIONS_TABLE)
+          .delete()
+          .eq("week_start", window.PocketSteakSupabase.getCurrentWeekKey());
+
+        if (deleteResult.error) {
+          throw deleteResult.error;
         }
-        await clearWeeklyHistory();
 
         await loadChores();
-        showMessage("Started a fresh week. Today's tasks are reset and the weekly score is cleared.", "success");
+        showMessage("Started a fresh week. This week's score has been cleared.", "success");
       } catch (error) {
         console.error(error);
         showMessage(getReadableError(error), "error");
@@ -1982,19 +2090,11 @@
     }
 
     function openSheet() {
-      window.open(`https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/edit`, "_blank", "noopener,noreferrer");
+      loadChores();
     }
 
     connectBtn.addEventListener("click", () => {
-      if (!appReady) {
-        setStatus("Retrying Google...", false);
-        showMessage("Trying to load Google services again...", "");
-        initGapi();
-        initGisReadyCheck();
-        return;
-      }
-
-      connectGoogle(true);
+      window.location.href = "/settings/";
     });
 
     resetWeekBtn.addEventListener("click", resetWeek);
@@ -2021,20 +2121,17 @@
       });
     }
 
-    setBusy(true);
-    setStatus("Loading Google...", false);
+    familyMembers = buildMembers([]);
     document.getElementById("weekLabel").textContent = formatWeekLabel();
+    renderAll();
 
-    if (window.location.protocol === "file:") {
+    if (!hasSupabaseConfig()) {
       setBusy(false);
-      setStatus("Serve from localhost", false);
-      showMessage(
-        "Google sign-in will not work from a file:// page. Open this through a local server like http://localhost:5500 or your hosted site.",
-        "error"
-      );
+      setStatus("Not configured", false);
+      showMessage("Open Settings to add your Supabase project URL and public key for Family Tasks.", "error");
     } else {
-      initGapi();
-      initGisReadyCheck();
+      setStatus("Loading...", false);
+      loadChores();
     }
   </script>
 </body>

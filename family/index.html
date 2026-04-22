@@ -1888,6 +1888,8 @@
     }
   </style>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/assets/family-supabase.js"></script>
   <script async defer src="https://apis.google.com/js/api.js"></script>
   <script async defer src="https://accounts.google.com/gsi/client"></script>
 </head>
@@ -2027,12 +2029,12 @@
         <div class="preview-head">
           <div class="preview-heading">
             <div class="preview-title">Family Tasks</div>
-            <div class="preview-meta" id="chorePreviewMeta">Connect Google to load daily tasks.</div>
+            <div class="preview-meta" id="chorePreviewMeta">Configure Supabase Tasks in Settings to load daily tasks.</div>
           </div>
           <button class="preview-open" id="chorePreviewBtn" type="button">Open Tasks</button>
         </div>
         <div class="preview-list" id="chorePreviewList">
-          <div class="preview-empty">Waiting for Google Sheets…</div>
+          <div class="preview-empty">Waiting for Supabase Tasks…</div>
         </div>
         </article>
       </section>
@@ -2063,8 +2065,9 @@
     const SPREADSHEET_ID = "1ccfVTfNqrrzMLkD4uK8fkWs3wRJENs5XQJHJfjkWmmY";
     const GROCERY_SHEET_NAME = "Groceries";
     const TODO_SHEET_NAME = "ToDo";
-    const TASKS_SHEET_NAME = "Tasks";
-    const TASK_HISTORY_SHEET_NAME = "Task History";
+    const TASKS_TABLE = "family_tasks";
+    const TASK_COMPLETIONS_TABLE = "family_task_completions";
+    const TASK_MEMBERS_TABLE = "family_members";
     const SCOPES = [
       "https://www.googleapis.com/auth/calendar",
       "https://www.googleapis.com/auth/spreadsheets",
@@ -2095,6 +2098,13 @@
     let todoPreviewError = "";
     let chorePreviewError = "";
     let activeOverlayPath = "";
+    let taskPreviewClient = null;
+    let taskPreviewClientSignature = "";
+    let taskMemberColors = new Map([
+      ["Andrew", "#ff8a1f"],
+      ["Nichol", "#8b5cf6"],
+      ["Jolie", "#22c55e"],
+    ]);
 
     function setStatus(text) {
       document.getElementById("statusText").textContent = text;
@@ -2189,6 +2199,54 @@
       return formatDateKey(date);
     }
 
+    function getTaskPreviewClient() {
+      const config = window.PocketSteakSupabase?.getConfig();
+      if (!config?.configured) {
+        return null;
+      }
+
+      const signature = `${config.url}::${config.anonKey}`;
+      if (!taskPreviewClient || taskPreviewClientSignature !== signature) {
+        taskPreviewClient = window.PocketSteakSupabase.createClient();
+        taskPreviewClientSignature = signature;
+      }
+
+      return taskPreviewClient;
+    }
+
+    function resetTaskMemberColors() {
+      taskMemberColors = new Map([
+        ["Andrew", "#ff8a1f"],
+        ["Nichol", "#8b5cf6"],
+        ["Jolie", "#22c55e"],
+      ]);
+    }
+
+    async function loadTaskMemberColors(client) {
+      try {
+        const result = await client
+          .from(TASK_MEMBERS_TABLE)
+          .select("name,color")
+          .order("name", { ascending: true });
+
+        if (result.error) {
+          throw result.error;
+        }
+
+        resetTaskMemberColors();
+        (result.data || []).forEach((member) => {
+          const name = normalizeOwner(member.name);
+          const color = String(member.color || "").trim();
+          if (name && color) {
+            taskMemberColors.set(name, color);
+          }
+        });
+      } catch (error) {
+        console.warn("Could not load task member colors:", error);
+        resetTaskMemberColors();
+      }
+    }
+
     function renderRideWaits(values) {
       const container = document.getElementById("rideWaits");
       container.innerHTML = values.map((ride) => `
@@ -2264,7 +2322,7 @@
     }
 
     function normalizeOwner(value) {
-      return titleCase(value);
+      return window.PocketSteakSupabase?.normalizeOwner(value) || titleCase(value);
     }
 
     function normalizePoints(value) {
@@ -2276,14 +2334,18 @@
     }
 
     function getOwnerColor(owner) {
-      if (owner === "Andrew") return "#ff8a1f";
-      if (owner === "Nichol") return "#8b5cf6";
-      if (owner === "Jolie") return "#22c55e";
+      const normalizedOwner = normalizeOwner(owner);
+      if (taskMemberColors.has(normalizedOwner)) {
+        return taskMemberColors.get(normalizedOwner);
+      }
+      if (normalizedOwner === "Andrew") return "#ff8a1f";
+      if (normalizedOwner === "Nichol") return "#8b5cf6";
+      if (normalizedOwner === "Jolie") return "#22c55e";
       return "#ec4899";
     }
 
     function getOwnerLabel(owner) {
-      return owner || "Unassigned";
+      return normalizeOwner(owner) || "Unassigned";
     }
 
     function isLikelyHeaderRow(row) {
@@ -2552,6 +2614,10 @@
         loadDashboardLists().catch((err) => {
           console.error(err);
         });
+      } else {
+        refreshTaskPreview().catch((err) => {
+          console.error(err);
+        });
       }
     }
 
@@ -2575,60 +2641,73 @@
         .filter((row) => row.title);
     }
 
-    async function loadTaskHistoryPreview() {
-      try {
-        const response = await gapi.client.sheets.spreadsheets.values.get({
-          spreadsheetId: SPREADSHEET_ID,
-          range: `${TASK_HISTORY_SHEET_NAME}!A:G`,
-        });
+    async function loadTaskHistoryPreview(client, currentWeekKey) {
+      const result = await client
+        .from(TASK_COMPLETIONS_TABLE)
+        .select("id,task_id,completed_by,points,completed_at,day_key,week_start")
+        .eq("week_start", currentWeekKey)
+        .order("completed_at", { ascending: false });
 
-        const values = response.result.values || [];
-        const startIndex = values.length > 0 && isTaskHistoryHeaderRow(values[0]) ? 1 : 0;
-        const currentWeekKey = getCurrentWeekStartKey();
-
-        return values.slice(startIndex)
-          .map((row) => ({
-            sourceRowNumber: Number(row[0] || 0),
-            title: String(row[1] || "").trim(),
-            person: normalizeOwner(row[2]),
-            points: normalizePoints(row[3]),
-            completedAt: String(row[4] || "").trim(),
-            weekStart: String(row[5] || "").trim(),
-            dayKey: String(row[6] || "").trim(),
-          }))
-          .filter((row) => row.sourceRowNumber && row.person && row.weekStart === currentWeekKey && row.dayKey);
-      } catch (error) {
-        const message = String(error?.result?.error?.message || error?.message || "").toLowerCase();
-        if (message.includes("unable to parse range") || message.includes(TASK_HISTORY_SHEET_NAME.toLowerCase())) {
-          return [];
-        }
-        throw error;
+      if (result.error) {
+        throw result.error;
       }
+
+      return (result.data || [])
+        .map((row) => ({
+          id: row.id,
+          taskId: row.task_id,
+          person: normalizeOwner(row.completed_by),
+          points: normalizePoints(row.points),
+          completedAt: String(row.completed_at || "").trim(),
+          weekStart: String(row.week_start || "").trim(),
+          dayKey: String(row.day_key || "").trim(),
+        }))
+        .filter((row) => row.taskId && row.person && row.weekStart === currentWeekKey && row.dayKey);
     }
 
     async function loadChorePreview() {
-      const [response, historyEntries] = await Promise.all([
-        gapi.client.sheets.spreadsheets.values.get({
-          spreadsheetId: SPREADSHEET_ID,
-          range: `${TASKS_SHEET_NAME}!A:G`,
-        }),
-        loadTaskHistoryPreview(),
+      const client = getTaskPreviewClient();
+      if (!client) {
+        throw new Error("Open Settings to add your Supabase Tasks config.");
+      }
+
+      const currentDayKey = window.PocketSteakSupabase.getCurrentDayKey();
+      const currentWeekKey = window.PocketSteakSupabase.getCurrentWeekKey();
+
+      const [taskResult, historyEntries] = await Promise.all([
+        client
+          .from(TASKS_TABLE)
+          .select("id,title,owner_name,points,active,sort_order,created_at")
+          .eq("active", true)
+          .order("sort_order", { ascending: true })
+          .order("created_at", { ascending: true }),
+        loadTaskHistoryPreview(client, currentWeekKey),
+        loadTaskMemberColors(client),
       ]);
 
-      const values = response.result.values || [];
-      const startIndex = values.length > 0 && isLikelyHeaderRow(values[0]) ? 1 : 0;
-      const currentDayKey = getCurrentDayKey();
+      if (taskResult.error) {
+        throw taskResult.error;
+      }
 
-      const rows = values.slice(startIndex)
-        .map((row) => {
-          const completedAt = String(row[2] || "").trim();
+      const todayCompletions = new Map();
+      historyEntries
+        .filter((entry) => entry.dayKey === currentDayKey)
+        .forEach((entry) => {
+          if (!todayCompletions.has(entry.taskId)) {
+            todayCompletions.set(entry.taskId, entry);
+          }
+        });
+
+      const rows = (taskResult.data || [])
+        .map((task) => {
+          const completion = todayCompletions.get(task.id);
           return {
-            title: String(row[0] || "").trim(),
-            done: normalizeBool(row[1]) && getDayKeyForTimestamp(completedAt) === currentDayKey,
-            completedAt,
-            owner: normalizeOwner(row[3]),
-            points: normalizePoints(row[4]),
-            completedBy: normalizeOwner(row[6]),
+            title: String(task.title || "").trim(),
+            done: Boolean(completion),
+            completedAt: completion?.completedAt || "",
+            owner: normalizeOwner(task.owner_name),
+            points: normalizePoints(task.points),
+            completedBy: completion?.person || "",
           };
         })
         .filter((row) => row.title);
@@ -2637,6 +2716,22 @@
         rows,
         historyEntries,
       };
+    }
+
+    async function refreshTaskPreview() {
+      try {
+        const result = await loadChorePreview();
+        choresPreviewRows = result.rows;
+        chorePreviewHistoryEntries = result.historyEntries;
+        chorePreviewError = "";
+      } catch (error) {
+        console.error(error);
+        choresPreviewRows = [];
+        chorePreviewHistoryEntries = [];
+        chorePreviewError = error?.message || "Could not load tasks preview.";
+      }
+
+      renderAll();
     }
 
     async function loadDashboardLists() {
@@ -2672,7 +2767,7 @@
         console.error(results[2].reason);
         choresPreviewRows = [];
         chorePreviewHistoryEntries = [];
-        chorePreviewError = "Open Tasks to initialize the daily tasks sheet.";
+        chorePreviewError = results[2].reason?.message || "Could not load tasks preview.";
       }
 
       renderAll();
@@ -2874,15 +2969,14 @@
       weekEvents = [];
       groceryPreviewRows = [];
       todoPreviewRows = [];
-      choresPreviewRows = [];
-      chorePreviewHistoryEntries = [];
       groceryPreviewError = "";
       todoPreviewError = "";
-      chorePreviewError = "";
       document.getElementById("authBtn").textContent = "Connect";
       document.getElementById("signOutBtn").style.display = "none";
       setStatus("Not connected");
-      renderAll();
+      refreshTaskPreview().catch((err) => {
+        console.error(err);
+      });
     }
 
     async function loadGoogleCalendarData() {
@@ -3003,6 +3097,9 @@
     });
 
     renderAll();
+    refreshTaskPreview().catch((err) => {
+      console.error(err);
+    });
     loadWeather();
     updateBannerCountdown();
     loadDisneyWaits();
