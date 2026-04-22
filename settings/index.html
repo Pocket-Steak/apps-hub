@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Family Settings</title>
-  <meta name="description" content="PocketSteak Family settings for Google Calendar and Supabase Tasks." />
+  <meta name="description" content="PocketSteak Family settings and Google connection." />
 
   <style>
     :root{
@@ -207,55 +207,6 @@
       flex-wrap:wrap;
     }
 
-    .field-grid{
-      display:grid;
-      gap:12px;
-    }
-
-    .field{
-      display:grid;
-      gap:8px;
-    }
-
-    .field-label{
-      font-size:12px;
-      font-weight:900;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-      color:var(--muted);
-    }
-
-    .text-input,
-    .text-area{
-      width:100%;
-      border-radius:16px;
-      border:1px solid rgba(255,255,255,.12);
-      background:var(--surface);
-      color:var(--text);
-      padding:12px 14px;
-      font-size:14px;
-      font-weight:700;
-    }
-
-    .text-area{
-      min-height:124px;
-      resize:vertical;
-      font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      line-height:1.45;
-    }
-
-    .text-input::placeholder,
-    .text-area::placeholder{
-      color:rgba(243,244,246,.45);
-    }
-
-    .text-input:focus,
-    .text-area:focus{
-      outline:none;
-      border-color:rgba(255,122,24,.55);
-      box-shadow:0 0 0 3px rgba(255,122,24,.14);
-    }
-
     .note{
       font-size:13px;
       color:var(--muted);
@@ -426,7 +377,6 @@
     }
   </style>
 
-  <script src="/assets/family-supabase.js"></script>
   <script async defer src="https://apis.google.com/js/api.js"></script>
   <script async defer src="https://accounts.google.com/gsi/client"></script>
 </head>
@@ -445,7 +395,7 @@
     <section class="hero">
       <div class="eyebrow">Family</div>
       <div class="title">Settings</div>
-      <div class="meta">This is the shared place for navigation, your family Google Calendar connection, and the Supabase setup used by Family Tasks.</div>
+      <div class="meta">This is the shared place for navigation and your family Google Calendar connection. Home, month view, and day view all use this connection.</div>
     </section>
 
     <section class="settings-grid">
@@ -483,37 +433,6 @@
         </div>
 
         <div class="note" id="settingsNote">Open this page any time you want to reconnect Google or jump back home.</div>
-      </section>
-
-      <section class="panel">
-        <div class="panel-head">
-          <div class="panel-title">Supabase Tasks</div>
-          <div class="panel-meta">Used by Family Tasks and the Tasks preview card on the family home page. These values stay saved only in this browser.</div>
-        </div>
-
-        <div class="status-pill">
-          <div class="status-label">Supabase</div>
-          <div class="status-text" id="supabaseStatusText">Not configured</div>
-        </div>
-
-        <div class="field-grid">
-          <label class="field" for="supabaseUrlInput">
-            <span class="field-label">Project URL</span>
-            <input class="text-input" id="supabaseUrlInput" type="text" placeholder="https://your-project.supabase.co" autocomplete="off" spellcheck="false" />
-          </label>
-
-          <label class="field" for="supabaseKeyInput">
-            <span class="field-label">Public / anon key</span>
-            <textarea class="text-area" id="supabaseKeyInput" placeholder="Paste your Supabase publishable or anon key here" autocomplete="off" spellcheck="false"></textarea>
-          </label>
-        </div>
-
-        <div class="action-row">
-          <button class="action-btn accent" id="saveSupabaseBtn" type="button">Save Tasks Config</button>
-          <button class="action-btn" id="clearSupabaseBtn" type="button">Clear Tasks Config</button>
-        </div>
-
-        <div class="note" id="supabaseNote">Paste the Project URL and public key from Supabase Settings → Data API.</div>
       </section>
 
       <section class="panel">
@@ -557,64 +476,6 @@
 
     function setNote(text) {
       document.getElementById("settingsNote").textContent = text;
-    }
-
-    function setSupabaseStatus(text) {
-      document.getElementById("supabaseStatusText").textContent = text;
-    }
-
-    function setSupabaseNote(text) {
-      document.getElementById("supabaseNote").textContent = text;
-    }
-
-    function refreshSupabaseSettings() {
-      const config = window.PocketSteakSupabase?.getConfig() || { url: "", anonKey: "", configured: false, usingDefaultConfig: false };
-
-      document.getElementById("supabaseUrlInput").value = config.url || "";
-      document.getElementById("supabaseKeyInput").value = config.anonKey || "";
-
-      if (config.configured) {
-        setSupabaseStatus("Configured");
-        setSupabaseNote(
-          config.usingDefaultConfig
-            ? "Built-in Family Tasks config is active. You can leave this alone unless you ever want to switch projects."
-            : "Family Tasks will use this Supabase project from this browser."
-        );
-      } else {
-        setSupabaseStatus("Not configured");
-        setSupabaseNote("Paste the Project URL and public key from Supabase Settings → Data API.");
-      }
-    }
-
-    function saveSupabaseSettings() {
-      const url = window.PocketSteakSupabase.normalizeUrl(document.getElementById("supabaseUrlInput").value);
-      const anonKey = document.getElementById("supabaseKeyInput").value
-        .replace(/[\u200B-\u200D\uFEFF]/g, "")
-        .trim();
-
-      if (!url || !anonKey) {
-        setSupabaseStatus("Missing info");
-        setSupabaseNote("Add both the Project URL and the public / anon key, then save again.");
-        return;
-      }
-
-      try {
-        new URL(url);
-      } catch (error) {
-        setSupabaseStatus("Invalid URL");
-        setSupabaseNote("Paste a full Supabase Project URL such as https://your-project.supabase.co.");
-        return;
-      }
-
-      window.PocketSteakSupabase.saveConfig(url, anonKey);
-      refreshSupabaseSettings();
-      setSupabaseNote("Saved. Family Tasks and the dashboard preview will now use this Supabase project.");
-    }
-
-    function clearSupabaseSettings() {
-      window.PocketSteakSupabase.clearConfig();
-      refreshSupabaseSettings();
-      setSupabaseNote("Cleared local overrides. The built-in Family Tasks config is active again.");
     }
 
     function saveToken(accessToken, expiresInSeconds = 3600) {
@@ -761,11 +622,8 @@
 
     document.getElementById("authBtn").addEventListener("click", handleAuthClick);
     document.getElementById("signOutBtn").addEventListener("click", handleSignoutClick);
-    document.getElementById("saveSupabaseBtn").addEventListener("click", saveSupabaseSettings);
-    document.getElementById("clearSupabaseBtn").addEventListener("click", clearSupabaseSettings);
 
     document.getElementById("authBtn").disabled = true;
-    refreshSupabaseSettings();
 
     window.addEventListener("load", async () => {
       try {
