@@ -1889,7 +1889,7 @@
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/assets/family-supabase.js"></script>
+  <script src="/assets/family-supabase.js?v=20260421"></script>
   <script async defer src="https://apis.google.com/js/api.js"></script>
   <script async defer src="https://accounts.google.com/gsi/client"></script>
 </head>
@@ -2029,7 +2029,7 @@
         <div class="preview-head">
           <div class="preview-heading">
             <div class="preview-title">Family Tasks</div>
-            <div class="preview-meta" id="chorePreviewMeta">Configure Supabase Tasks in Settings to load daily tasks.</div>
+            <div class="preview-meta" id="chorePreviewMeta">Loading today&apos;s Supabase tasks.</div>
           </div>
           <button class="preview-open" id="chorePreviewBtn" type="button">Open Tasks</button>
         </div>
@@ -2068,6 +2068,13 @@
     const TASKS_TABLE = "family_tasks";
     const TASK_COMPLETIONS_TABLE = "family_task_completions";
     const TASK_MEMBERS_TABLE = "family_members";
+    const BUILT_IN_SUPABASE_URL = "https://vmmdskvivqddgalccoyc.supabase.co";
+    const BUILT_IN_SUPABASE_ANON_KEY = "sb_publishable_Y95c2qYSmD8YKdaIe0ZYWA_6GmC2OHM";
+    const BUILT_IN_MEMBERS = [
+      { name: "Andrew", color: "#ff9d2f" },
+      { name: "Nichol", color: "#8b5cf6" },
+      { name: "Jolie", color: "#22c55e" },
+    ];
     const SCOPES = [
       "https://www.googleapis.com/auth/calendar",
       "https://www.googleapis.com/auth/spreadsheets",
@@ -2105,6 +2112,107 @@
       ["Nichol", "#8b5cf6"],
       ["Jolie", "#22c55e"],
     ]);
+
+    function normalizeSupabaseText(value) {
+      return String(value || "")
+        .replace(/[\u200B-\u200D\uFEFF]/g, "")
+        .trim();
+    }
+
+    function normalizeSupabaseUrl(value) {
+      const text = normalizeSupabaseText(value);
+      if (!text) return "";
+
+      try {
+        const url = new URL(text);
+        url.pathname = url.pathname
+          .replace(/\/rest\/v1\/?$/i, "/")
+          .replace(/\/auth\/v1\/?$/i, "/");
+        url.search = "";
+        url.hash = "";
+        return url.toString().replace(/\/$/, "");
+      } catch (error) {
+        return text.replace(/\/$/, "");
+      }
+    }
+
+    function basicNormalizeOwner(value) {
+      return normalizeSupabaseText(value)
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+        .join(" ");
+    }
+
+    function baseFormatDateKey(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function baseGetStartOfDay(dateInput = new Date()) {
+      const date = new Date(dateInput);
+      date.setHours(0, 0, 0, 0);
+      return date;
+    }
+
+    function baseGetWeekStartDateFor(dateInput = new Date()) {
+      const date = baseGetStartOfDay(dateInput);
+      const day = date.getDay();
+      const diff = day === 0 ? -6 : 1 - day;
+      date.setDate(date.getDate() + diff);
+      return date;
+    }
+
+    function ensurePocketSteakSupabaseHelpers() {
+      const existing = window.PocketSteakSupabase || {};
+      const normalizedUrl = normalizeSupabaseUrl(BUILT_IN_SUPABASE_URL);
+
+      window.PocketSteakSupabase = {
+        ...existing,
+        defaultMembers: BUILT_IN_MEMBERS.map((member) => ({ ...member })),
+        normalizeUrl: normalizeSupabaseUrl,
+        normalizeOwner: basicNormalizeOwner,
+        formatDateKey: baseFormatDateKey,
+        getStartOfDay: baseGetStartOfDay,
+        getWeekStartDateFor: baseGetWeekStartDateFor,
+        getCurrentDayKey() {
+          return baseFormatDateKey(baseGetStartOfDay());
+        },
+        getCurrentWeekKey() {
+          return baseFormatDateKey(baseGetWeekStartDateFor(new Date()));
+        },
+        getConfig() {
+          return {
+            url: normalizedUrl,
+            anonKey: BUILT_IN_SUPABASE_ANON_KEY,
+            configured: true,
+            usingDefaultConfig: true,
+          };
+        },
+        saveConfig() {
+          return this.getConfig();
+        },
+        clearConfig() {
+          return this.getConfig();
+        },
+        createClient() {
+          if (!window.supabase || typeof window.supabase.createClient !== "function") {
+            throw new Error("Supabase client library is not loaded.");
+          }
+
+          return window.supabase.createClient(normalizedUrl, BUILT_IN_SUPABASE_ANON_KEY, {
+            auth: {
+              persistSession: false,
+              autoRefreshToken: false,
+            },
+          });
+        },
+      };
+    }
+
+    ensurePocketSteakSupabaseHelpers();
 
     function setStatus(text) {
       document.getElementById("statusText").textContent = text;
@@ -2668,7 +2776,7 @@
     async function loadChorePreview() {
       const client = getTaskPreviewClient();
       if (!client) {
-        throw new Error("Open Settings to add your Supabase Tasks config.");
+        throw new Error("The built-in Supabase Tasks preview is not ready yet.");
       }
 
       const currentDayKey = window.PocketSteakSupabase.getCurrentDayKey();

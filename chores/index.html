@@ -743,7 +743,7 @@
   </style>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/assets/family-supabase.js"></script>
+  <script src="/assets/family-supabase.js?v=20260421"></script>
 </head>
 <body>
   <main class="app">
@@ -760,9 +760,9 @@
           <button id="openSheetBtn" class="btn btn-back" type="button">Reload</button>
           <div id="statusPill" class="status-pill status-bad">
             <div class="status-label">SUPABASE</div>
-            <div id="statusText" class="status-text">Not configured</div>
+            <div id="statusText" class="status-text">Built in</div>
           </div>
-          <button id="connectBtn" class="btn btn-accent" type="button">Configure</button>
+          <button id="connectBtn" class="btn btn-accent" type="button">Built In</button>
         </div>
       </div>
 
@@ -870,6 +870,13 @@
     const TASKS_TABLE = "family_tasks";
     const COMPLETIONS_TABLE = "family_task_completions";
     const MEMBERS_TABLE = "family_members";
+    const BUILT_IN_SUPABASE_URL = "https://vmmdskvivqddgalccoyc.supabase.co";
+    const BUILT_IN_SUPABASE_ANON_KEY = "sb_publishable_Y95c2qYSmD8YKdaIe0ZYWA_6GmC2OHM";
+    const BUILT_IN_MEMBERS = [
+      { name: "Andrew", color: "#ff9d2f" },
+      { name: "Nichol", color: "#8b5cf6" },
+      { name: "Jolie", color: "#22c55e" },
+    ];
 
     const HEADER_ROW = ["Task", "Done", "Completed At", "Owner", "Points", "Week Start", "Completed By"];
     const HISTORY_HEADER_ROW = ["Task Row", "Task", "Person", "Points", "Completed At", "Week Start", "Day Key"];
@@ -908,6 +915,107 @@
 
     let completionPickerResolve = null;
 
+    function normalizeSupabaseText(value) {
+      return String(value || "")
+        .replace(/[\u200B-\u200D\uFEFF]/g, "")
+        .trim();
+    }
+
+    function normalizeSupabaseUrl(value) {
+      const text = normalizeSupabaseText(value);
+      if (!text) return "";
+
+      try {
+        const url = new URL(text);
+        url.pathname = url.pathname
+          .replace(/\/rest\/v1\/?$/i, "/")
+          .replace(/\/auth\/v1\/?$/i, "/");
+        url.search = "";
+        url.hash = "";
+        return url.toString().replace(/\/$/, "");
+      } catch (error) {
+        return text.replace(/\/$/, "");
+      }
+    }
+
+    function basicNormalizeOwner(value) {
+      return normalizeSupabaseText(value)
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+        .join(" ");
+    }
+
+    function baseFormatDateKey(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function baseGetStartOfDay(dateInput = new Date()) {
+      const date = new Date(dateInput);
+      date.setHours(0, 0, 0, 0);
+      return date;
+    }
+
+    function baseGetWeekStartDateFor(dateInput = new Date()) {
+      const date = baseGetStartOfDay(dateInput);
+      const day = date.getDay();
+      const diff = day === 0 ? -6 : 1 - day;
+      date.setDate(date.getDate() + diff);
+      return date;
+    }
+
+    function ensurePocketSteakSupabaseHelpers() {
+      const existing = window.PocketSteakSupabase || {};
+      const normalizedUrl = normalizeSupabaseUrl(BUILT_IN_SUPABASE_URL);
+
+      window.PocketSteakSupabase = {
+        ...existing,
+        defaultMembers: BUILT_IN_MEMBERS.map((member) => ({ ...member })),
+        normalizeUrl: normalizeSupabaseUrl,
+        normalizeOwner: basicNormalizeOwner,
+        formatDateKey: baseFormatDateKey,
+        getStartOfDay: baseGetStartOfDay,
+        getWeekStartDateFor: baseGetWeekStartDateFor,
+        getCurrentDayKey() {
+          return baseFormatDateKey(baseGetStartOfDay());
+        },
+        getCurrentWeekKey() {
+          return baseFormatDateKey(baseGetWeekStartDateFor(new Date()));
+        },
+        getConfig() {
+          return {
+            url: normalizedUrl,
+            anonKey: BUILT_IN_SUPABASE_ANON_KEY,
+            configured: true,
+            usingDefaultConfig: true,
+          };
+        },
+        saveConfig() {
+          return this.getConfig();
+        },
+        clearConfig() {
+          return this.getConfig();
+        },
+        createClient() {
+          if (!window.supabase || typeof window.supabase.createClient !== "function") {
+            throw new Error("Supabase client library is not loaded.");
+          }
+
+          return window.supabase.createClient(normalizedUrl, BUILT_IN_SUPABASE_ANON_KEY, {
+            auth: {
+              persistSession: false,
+              autoRefreshToken: false,
+            },
+          });
+        },
+      };
+    }
+
+    ensurePocketSteakSupabaseHelpers();
+
     function getDefaultMembers() {
       return (window.PocketSteakSupabase?.defaultMembers || []).map((member) => ({
         name: normalizeOwner(member.name),
@@ -942,7 +1050,7 @@
     function ensureSupabaseClient() {
       const config = window.PocketSteakSupabase?.getConfig();
       if (!config?.configured) {
-        throw new Error("Open Settings to add your Supabase Tasks project URL and public key.");
+        throw new Error("The built-in Supabase Tasks connection is not ready yet.");
       }
 
       const signature = `${config.url}::${config.anonKey}`;
@@ -1709,8 +1817,8 @@
         familyMembers = buildMembers([]);
         choreRows = [];
         weeklyHistoryEntries = [];
-        setStatus("Not configured", false);
-        showMessage("Open Settings to add your Supabase project URL and public key for Family Tasks.", "error");
+        setStatus("Unavailable", false);
+        showMessage("The built-in Supabase Tasks connection is not ready yet.", "error");
         renderAll();
         setBusy(false);
         return;
@@ -1962,7 +2070,7 @@
       if (!choreRows.length) {
         activeEmptyEl.textContent = hasSupabaseConfig()
           ? "No tasks yet. Add rows to family_tasks in Supabase."
-          : "Open Settings to connect Supabase Tasks.";
+          : "Supabase Tasks is still starting up.";
       } else {
         activeEmptyEl.textContent = "No tasks left for today.";
       }
@@ -1986,7 +2094,7 @@
 
     async function toggleDone(targetRow) {
       if (!hasSupabaseConfig()) {
-        showMessage("Open Settings to configure Supabase Tasks first.", "error");
+        showMessage("Supabase Tasks is still starting up.", "error");
         return;
       }
 
@@ -2054,7 +2162,7 @@
 
     async function resetWeek() {
       if (!hasSupabaseConfig()) {
-        showMessage("Open Settings to configure Supabase Tasks first.", "error");
+        showMessage("Supabase Tasks is still starting up.", "error");
         return;
       }
 
@@ -2094,7 +2202,7 @@
     }
 
     connectBtn.addEventListener("click", () => {
-      window.location.href = "/settings/";
+      showMessage("Family Tasks is already using the built-in Supabase project.", "success");
     });
 
     resetWeekBtn.addEventListener("click", resetWeek);
@@ -2127,8 +2235,8 @@
 
     if (!hasSupabaseConfig()) {
       setBusy(false);
-      setStatus("Not configured", false);
-      showMessage("Open Settings to add your Supabase project URL and public key for Family Tasks.", "error");
+      setStatus("Unavailable", false);
+      showMessage("The built-in Supabase Tasks connection is not ready yet.", "error");
     } else {
       setStatus("Loading...", false);
       loadChores();
