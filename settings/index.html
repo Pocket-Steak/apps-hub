@@ -568,14 +568,18 @@
     }
 
     function refreshSupabaseSettings() {
-      const config = window.PocketSteakSupabase?.getConfig() || { url: "", anonKey: "", configured: false };
+      const config = window.PocketSteakSupabase?.getConfig() || { url: "", anonKey: "", configured: false, usingDefaultConfig: false };
 
       document.getElementById("supabaseUrlInput").value = config.url || "";
       document.getElementById("supabaseKeyInput").value = config.anonKey || "";
 
       if (config.configured) {
         setSupabaseStatus("Configured");
-        setSupabaseNote("Family Tasks will use this Supabase project from this browser.");
+        setSupabaseNote(
+          config.usingDefaultConfig
+            ? "Built-in Family Tasks config is active. You can leave this alone unless you ever want to switch projects."
+            : "Family Tasks will use this Supabase project from this browser."
+        );
       } else {
         setSupabaseStatus("Not configured");
         setSupabaseNote("Paste the Project URL and public key from Supabase Settings → Data API.");
@@ -583,8 +587,10 @@
     }
 
     function saveSupabaseSettings() {
-      const url = document.getElementById("supabaseUrlInput").value.trim();
-      const anonKey = document.getElementById("supabaseKeyInput").value.trim();
+      const url = window.PocketSteakSupabase.normalizeUrl(document.getElementById("supabaseUrlInput").value);
+      const anonKey = document.getElementById("supabaseKeyInput").value
+        .replace(/[\u200B-\u200D\uFEFF]/g, "")
+        .trim();
 
       if (!url || !anonKey) {
         setSupabaseStatus("Missing info");
@@ -608,7 +614,7 @@
     function clearSupabaseSettings() {
       window.PocketSteakSupabase.clearConfig();
       refreshSupabaseSettings();
-      setSupabaseNote("Cleared. Family Tasks will stop loading until you save a new Supabase config.");
+      setSupabaseNote("Cleared local overrides. The built-in Family Tasks config is active again.");
     }
 
     function saveToken(accessToken, expiresInSeconds = 3600) {

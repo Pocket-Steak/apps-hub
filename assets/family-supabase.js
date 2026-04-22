@@ -1,6 +1,8 @@
 (function setupPocketSteakSupabaseHelpers() {
   const URL_KEY = "pocketsteak_supabase_url";
   const ANON_KEY_KEY = "pocketsteak_supabase_anon_key";
+  const DEFAULT_URL = "https://vmmdskvivqddgalccoyc.supabase.co";
+  const DEFAULT_ANON_KEY = "sb_publishable_Y95c2qYSmD8YKdaIe0ZYWA_6GmC2OHM";
   const DEFAULT_MEMBERS = [
     { name: "Andrew", color: "#ff9d2f" },
     { name: "Nichol", color: "#8b5cf6" },
@@ -8,7 +10,40 @@
   ];
 
   function normalizeText(value) {
-    return String(value || "").trim();
+    return String(value || "")
+      .replace(/[\u200B-\u200D\uFEFF]/g, "")
+      .trim();
+  }
+
+  function normalizeUrl(value) {
+    const text = normalizeText(value);
+    if (!text) return "";
+
+    try {
+      const url = new URL(text);
+      url.pathname = url.pathname
+        .replace(/\/rest\/v1\/?$/i, "/")
+        .replace(/\/auth\/v1\/?$/i, "/");
+      url.search = "";
+      url.hash = "";
+      return url.toString().replace(/\/$/, "");
+    } catch (error) {
+      return text.replace(/\/$/, "");
+    }
+  }
+
+  function isLikelySupabaseUrl(value) {
+    try {
+      const url = new URL(normalizeUrl(value));
+      return Boolean(url.hostname && url.hostname.includes("supabase.co"));
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function isLikelyPublishableKey(value) {
+    const text = normalizeText(value);
+    return text.startsWith("sb_publishable_") || text.startsWith("sb_anon_");
   }
 
   function formatDateKey(date) {
@@ -33,18 +68,21 @@
   }
 
   function getConfig() {
-    const url = normalizeText(localStorage.getItem(URL_KEY));
-    const anonKey = normalizeText(localStorage.getItem(ANON_KEY_KEY));
+    const storedUrl = normalizeText(localStorage.getItem(URL_KEY));
+    const storedAnonKey = normalizeText(localStorage.getItem(ANON_KEY_KEY));
+    const url = isLikelySupabaseUrl(storedUrl) ? normalizeUrl(storedUrl) : DEFAULT_URL;
+    const anonKey = isLikelyPublishableKey(storedAnonKey) ? storedAnonKey : DEFAULT_ANON_KEY;
 
     return {
       url,
       anonKey,
       configured: Boolean(url && anonKey),
+      usingDefaultConfig: url === DEFAULT_URL && anonKey === DEFAULT_ANON_KEY,
     };
   }
 
   function saveConfig(url, anonKey) {
-    localStorage.setItem(URL_KEY, normalizeText(url));
+    localStorage.setItem(URL_KEY, normalizeUrl(url));
     localStorage.setItem(ANON_KEY_KEY, normalizeText(anonKey));
     return getConfig();
   }
@@ -88,6 +126,7 @@
     clearConfig,
     createClient,
     normalizeOwner,
+    normalizeUrl,
     formatDateKey,
     getStartOfDay,
     getWeekStartDateFor,
