@@ -80,7 +80,7 @@
     main{max-width:var(--grid-max);margin:0 auto;padding:8px 18px 42px}
     .app-layout{display:flex;flex-direction:column;gap:18px}
     .grid{display:grid;gap:18px}
-    .row-primary{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .row-primary{grid-template-columns:repeat(4,minmax(0,1fr))}
     .row-secondary{grid-template-columns:repeat(2,minmax(0,1fr))}
 
     .row-divider{
@@ -147,6 +147,10 @@
       .desc{font-size:13px}
     }
 
+    @media (max-width: 980px){
+      .row-primary{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+
     @media (max-width: 700px){
       header{padding:16px 14px 0}
       .mast{gap:8px}
@@ -199,6 +203,12 @@
         name: "FAVES",
         desc: "Store your top favorite things in ranked lists.",
         url: "https://pocket-faves.vercel.app/"
+      },
+      {
+        emoji: "🃏",
+        name: "MTG Tracker",
+        desc: "Track MTG social activity and sign-ins.",
+        url: "https://mtgsocialtracker.vercel.app/auth/sign-in"
       }
     ];
 
