@@ -214,6 +214,13 @@
       line-height:1.5;
     }
 
+    .connection-form{
+      display:grid;
+      grid-template-columns:minmax(0, 1fr) minmax(0, 1.2fr);
+      gap:12px;
+      align-items:center;
+    }
+
     .task-form{
       display:grid;
       grid-template-columns:minmax(0, 1.4fr) 180px 120px auto;
@@ -313,6 +320,46 @@
       padding-top:4px;
     }
 
+    .schema-wrap{
+      display:grid;
+      gap:12px;
+      padding-top:4px;
+    }
+
+    .schema-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .schema-title{
+      font-size:15px;
+      font-weight:850;
+      letter-spacing:-.01em;
+    }
+
+    .schema-box{
+      width:100%;
+      min-height:340px;
+      resize:vertical;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(8,10,14,.65);
+      border-radius:18px;
+      padding:16px;
+      color:var(--text);
+      font-size:12px;
+      line-height:1.6;
+      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      outline:none;
+    }
+
+    .schema-box:focus{
+      border-color:rgba(255,122,24,.42);
+      box-shadow:0 0 0 4px rgba(255,122,24,.12);
+    }
+
     @media (max-width: 980px){
       .settings-grid{
         grid-template-columns:1fr;
@@ -344,6 +391,7 @@
         width:100%;
       }
 
+      .connection-form,
       .task-form{
         grid-template-columns:1fr;
       }
@@ -643,8 +691,119 @@
 
     <section class="panel">
       <div class="panel-head">
+        <div class="panel-title">Supabase Connection</div>
+        <div class="panel-meta">Point the family task screens at your own Supabase project, then run the SQL below once to create the tables this app expects.</div>
+      </div>
+
+      <div class="status-pill">
+        <div class="status-label">Supabase</div>
+        <div class="status-text" id="supabaseStatusText">Loading…</div>
+      </div>
+
+      <div class="connection-form">
+        <input id="supabaseUrlInput" class="field" type="url" placeholder="https://your-project.supabase.co" autocomplete="off" autocapitalize="off" spellcheck="false" />
+        <input id="supabaseAnonKeyInput" class="field" type="text" placeholder="sb_publishable_..." autocomplete="off" autocapitalize="off" spellcheck="false" />
+      </div>
+
+      <div class="action-row">
+        <button class="action-btn accent" id="saveSupabaseBtn" type="button">Save Connection</button>
+        <button class="action-btn" id="testSupabaseBtn" type="button">Test Tables</button>
+        <button class="action-btn" id="resetSupabaseBtn" type="button">Use Built-In</button>
+      </div>
+
+      <div class="note" id="supabaseNote">The family task screens use a Supabase project URL plus a publishable key.</div>
+
+      <div class="schema-wrap">
+        <div class="schema-head">
+          <div class="schema-title">SQL To Create The Required Tables</div>
+          <button class="action-btn" id="copySchemaBtn" type="button">Copy SQL</button>
+        </div>
+        <textarea id="schemaSql" class="schema-box" readonly>create extension if not exists pgcrypto;
+
+create table if not exists public.family_members (
+  id uuid primary key default gen_random_uuid(),
+  name text not null unique,
+  color text not null,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.family_tasks (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  owner_name text,
+  points integer not null default 1 check (points >= 0),
+  active boolean not null default true,
+  sort_order integer,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.family_task_completions (
+  id uuid primary key default gen_random_uuid(),
+  task_id uuid not null references public.family_tasks(id) on delete cascade,
+  completed_by text not null,
+  points integer not null default 0 check (points >= 0),
+  completed_at timestamptz not null default now(),
+  day_key text not null,
+  week_start text not null
+);
+
+create index if not exists family_tasks_active_sort_idx
+  on public.family_tasks (active, sort_order, created_at);
+
+create index if not exists family_task_completions_week_idx
+  on public.family_task_completions (week_start, completed_at desc);
+
+create unique index if not exists family_task_completions_task_day_idx
+  on public.family_task_completions (task_id, day_key);
+
+grant usage on schema public to anon, authenticated;
+grant select, insert, update, delete on public.family_members to anon, authenticated;
+grant select, insert, update, delete on public.family_tasks to anon, authenticated;
+grant select, insert, update, delete on public.family_task_completions to anon, authenticated;
+
+alter table public.family_members enable row level security;
+alter table public.family_tasks enable row level security;
+alter table public.family_task_completions enable row level security;
+
+drop policy if exists "family_members_public_all" on public.family_members;
+create policy "family_members_public_all"
+  on public.family_members
+  for all
+  to anon, authenticated
+  using (true)
+  with check (true);
+
+drop policy if exists "family_tasks_public_all" on public.family_tasks;
+create policy "family_tasks_public_all"
+  on public.family_tasks
+  for all
+  to anon, authenticated
+  using (true)
+  with check (true);
+
+drop policy if exists "family_task_completions_public_all" on public.family_task_completions;
+create policy "family_task_completions_public_all"
+  on public.family_task_completions
+  for all
+  to anon, authenticated
+  using (true)
+  with check (true);
+
+insert into public.family_members (name, color)
+values
+  ('Andrew', '#ff9d2f'),
+  ('Nichol', '#8b5cf6'),
+  ('Jolie', '#22c55e')
+on conflict (name) do update
+set color = excluded.color;</textarea>
+        <div class="note">Paste this into the Supabase SQL Editor once for your project. These starter policies are intentionally open because this family app writes directly from the browser without login.</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
         <div class="panel-title">Recurring Family Tasks</div>
-        <div class="panel-meta">Add the chores that should refresh every day. These rows are stored in Supabase and power the Family Tasks board plus weekly point scoring.</div>
+        <div class="panel-meta">Add the chores that should refresh every day. These rows are stored in the Supabase project configured above and power the Family Tasks board plus weekly point scoring.</div>
       </div>
 
       <div class="status-pill">
@@ -739,6 +898,14 @@
       document.getElementById("taskNote").textContent = text;
     }
 
+    function setSupabaseStatus(text) {
+      document.getElementById("supabaseStatusText").textContent = text;
+    }
+
+    function setSupabaseNote(text) {
+      document.getElementById("supabaseNote").textContent = text;
+    }
+
     function normalizeOwner(value) {
       return window.PocketSteakSupabase?.normalizeOwner(value) || String(value || "").trim();
     }
@@ -792,6 +959,11 @@
       return Boolean(window.PocketSteakSupabase?.getConfig().configured);
     }
 
+    function resetSupabaseClientCache() {
+      supabaseClient = null;
+      supabaseConfigSignature = "";
+    }
+
     function ensureSupabaseClient() {
       const config = window.PocketSteakSupabase?.getConfig();
       if (!config?.configured) {
@@ -805,6 +977,124 @@
       }
 
       return supabaseClient;
+    }
+
+    function renderSupabaseConnection() {
+      const config = window.PocketSteakSupabase?.getConfig();
+      const urlInput = document.getElementById("supabaseUrlInput");
+      const keyInput = document.getElementById("supabaseAnonKeyInput");
+
+      if (!config) {
+        urlInput.value = "";
+        keyInput.value = "";
+        setSupabaseStatus("Unavailable");
+        setSupabaseNote("Supabase helper is not ready yet.");
+        return;
+      }
+
+      urlInput.value = config.url || "";
+      keyInput.value = config.anonKey || "";
+
+      if (config.usingDefaultConfig) {
+        setSupabaseStatus("Using built-in project");
+        setSupabaseNote("The app is currently pointed at the built-in PocketSteak Supabase project. Replace these values if you want to use your own project instead.");
+      } else {
+        setSupabaseStatus("Custom project saved");
+        setSupabaseNote("This browser is pointed at your custom Supabase project. Run the SQL below once if the family tables do not exist there yet.");
+      }
+    }
+
+    async function testSupabaseTables({ reloadTasks = false } = {}) {
+      setSupabaseStatus("Testing…");
+      setSupabaseNote("Checking the project URL, publishable key, and required tables.");
+
+      try {
+        const client = ensureSupabaseClient();
+        const checks = await Promise.all([
+          client.from(MEMBERS_TABLE).select("name", { head: true, count: "exact" }),
+          client.from(TASKS_TABLE).select("id", { head: true, count: "exact" }),
+          client.from("family_task_completions").select("id", { head: true, count: "exact" }),
+        ]);
+
+        const tableNames = [MEMBERS_TABLE, TASKS_TABLE, "family_task_completions"];
+        const failures = checks
+          .map((result, index) => (result.error ? `${tableNames[index]}: ${result.error.message}` : ""))
+          .filter(Boolean);
+
+        if (failures.length) {
+          setSupabaseStatus("Schema missing");
+          setSupabaseNote(failures.join(" | "));
+          if (reloadTasks) {
+            await loadRecurringTasks();
+          }
+          return false;
+        }
+
+        setSupabaseStatus("Connected");
+        setSupabaseNote("Connection works and all three family tables are available.");
+        if (reloadTasks) {
+          await loadRecurringTasks();
+        }
+        return true;
+      } catch (error) {
+        console.error(error);
+        setSupabaseStatus("Connection failed");
+        setSupabaseNote(error?.message || "Could not reach Supabase.");
+        if (reloadTasks) {
+          await loadRecurringTasks();
+        }
+        return false;
+      }
+    }
+
+    async function saveSupabaseConnection() {
+      const helper = window.PocketSteakSupabase;
+      const url = String(document.getElementById("supabaseUrlInput").value || "").trim();
+      const anonKey = String(document.getElementById("supabaseAnonKeyInput").value || "").trim();
+
+      if (!helper) {
+        setSupabaseStatus("Unavailable");
+        setSupabaseNote("Supabase helper is not ready yet.");
+        return;
+      }
+
+      if (!url || !anonKey) {
+        setSupabaseStatus("Missing info");
+        setSupabaseNote("Paste both the Supabase project URL and the publishable key.");
+        return;
+      }
+
+      helper.saveConfig(url, anonKey);
+      resetSupabaseClientCache();
+      renderSupabaseConnection();
+      await testSupabaseTables({ reloadTasks: true });
+    }
+
+    async function resetSupabaseConnection() {
+      const helper = window.PocketSteakSupabase;
+      if (!helper) {
+        setSupabaseStatus("Unavailable");
+        setSupabaseNote("Supabase helper is not ready yet.");
+        return;
+      }
+
+      helper.clearConfig();
+      resetSupabaseClientCache();
+      renderSupabaseConnection();
+      await testSupabaseTables({ reloadTasks: true });
+    }
+
+    async function copySchemaSql() {
+      const sqlEl = document.getElementById("schemaSql");
+
+      try {
+        await navigator.clipboard.writeText(sqlEl.value);
+        setSupabaseNote("Copied the family schema SQL. Paste it into the Supabase SQL Editor for your project.");
+      } catch (error) {
+        sqlEl.focus();
+        sqlEl.select();
+        setSupabaseNote("Selected the SQL for you. Copy it and paste it into the Supabase SQL Editor.");
+      }
     }
 
     function renderOwnerOptions() {
@@ -1101,6 +1391,12 @@
 
     document.getElementById("authBtn").addEventListener("click", handleAuthClick);
     document.getElementById("signOutBtn").addEventListener("click", handleSignoutClick);
+    document.getElementById("saveSupabaseBtn").addEventListener("click", saveSupabaseConnection);
+    document.getElementById("testSupabaseBtn").addEventListener("click", () => {
+      testSupabaseTables({ reloadTasks: true });
+    });
+    document.getElementById("resetSupabaseBtn").addEventListener("click", resetSupabaseConnection);
+    document.getElementById("copySchemaBtn").addEventListener("click", copySchemaSql);
     document.getElementById("addTaskBtn").addEventListener("click", addRecurringTask);
     document.getElementById("taskTitleInput").addEventListener("keydown", (event) => {
       if (event.key === "Enter") {
@@ -1117,7 +1413,8 @@
     document.getElementById("authBtn").disabled = true;
 
     window.addEventListener("load", async () => {
-      loadRecurringTasks();
+      renderSupabaseConnection();
+      testSupabaseTables({ reloadTasks: true });
       try {
         await gapiLoaded();
         gisLoaded();
