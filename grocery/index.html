@@ -656,10 +656,10 @@
         <button id="addBtn" class="btn btn-accent" type="button">Add Item</button>
       </div>
 
-      <div class="helper">Tap a grocery tile to mark it bought. Use the check circle on a tile to select items for copying.</div>
+      <div class="helper">Tap a grocery tile to mark it bought. Use the check circle on a tile to choose a few items, or leave everything unselected to copy or text the full active list.</div>
       <div class="bulk-actions">
-        <button id="selectAllBtn" class="btn btn-back" type="button">Select All</button>
-        <button id="copySelectedBtn" class="btn btn-back" type="button">Copy Selected</button>
+        <button id="copyListBtn" class="btn btn-back" type="button">Copy List</button>
+        <button id="textListBtn" class="btn btn-back" type="button">Text List</button>
         <button id="clearSelectionBtn" class="btn btn-back" type="button">Clear Selection</button>
         <div id="selectionStatus" class="bulk-status">No items selected.</div>
       </div>
@@ -764,8 +764,8 @@
     const connectBtn = document.getElementById("connectBtn");
     const clearAllBtn = document.getElementById("clearAllBtn");
     const addBtn = document.getElementById("addBtn");
-    const selectAllBtn = document.getElementById("selectAllBtn");
-    const copySelectedBtn = document.getElementById("copySelectedBtn");
+    const copyListBtn = document.getElementById("copyListBtn");
+    const textListBtn = document.getElementById("textListBtn");
     const clearSelectionBtn = document.getElementById("clearSelectionBtn");
     const selectionStatus = document.getElementById("selectionStatus");
     const itemInput = document.getElementById("itemInput");
@@ -781,8 +781,8 @@
       addBtn.disabled = value || !isConnected;
       clearAllBtn.disabled = value || !isConnected;
       connectBtn.disabled = value;
-      selectAllBtn.disabled = value || !isConnected;
-      copySelectedBtn.disabled = value || !isConnected;
+      copyListBtn.disabled = value || !isConnected;
+      textListBtn.disabled = value || !isConnected;
       clearSelectionBtn.disabled = value || !isConnected;
       itemInput.disabled = value || !isConnected;
       inputCard.classList.toggle("loading", value);
@@ -836,7 +836,7 @@
       const selectedCount = selectedGroceryIds.size;
       selectionStatus.textContent = selectedCount
         ? `${selectedCount} item${selectedCount === 1 ? "" : "s"} selected.`
-        : "No items selected.";
+        : "No items selected. Copy List and Text List will use the full active list.";
     }
 
     function toggleSelection(itemId) {
@@ -851,33 +851,53 @@
       renderGroceries();
     }
 
-    function selectAllItems() {
-      selectedGroceryIds = new Set(groceryRows.map((row) => row.id));
-      renderGroceries();
-      showMessage("All grocery items selected.", "success");
-    }
-
     function clearSelection() {
       selectedGroceryIds.clear();
       renderGroceries();
     }
 
-    async function copySelectedItems() {
+    function getRowsForShare() {
       const selectedRows = groceryRows.filter((row) => selectedGroceryIds.has(row.id));
-      if (!selectedRows.length) {
-        showMessage("Select at least one grocery item first.", "error");
+      if (selectedRows.length) {
+        return selectedRows;
+      }
+
+      return groceryRows.filter((row) => !row.bought);
+    }
+
+    function buildListText(rows) {
+      return rows.map((row) => row.item).join("\n");
+    }
+
+    async function copyList() {
+      const rows = getRowsForShare();
+      if (!rows.length) {
+        showMessage("There are no grocery items to copy yet.", "error");
         return;
       }
 
-      const text = selectedRows.map((row) => row.item).join("\n");
+      const text = buildListText(rows);
 
       try {
         await navigator.clipboard.writeText(text);
-        showMessage(`Copied ${selectedRows.length} grocery item${selectedRows.length === 1 ? "" : "s"} to the clipboard.`, "success");
+        showMessage(`Copied ${rows.length} grocery item${rows.length === 1 ? "" : "s"} to the clipboard.`, "success");
       } catch (error) {
         console.error(error);
         showMessage("Clipboard copy failed in this browser.", "error");
       }
+    }
+
+    function textList() {
+      const rows = getRowsForShare();
+      if (!rows.length) {
+        showMessage("There are no grocery items to text yet.", "error");
+        return;
+      }
+
+      const text = buildListText(rows);
+      const separator = /iphone|ipad|ipod/i.test(window.navigator.userAgent) ? "&" : "?";
+      window.location.href = `sms:${separator}body=${encodeURIComponent(text)}`;
+      showMessage("Opened your texting app with the grocery list.", "success");
     }
 
     function ensureSupabaseClient() {
@@ -1076,8 +1096,8 @@
     connectBtn.addEventListener("click", loadGroceries);
     addBtn.addEventListener("click", addItem);
     clearAllBtn.addEventListener("click", clearAllItems);
-    selectAllBtn.addEventListener("click", selectAllItems);
-    copySelectedBtn.addEventListener("click", copySelectedItems);
+    copyListBtn.addEventListener("click", copyList);
+    textListBtn.addEventListener("click", textList);
     clearSelectionBtn.addEventListener("click", clearSelection);
     activeListEl.addEventListener("click", (event) => {
       const selectButton = event.target.closest("[data-select-id]");
