@@ -258,6 +258,21 @@
       font-weight: 700;
     }
 
+    .bulk-actions {
+      margin-top: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .bulk-status {
+      font-size: 13px;
+      font-weight: 900;
+      color: var(--muted);
+      padding: 0 4px;
+    }
+
     .message {
       margin-top: 10px;
       min-height: 28px;
@@ -306,6 +321,47 @@
       gap: 10px;
       align-content: start;
       box-shadow: var(--shadow-soft);
+    }
+
+    .tile.selected {
+      border-color: rgba(255, 178, 111, 0.72);
+      box-shadow: 0 0 0 2px rgba(255, 138, 31, 0.26), var(--shadow-soft);
+      background: linear-gradient(180deg, rgba(255,255,255,0.11), rgba(255,255,255,0.05));
+    }
+
+    .tile-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .tile-select {
+      min-width: 34px;
+      min-height: 34px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.06);
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+      flex: 0 0 auto;
+    }
+
+    .tile-select:hover {
+      transform: translateY(-1px);
+      background: rgba(255,255,255,0.1);
+    }
+
+    .tile.selected .tile-select {
+      background: rgba(255, 138, 31, 0.18);
+      border-color: rgba(255, 178, 111, 0.78);
+      color: var(--accent-2);
     }
 
     .tile-title {
@@ -600,7 +656,13 @@
         <button id="addBtn" class="btn btn-accent" type="button">Add Item</button>
       </div>
 
-      <div class="helper">Tap a grocery tile to mark it bought.</div>
+      <div class="helper">Tap a grocery tile to mark it bought. Use the check circle on a tile to select items for copying.</div>
+      <div class="bulk-actions">
+        <button id="selectAllBtn" class="btn btn-back" type="button">Select All</button>
+        <button id="copySelectedBtn" class="btn btn-back" type="button">Copy Selected</button>
+        <button id="clearSelectionBtn" class="btn btn-back" type="button">Clear Selection</button>
+        <div id="selectionStatus" class="bulk-status">No items selected.</div>
+      </div>
       <div id="message" class="message"></div>
     </section>
 
@@ -695,12 +757,17 @@
     let isConnected = false;
     let supabaseClient = null;
     let supabaseSignature = "";
+    let selectedGroceryIds = new Set();
 
     const statusPill = document.getElementById("statusPill");
     const statusText = document.getElementById("statusText");
     const connectBtn = document.getElementById("connectBtn");
     const clearAllBtn = document.getElementById("clearAllBtn");
     const addBtn = document.getElementById("addBtn");
+    const selectAllBtn = document.getElementById("selectAllBtn");
+    const copySelectedBtn = document.getElementById("copySelectedBtn");
+    const clearSelectionBtn = document.getElementById("clearSelectionBtn");
+    const selectionStatus = document.getElementById("selectionStatus");
     const itemInput = document.getElementById("itemInput");
     const messageEl = document.getElementById("message");
     const activeListEl = document.getElementById("activeList");
@@ -714,6 +781,9 @@
       addBtn.disabled = value || !isConnected;
       clearAllBtn.disabled = value || !isConnected;
       connectBtn.disabled = value;
+      selectAllBtn.disabled = value || !isConnected;
+      copySelectedBtn.disabled = value || !isConnected;
+      clearSelectionBtn.disabled = value || !isConnected;
       itemInput.disabled = value || !isConnected;
       inputCard.classList.toggle("loading", value);
     }
@@ -753,6 +823,61 @@
       }
 
       return message;
+    }
+
+    function syncSelection() {
+      const validIds = new Set(groceryRows.map((row) => row.id));
+      selectedGroceryIds = new Set(
+        Array.from(selectedGroceryIds).filter((id) => validIds.has(id))
+      );
+    }
+
+    function updateSelectionStatus() {
+      const selectedCount = selectedGroceryIds.size;
+      selectionStatus.textContent = selectedCount
+        ? `${selectedCount} item${selectedCount === 1 ? "" : "s"} selected.`
+        : "No items selected.";
+    }
+
+    function toggleSelection(itemId) {
+      if (!itemId) return;
+
+      if (selectedGroceryIds.has(itemId)) {
+        selectedGroceryIds.delete(itemId);
+      } else {
+        selectedGroceryIds.add(itemId);
+      }
+
+      renderGroceries();
+    }
+
+    function selectAllItems() {
+      selectedGroceryIds = new Set(groceryRows.map((row) => row.id));
+      renderGroceries();
+      showMessage("All grocery items selected.", "success");
+    }
+
+    function clearSelection() {
+      selectedGroceryIds.clear();
+      renderGroceries();
+    }
+
+    async function copySelectedItems() {
+      const selectedRows = groceryRows.filter((row) => selectedGroceryIds.has(row.id));
+      if (!selectedRows.length) {
+        showMessage("Select at least one grocery item first.", "error");
+        return;
+      }
+
+      const text = selectedRows.map((row) => row.item).join("\n");
+
+      try {
+        await navigator.clipboard.writeText(text);
+        showMessage(`Copied ${selectedRows.length} grocery item${selectedRows.length === 1 ? "" : "s"} to the clipboard.`, "success");
+      } catch (error) {
+        console.error(error);
+        showMessage("Clipboard copy failed in this browser.", "error");
+      }
     }
 
     function ensureSupabaseClient() {
@@ -795,6 +920,7 @@
           }))
           .filter((row) => row.item);
 
+        syncSelection();
         isConnected = true;
         setStatus("Connected", true);
         renderGroceries();
@@ -910,6 +1036,7 @@
     function renderGroceries() {
       activeListEl.innerHTML = "";
       boughtListEl.innerHTML = "";
+      updateSelectionStatus();
 
       const activeItems = groceryRows.filter((row) => !row.bought);
       const boughtItems = groceryRows.filter((row) => row.bought);
@@ -920,8 +1047,13 @@
       activeItems.forEach((row) => {
         const button = document.createElement("button");
         button.type = "button";
-        button.className = "tile";
-        button.innerHTML = `<div class="tile-title">${escapeHtml(row.item)}</div>`;
+        button.className = `tile${selectedGroceryIds.has(row.id) ? " selected" : ""}`;
+        button.innerHTML = `
+          <div class="tile-head">
+            <div class="tile-title">${escapeHtml(row.item)}</div>
+            <span class="tile-select" data-select-id="${escapeHtml(row.id)}" role="checkbox" aria-checked="${selectedGroceryIds.has(row.id) ? "true" : "false"}" title="Select item for copy">${selectedGroceryIds.has(row.id) ? "✓" : "+"}</span>
+          </div>
+        `;
         button.addEventListener("click", () => toggleBought(row));
         activeListEl.appendChild(button);
       });
@@ -929,8 +1061,13 @@
       boughtItems.forEach((row) => {
         const button = document.createElement("button");
         button.type = "button";
-        button.className = "tile bought";
-        button.innerHTML = `<div class="tile-title">${escapeHtml(row.item)}</div>`;
+        button.className = `tile bought${selectedGroceryIds.has(row.id) ? " selected" : ""}`;
+        button.innerHTML = `
+          <div class="tile-head">
+            <div class="tile-title">${escapeHtml(row.item)}</div>
+            <span class="tile-select" data-select-id="${escapeHtml(row.id)}" role="checkbox" aria-checked="${selectedGroceryIds.has(row.id) ? "true" : "false"}" title="Select item for copy">${selectedGroceryIds.has(row.id) ? "✓" : "+"}</span>
+          </div>
+        `;
         button.addEventListener("click", () => toggleBought(row));
         boughtListEl.appendChild(button);
       });
@@ -939,6 +1076,23 @@
     connectBtn.addEventListener("click", loadGroceries);
     addBtn.addEventListener("click", addItem);
     clearAllBtn.addEventListener("click", clearAllItems);
+    selectAllBtn.addEventListener("click", selectAllItems);
+    copySelectedBtn.addEventListener("click", copySelectedItems);
+    clearSelectionBtn.addEventListener("click", clearSelection);
+    activeListEl.addEventListener("click", (event) => {
+      const selectButton = event.target.closest("[data-select-id]");
+      if (!selectButton) return;
+      event.preventDefault();
+      event.stopPropagation();
+      toggleSelection(selectButton.getAttribute("data-select-id") || "");
+    });
+    boughtListEl.addEventListener("click", (event) => {
+      const selectButton = event.target.closest("[data-select-id]");
+      if (!selectButton) return;
+      event.preventDefault();
+      event.stopPropagation();
+      toggleSelection(selectButton.getAttribute("data-select-id") || "");
+    });
 
     if (new URLSearchParams(window.location.search).has("overlay")) {
       const backBtn = document.getElementById("backHomeBtn");
