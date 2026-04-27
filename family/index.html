@@ -826,12 +826,26 @@
       transition:transform .18s ease, background .18s ease, box-shadow .18s ease;
     }
 
+    button.preview-item{
+      width:100%;
+      text-align:left;
+      cursor:pointer;
+      appearance:none;
+      color:inherit;
+      font:inherit;
+    }
+
     .preview-item:hover{
       transform:translateY(-1px);
       box-shadow:0 10px 20px rgba(0,0,0,.16);
       background:
         linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.035)),
         var(--surface);
+    }
+
+    button.preview-item:focus-visible{
+      outline:2px solid rgba(255,122,24,.9);
+      outline-offset:2px;
     }
 
     .preview-item.done{
@@ -966,6 +980,136 @@
       border-radius:18px;
       background:#111319;
       box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+    }
+
+    .task-picker-backdrop{
+      position:fixed;
+      inset:0;
+      background:rgba(9,11,16,.62);
+      backdrop-filter:blur(10px);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      z-index:1100;
+    }
+
+    .task-picker-backdrop.open{
+      display:flex;
+    }
+
+    .task-picker-shell{
+      width:min(560px, 100%);
+      padding:24px;
+      display:grid;
+      gap:16px;
+      border-radius:28px;
+      border:1px solid rgba(255,255,255,.08);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)),
+        rgba(27,30,39,.96);
+      box-shadow:0 28px 70px rgba(0,0,0,.4);
+    }
+
+    .task-picker-label{
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:var(--accent-2);
+    }
+
+    .task-picker-title{
+      margin:0;
+      font-size:34px;
+      line-height:1;
+      font-weight:900;
+      letter-spacing:-.03em;
+    }
+
+    .task-picker-copy{
+      color:var(--muted);
+      font-size:15px;
+      font-weight:800;
+      line-height:1.5;
+    }
+
+    .task-picker-grid{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0, 1fr));
+      gap:12px;
+    }
+
+    .task-picker-choice{
+      border:none;
+      border-radius:20px;
+      padding:16px 14px;
+      display:grid;
+      justify-items:flex-start;
+      gap:10px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)),
+        rgba(255,255,255,.02);
+      color:var(--text);
+      cursor:pointer;
+      transition:transform .18s ease, background .18s ease, box-shadow .18s ease;
+    }
+
+    .task-picker-choice:hover{
+      transform:translateY(-2px);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.05)),
+        rgba(255,255,255,.03);
+      box-shadow:0 14px 28px rgba(0,0,0,.22);
+    }
+
+    .task-picker-choice:focus-visible{
+      outline:2px solid var(--choice-color, var(--accent));
+      outline-offset:2px;
+    }
+
+    .task-picker-choice-swatch{
+      width:26px;
+      height:26px;
+      border-radius:999px;
+      background:var(--choice-color, var(--accent));
+      box-shadow:0 0 0 3px rgba(255,255,255,.08);
+    }
+
+    .task-picker-choice-name{
+      font-size:19px;
+      font-weight:900;
+      line-height:1.1;
+    }
+
+    .task-picker-choice-note{
+      color:var(--muted);
+      font-size:12px;
+      font-weight:800;
+      line-height:1.4;
+    }
+
+    .task-picker-actions{
+      display:flex;
+      justify-content:flex-end;
+    }
+
+    .task-picker-cancel{
+      border:none;
+      min-height:44px;
+      padding:10px 16px;
+      border-radius:14px;
+      background:rgba(255,255,255,.08);
+      color:var(--text);
+      font-size:14px;
+      font-weight:900;
+      cursor:pointer;
+      transition:transform .18s ease, background .18s ease;
+    }
+
+    .task-picker-cancel:hover{
+      transform:translateY(-1px);
+      background:rgba(255,255,255,.14);
     }
 
     body.modal-open{
@@ -1867,6 +2011,19 @@
         align-items:stretch;
       }
 
+      .task-picker-shell{
+        padding:20px;
+        border-radius:24px;
+      }
+
+      .task-picker-title{
+        font-size:28px;
+      }
+
+      .task-picker-grid{
+        grid-template-columns:1fr;
+      }
+
       .month-btn,
       .quick-add-btn,
       .preview-open{
@@ -2057,6 +2214,18 @@
     </section>
   </div>
 
+  <div class="task-picker-backdrop" id="homeTaskPicker" aria-hidden="true">
+    <section class="task-picker-shell" role="dialog" aria-modal="true" aria-labelledby="homeTaskPickerTitle">
+      <div class="task-picker-label">Choose Who Finished It</div>
+      <h2 class="task-picker-title" id="homeTaskPickerTitle">Who finished this task?</h2>
+      <div class="task-picker-copy" id="homeTaskPickerCopy">Tap a family color to claim the points.</div>
+      <div class="task-picker-grid" id="homeTaskPickerGrid"></div>
+      <div class="task-picker-actions">
+        <button class="task-picker-cancel" id="homeTaskPickerCancelBtn" type="button">Cancel</button>
+      </div>
+    </section>
+  </div>
+
   <script>
     const CLIENT_ID = "82204016171-ta1ipuu88gie0tkq69je3di5uifu1kki.apps.googleusercontent.com";
     const API_KEY = "AIzaSyBPZEeYB8IaheJPJA2Y44msGfDwIhJMpGU";
@@ -2111,6 +2280,8 @@
       ["Nichol", "#8b5cf6"],
       ["Jolie", "#22c55e"],
     ]);
+    let homeTaskPickerResolve = null;
+    let isSubmittingHomeTask = false;
 
     function normalizeSupabaseText(value) {
       return String(value || "")
@@ -2455,6 +2626,147 @@
       return normalizeOwner(owner) || "Unassigned";
     }
 
+    function formatPoints(points) {
+      const normalized = normalizePoints(points);
+      return `${normalized} pt${normalized === 1 ? "" : "s"}`;
+    }
+
+    function getTaskMemberChoices() {
+      const loadedMembers = Array.from(taskMemberColors.entries())
+        .map(([name, color]) => ({
+          name: normalizeOwner(name),
+          color: String(color || "").trim(),
+        }))
+        .filter((member) => member.name && member.color);
+
+      if (loadedMembers.length) {
+        return loadedMembers;
+      }
+
+      return BUILT_IN_MEMBERS.map((member) => ({
+        name: normalizeOwner(member.name),
+        color: member.color,
+      }));
+    }
+
+    function getReadableTaskError(error, fallback = "Something went wrong.") {
+      const message = String(error?.message || "").trim();
+      if (!message) return fallback;
+      if (/failed to fetch/i.test(message)) {
+        return "Could not reach Supabase right now.";
+      }
+      return message;
+    }
+
+    function closeHomeTaskPicker(selectedOwner = "") {
+      const pickerEl = document.getElementById("homeTaskPicker");
+      const gridEl = document.getElementById("homeTaskPickerGrid");
+      const resolve = homeTaskPickerResolve;
+      homeTaskPickerResolve = null;
+      pickerEl.classList.remove("open");
+      pickerEl.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+      gridEl.innerHTML = "";
+      if (resolve) {
+        resolve(selectedOwner);
+      }
+    }
+
+    function openHomeTaskPicker(row) {
+      if (homeTaskPickerResolve) {
+        closeHomeTaskPicker("");
+      }
+
+      const pickerEl = document.getElementById("homeTaskPicker");
+      const titleEl = document.getElementById("homeTaskPickerTitle");
+      const copyEl = document.getElementById("homeTaskPickerCopy");
+      const gridEl = document.getElementById("homeTaskPickerGrid");
+
+      titleEl.textContent = `Who finished "${row.title}"?`;
+      copyEl.textContent = `Tap a family color to claim ${formatPoints(row.points)} for this task.`;
+      gridEl.innerHTML = "";
+
+      getTaskMemberChoices().forEach((member) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "task-picker-choice";
+        button.style.setProperty("--choice-color", member.color || getOwnerColor(member.name));
+        button.innerHTML = `
+          <span class="task-picker-choice-swatch"></span>
+          <span class="task-picker-choice-name">${escapeHtml(member.name)}</span>
+          <span class="task-picker-choice-note">Tap to give ${escapeHtml(member.name)} the points.</span>
+        `;
+        button.addEventListener("click", () => closeHomeTaskPicker(member.name));
+        gridEl.appendChild(button);
+      });
+
+      pickerEl.classList.add("open");
+      pickerEl.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+
+      return new Promise((resolve) => {
+        homeTaskPickerResolve = resolve;
+        requestAnimationFrame(() => {
+          gridEl.querySelector(".task-picker-choice")?.focus();
+        });
+      });
+    }
+
+    async function completeChoreFromPreview(taskId) {
+      if (isSubmittingHomeTask) {
+        return;
+      }
+
+      const row = choresPreviewRows.find((entry) => entry.id === taskId && !entry.done);
+      if (!row) {
+        return;
+      }
+
+      const client = getTaskPreviewClient();
+      if (!client) {
+        chorePreviewError = "Supabase Tasks is not connected yet.";
+        renderChorePreviewCard();
+        return;
+      }
+
+      const completedBy = await openHomeTaskPicker(row);
+      if (!completedBy) {
+        return;
+      }
+
+      isSubmittingHomeTask = true;
+
+      try {
+        const currentDayKey = window.PocketSteakSupabase.getCurrentDayKey();
+        const currentWeekKey = window.PocketSteakSupabase.getCurrentWeekKey();
+        const upsertResult = await client
+          .from(TASK_COMPLETIONS_TABLE)
+          .upsert({
+            task_id: row.id,
+            completed_by: normalizeOwner(completedBy),
+            points: normalizePoints(row.points),
+            completed_at: new Date().toISOString(),
+            day_key: currentDayKey,
+            week_start: currentWeekKey,
+          }, {
+            onConflict: "task_id,day_key",
+          });
+
+        if (upsertResult.error) {
+          throw upsertResult.error;
+        }
+
+        chorePreviewError = "";
+        await loadDashboardLists();
+        renderAll();
+      } catch (error) {
+        console.error(error);
+        window.alert(getReadableTaskError(error, `Could not mark "${row.title}" done.`));
+      } finally {
+        isSubmittingHomeTask = false;
+      }
+    }
+
     function isLikelyHeaderRow(row) {
       const first = String(row?.[0] || "").trim().toLowerCase();
       const second = String(row?.[1] || "").trim().toLowerCase();
@@ -2690,13 +3002,13 @@
       const previewRows = activeRows.slice(0, 4);
       listEl.innerHTML = previewRows.length
         ? previewRows.map((row) => `
-            <div class="preview-item" style="border-left-color:${getOwnerColor(row.owner)}">
+            <button class="preview-item" type="button" data-task-id="${escapeHtml(row.id)}" style="border-left-color:${getOwnerColor(row.owner)}">
               <div class="preview-item-title">${escapeHtml(row.title)}</div>
               <div class="preview-item-meta">
                 <span class="owner-dot" style="background:${getOwnerColor(row.owner)}"></span>
-                ${escapeHtml(getOwnerLabel(row.owner))} • ${row.points} pt${row.points === 1 ? "" : "s"}
+                ${escapeHtml(getOwnerLabel(row.owner))} • ${formatPoints(row.points)}
               </div>
-            </div>
+            </button>
           `).join("")
         : `<div class="preview-empty">Every task is done for today.</div>`;
     }
@@ -2832,6 +3144,7 @@
         .map((task) => {
           const completion = todayCompletions.get(task.id);
           return {
+            id: String(task.id || "").trim(),
             title: String(task.title || "").trim(),
             done: Boolean(completion),
             completedAt: completion?.completedAt || "",
@@ -2840,7 +3153,7 @@
             completedBy: completion?.person || "",
           };
         })
-        .filter((row) => row.title);
+        .filter((row) => row.id && row.title);
 
       return {
         rows,
@@ -3176,9 +3489,6 @@
     document.getElementById("todoPreviewCard").addEventListener("click", () => {
       openDashboardOverlay("To-Do List", "/todo/");
     });
-    document.getElementById("chorePreviewCard").addEventListener("click", () => {
-      openDashboardOverlay("Family Tasks", "/chores/");
-    });
     document.getElementById("groceryPreviewBtn").addEventListener("click", (event) => {
       event.stopPropagation();
       openDashboardOverlay("Grocery List", "/grocery/");
@@ -3191,6 +3501,15 @@
       event.stopPropagation();
       openDashboardOverlay("Family Tasks", "/chores/");
     });
+    document.getElementById("chorePreviewList").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-task-id]");
+      if (!button) {
+        return;
+      }
+
+      event.stopPropagation();
+      completeChoreFromPreview(button.getAttribute("data-task-id") || "");
+    });
     document.getElementById("overlayCloseBtn").addEventListener("click", closeDashboardOverlay);
     document.getElementById("overlayOpenPageBtn").addEventListener("click", () => {
       if (activeOverlayPath) {
@@ -3202,12 +3521,23 @@
         closeDashboardOverlay();
       }
     });
+    document.getElementById("homeTaskPickerCancelBtn").addEventListener("click", () => closeHomeTaskPicker(""));
+    document.getElementById("homeTaskPicker").addEventListener("click", (event) => {
+      if (event.target === event.currentTarget) {
+        closeHomeTaskPicker("");
+      }
+    });
     window.addEventListener("message", (event) => {
       if (event.data?.type === "family-overlay-close") {
         closeDashboardOverlay();
       }
     });
     document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && document.getElementById("homeTaskPicker").classList.contains("open")) {
+        closeHomeTaskPicker("");
+        return;
+      }
+
       if (event.key === "Escape" && document.getElementById("dashboardOverlay").classList.contains("open")) {
         closeDashboardOverlay();
       }
