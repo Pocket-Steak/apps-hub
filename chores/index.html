@@ -102,14 +102,22 @@
     }
 
     .brand-logo {
-      width: 52px;
-      height: 52px;
+      width: 58px;
+      height: 58px;
       object-fit: contain;
       filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.28));
     }
 
     .hero {
-      margin-top: 20px;
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .hero-main {
       display: grid;
       gap: 8px;
     }
@@ -130,12 +138,20 @@
       letter-spacing: -0.025em;
     }
 
-    .hero-copy {
-      max-width: 880px;
-      font-size: 15px;
-      line-height: 1.55;
+    .hero-kicker {
+      min-height: 36px;
+      padding: 0 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: linear-gradient(180deg, var(--surface-strong), rgba(255, 255, 255, 0.03));
       color: var(--muted);
-      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
     }
 
     .btn {
@@ -286,14 +302,6 @@
       line-height: 1;
       font-weight: 900;
       letter-spacing: -0.03em;
-    }
-
-    .helper {
-      margin-top: 16px;
-      font-size: 14px;
-      color: var(--muted);
-      font-weight: 700;
-      line-height: 1.55;
     }
 
     .message {
@@ -750,7 +758,7 @@
     <section class="card">
       <div class="topbar">
         <div class="toolbar-group">
-          <img class="brand-logo" src="/pocket_steak_logo.png" alt="PocketSteak logo" />
+          <img class="brand-logo" src="/assets/pocket_steak_logo.png" alt="PocketSteak logo" />
           <a class="btn btn-back" id="backHomeBtn" href="/family/">← Back to Home</a>
           <button id="resetWeekBtn" class="btn btn-danger" type="button">Reset Week</button>
         </div>
@@ -767,14 +775,11 @@
       </div>
 
       <div class="hero">
-        <div class="eyebrow">Family</div>
-        <h1>Tasks</h1>
-        <div class="hero-copy">
-          Daily tasks stay on your list and reset every new day automatically. Tap any task when it is finished,
-          and the weekly leaderboard keeps score from Monday through Sunday based on the point values in Supabase.
-          If a task is unassigned, you can just tap your family color in the picker so the right person gets
-          the points.
+        <div class="hero-main">
+          <div class="eyebrow">Family</div>
+          <h1>Tasks</h1>
         </div>
+        <div class="hero-kicker">Daily board + weekly points</div>
       </div>
     </section>
 
@@ -803,12 +808,6 @@
             <div id="ownerCount" class="stat-value">0</div>
           </div>
         </div>
-
-        <div class="helper">
-          Manage recurring tasks in <strong>family_tasks</strong>. Daily checkmarks and weekly scoring live in
-          <strong>family_task_completions</strong>, and <strong>family_members</strong> powers the color picker.
-          Nothing needs to be manually reset each day because today's board is built from today's completion rows.
-        </div>
         <div id="message" class="message"></div>
       </section>
 
@@ -825,7 +824,6 @@
     <section class="card">
       <div class="panel-head">
         <h2 class="section-title">Active Tasks</h2>
-        <div class="panel-meta">Tap a task tile to mark it done. Every task resets automatically tomorrow.</div>
       </div>
       <div id="activeList" class="tile-grid"></div>
       <div id="activeEmpty" class="empty">No tasks left for today.</div>
@@ -834,7 +832,6 @@
     <section class="card">
       <div class="panel-head">
         <h2 class="section-title">Completed Today</h2>
-        <div class="panel-meta">Today's finished tasks stay here until the next daily reset.</div>
       </div>
       <div id="doneList" class="tile-grid"></div>
       <div id="doneEmpty" class="empty">No tasks finished yet today.</div>
