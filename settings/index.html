@@ -743,7 +743,7 @@
         <button class="action-btn" id="resetSupabaseBtn" type="button">Use Built-In</button>
       </div>
 
-      <div class="note" id="supabaseNote">The family task screens use a Supabase project URL plus a publishable key.</div>
+      <div class="note" id="supabaseNote">Tasks, to-dos, and groceries use a Supabase project URL plus a publishable key.</div>
 
       <details class="schema-details" id="schemaDetails">
         <summary>
@@ -788,6 +788,14 @@ create table if not exists public.family_task_completions (
   week_start text not null
 );
 
+create table if not exists public.family_grocery_items (
+  id uuid primary key default gen_random_uuid(),
+  item text not null,
+  active boolean not null default true,
+  created_at timestamptz not null default now(),
+  purchased_at timestamptz
+);
+
 create index if not exists family_tasks_active_sort_idx
   on public.family_tasks (active, sort_order, created_at);
 
@@ -797,14 +805,19 @@ create index if not exists family_task_completions_week_idx
 create unique index if not exists family_task_completions_task_day_idx
   on public.family_task_completions (task_id, day_key);
 
+create index if not exists family_grocery_items_active_created_idx
+  on public.family_grocery_items (active, created_at desc);
+
 grant usage on schema public to anon, authenticated;
 grant select, insert, update, delete on public.family_members to anon, authenticated;
 grant select, insert, update, delete on public.family_tasks to anon, authenticated;
 grant select, insert, update, delete on public.family_task_completions to anon, authenticated;
+grant select, insert, update, delete on public.family_grocery_items to anon, authenticated;
 
 alter table public.family_members enable row level security;
 alter table public.family_tasks enable row level security;
 alter table public.family_task_completions enable row level security;
+alter table public.family_grocery_items enable row level security;
 
 drop policy if exists "family_members_public_all" on public.family_members;
 create policy "family_members_public_all"
@@ -825,6 +838,14 @@ create policy "family_tasks_public_all"
 drop policy if exists "family_task_completions_public_all" on public.family_task_completions;
 create policy "family_task_completions_public_all"
   on public.family_task_completions
+  for all
+  to anon, authenticated
+  using (true)
+  with check (true);
+
+drop policy if exists "family_grocery_items_public_all" on public.family_grocery_items;
+create policy "family_grocery_items_public_all"
+  on public.family_grocery_items
   for all
   to anon, authenticated
   using (true)
@@ -872,13 +893,7 @@ set color = excluded.color;</textarea>
     const CLIENT_ID = "82204016171-ta1ipuu88gie0tkq69je3di5uifu1kki.apps.googleusercontent.com";
     const API_KEY = "AIzaSyBPZEeYB8IaheJPJA2Y44msGfDwIhJMpGU";
     const DISCOVERY_DOC = "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest";
-    const SHEETS_DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
-    const SPREADSHEET_ID = "1ccfVTfNqrrzMLkD4uK8fkWs3wRJENs5XQJHJfjkWmmY";
-    const GROCERY_SHEET_NAME = "Groceries";
-    const SCOPES = [
-      "https://www.googleapis.com/auth/calendar",
-      "https://www.googleapis.com/auth/spreadsheets",
-    ].join(" ");
+    const SCOPES = "https://www.googleapis.com/auth/calendar";
 
     const TOKEN_KEY = "pocketsteak_google_access_token";
     const TOKEN_EXP_KEY = "pocketsteak_google_token_exp";
@@ -1058,9 +1073,10 @@ set color = excluded.color;</textarea>
           client.from(MEMBERS_TABLE).select("name", { head: true, count: "exact" }),
           client.from(TASKS_TABLE).select("id", { head: true, count: "exact" }),
           client.from("family_task_completions").select("id", { head: true, count: "exact" }),
+          client.from("family_grocery_items").select("id", { head: true, count: "exact" }),
         ]);
 
-        const tableNames = [MEMBERS_TABLE, TASKS_TABLE, "family_task_completions"];
+        const tableNames = [MEMBERS_TABLE, TASKS_TABLE, "family_task_completions", "family_grocery_items"];
         const failures = checks
           .map((result, index) => (result.error ? `${tableNames[index]}: ${result.error.message}` : ""))
           .filter(Boolean);
@@ -1076,7 +1092,7 @@ set color = excluded.color;</textarea>
         }
 
         setSupabaseStatus("Connected");
-        setSupabaseNote("Connection works and all three family tables are available.");
+        setSupabaseNote("Connection works and all four family tables are available.");
         document.getElementById("schemaDetails").open = false;
         if (reloadTasks) {
           await loadRecurringTasks();
@@ -1331,10 +1347,6 @@ set color = excluded.color;</textarea>
 
     async function testGoogleAccess() {
       await gapi.client.calendar.calendarList.list();
-      await gapi.client.sheets.spreadsheets.values.get({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `${GROCERY_SHEET_NAME}!A:C`,
-      });
     }
 
     async function maybeReady() {
@@ -1356,7 +1368,7 @@ set color = excluded.color;</textarea>
         setStatus("Restoring connection…");
         await testGoogleAccess();
         setStatus("Connected");
-        setNote("Google Calendar is connected for the family dashboard.");
+        setNote("Google Calendar is connected for the family dashboard and calendar pages.");
       } catch (error) {
         console.warn("Saved Google token is no longer valid:", error);
         gapi.client.setToken("");
@@ -1372,7 +1384,7 @@ set color = excluded.color;</textarea>
       await new Promise((resolve) => gapi.load("client", resolve));
       await gapi.client.init({
         apiKey: API_KEY,
-        discoveryDocs: [DISCOVERY_DOC, SHEETS_DISCOVERY_DOC],
+        discoveryDocs: [DISCOVERY_DOC],
       });
       gapiInited = true;
       maybeReady();
@@ -1402,7 +1414,7 @@ set color = excluded.color;</textarea>
           try {
             await testGoogleAccess();
             setStatus("Connected");
-            setNote("Google Calendar is connected for the family dashboard.");
+            setNote("Google Calendar is connected for the family dashboard and calendar pages.");
           } catch (error) {
             console.error(error);
             setStatus("Connection failed");

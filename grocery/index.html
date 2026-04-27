@@ -554,9 +554,8 @@
     }
   </style>
 
-  <!-- Google APIs -->
-  <script async defer src="https://apis.google.com/js/api.js"></script>
-  <script async defer src="https://accounts.google.com/gsi/client"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/assets/family-supabase.js?v=20260421"></script>
 </head>
 <body>
   <main class="app">
@@ -571,11 +570,11 @@
         <div class="toolbar-group right">
           <button class="btn" type="button" onclick="window.location.href='/settings/'">Settings</button>
           <div id="statusPill" class="status-pill status-bad">
-            <div class="status-label">GOOGLE</div>
-            <div id="statusText" class="status-text">Not connected</div>
+            <div class="status-label">SUPABASE</div>
+            <div id="statusText" class="status-text">Loading…</div>
           </div>
           <div class="connect-wrap">
-            <button id="connectBtn" class="btn btn-accent" type="button">Connect</button>
+            <button id="connectBtn" class="btn btn-accent" type="button">Reload</button>
           </div>
         </div>
       </div>
@@ -620,35 +619,83 @@
   </main>
 
   <script>
-    // =========================
-    // REQUIRED CONFIG
-    // =========================
-    const GOOGLE_API_KEY = "AIzaSyBPZEeYB8IaheJPJA2Y44msGfDwIhJMpGU";
-    const GOOGLE_CLIENT_ID = "82204016171-ta1ipuu88gie0tkq69je3di5uifu1kki.apps.googleusercontent.com";
+    (function ensurePocketSteakSupabaseFallback() {
+      if (window.PocketSteakSupabase) return;
 
-    const SPREADSHEET_ID = "1ccfVTfNqrrzMLkD4uK8fkWs3wRJENs5XQJHJfjkWmmY";
-    const SHEET_NAME = "Groceries";
+      const URL_KEY = "pocketsteak_supabase_url";
+      const ANON_KEY_KEY = "pocketsteak_supabase_anon_key";
+      const DEFAULT_URL = "https://vmmdskviwqddgalccoyc.supabase.co";
+      const DEFAULT_ANON_KEY = "sb_publishable_Y95c2qYSmD8YKdaIeOZYWA_6GmC2OHM";
 
-    const SHARED_TOKEN_KEY = "pocketsteak_google_access_token";
-    const SHARED_TOKEN_EXP_KEY = "pocketsteak_google_token_exp";
+      function normalizeText(value) {
+        return String(value || "")
+          .replace(/[\u200B-\u200D\uFEFF]/g, "")
+          .trim();
+      }
 
-    const DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
-    const SCOPES = "https://www.googleapis.com/auth/spreadsheets";
+      function normalizeUrl(value) {
+        const text = normalizeText(value);
+        if (!text) return "";
 
-    // =========================
-    // STATE
-    // =========================
-    let tokenClient = null;
-    let gapiReady = false;
-    let gisReady = false;
-    let appReady = false;
-    let isConnected = false;
+        try {
+          const url = new URL(text);
+          url.pathname = url.pathname
+            .replace(/\/rest\/v1\/?$/i, "/")
+            .replace(/\/auth\/v1\/?$/i, "/");
+          url.search = "";
+          url.hash = "";
+          return url.toString().replace(/\/$/, "");
+        } catch (error) {
+          return text.replace(/\/$/, "");
+        }
+      }
+
+      function getConfig() {
+        const storedUrl = normalizeText(localStorage.getItem(URL_KEY));
+        const storedAnonKey = normalizeText(localStorage.getItem(ANON_KEY_KEY));
+        const url = storedUrl || DEFAULT_URL;
+        const anonKey = storedAnonKey || DEFAULT_ANON_KEY;
+
+        return {
+          url: normalizeUrl(url),
+          anonKey,
+          configured: Boolean(url && anonKey),
+          usingDefaultConfig: !storedUrl && !storedAnonKey,
+        };
+      }
+
+      function createClient() {
+        const config = getConfig();
+        if (!config.configured) {
+          return null;
+        }
+
+        if (!window.supabase || typeof window.supabase.createClient !== "function") {
+          throw new Error("Supabase client library is not loaded.");
+        }
+
+        return window.supabase.createClient(config.url, config.anonKey, {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+          },
+        });
+      }
+
+      window.PocketSteakSupabase = {
+        getConfig,
+        createClient,
+      };
+    })();
+
+    const GROCERY_TABLE = "family_grocery_items";
+
     let groceryRows = [];
     let isBusy = false;
+    let isConnected = false;
+    let supabaseClient = null;
+    let supabaseSignature = "";
 
-    // =========================
-    // DOM
-    // =========================
     const statusPill = document.getElementById("statusPill");
     const statusText = document.getElementById("statusText");
     const connectBtn = document.getElementById("connectBtn");
@@ -662,14 +709,11 @@
     const boughtEmptyEl = document.getElementById("boughtEmpty");
     const inputCard = document.getElementById("inputCard");
 
-    // =========================
-    // HELPERS
-    // =========================
     function setBusy(value) {
       isBusy = value;
       addBtn.disabled = value || !isConnected;
       clearAllBtn.disabled = value || !isConnected;
-      connectBtn.disabled = value && appReady;
+      connectBtn.disabled = value;
       itemInput.disabled = value || !isConnected;
       inputCard.classList.toggle("loading", value);
     }
@@ -697,303 +741,77 @@
         .replaceAll("'", "&#039;");
     }
 
-    function normalizeBool(value) {
-      const str = String(value || "").trim().toLowerCase();
-      return str === "true" || str === "yes" || str === "1" || str === "y";
-    }
-
-    function isLikelyHeaderRow(row) {
-      const first = String(row?.[0] || "").trim().toLowerCase();
-      const second = String(row?.[1] || "").trim().toLowerCase();
-      const third = String(row?.[2] || "").trim().toLowerCase();
-      const fourth = String(row?.[3] || "").trim().toLowerCase();
-
-      return (
-        ["item", "items", "grocery", "groceries", "name"].includes(first) ||
-        ["bought", "done", "status", "checked"].includes(second) ||
-        ["created", "createdat", "timestamp", "date"].includes(third)
-      );
-    }
-
-    function getAccessTokenFromSession() {
-      const sharedToken = localStorage.getItem(SHARED_TOKEN_KEY);
-      const sharedExp = Number(localStorage.getItem(SHARED_TOKEN_EXP_KEY) || "0");
-
-      if (!sharedToken || !sharedExp) {
-        return null;
-      }
-
-      if (Date.now() >= sharedExp) {
-        localStorage.removeItem(SHARED_TOKEN_KEY);
-        localStorage.removeItem(SHARED_TOKEN_EXP_KEY);
-        return null;
-      }
-
-      return sharedToken;
-    }
-
-    function saveAccessTokenToSession(token, expiresInSeconds = 3600) {
-      if (token) {
-        localStorage.setItem(SHARED_TOKEN_KEY, token);
-        localStorage.setItem(
-          SHARED_TOKEN_EXP_KEY,
-          String(Date.now() + (Number(expiresInSeconds || 3600) * 1000))
-        );
-      }
-    }
-
-    function clearAccessTokenFromSession() {
-      localStorage.removeItem(SHARED_TOKEN_KEY);
-      localStorage.removeItem(SHARED_TOKEN_EXP_KEY);
-    }
-
-    function ensureAppInitialized() {
-      if (appReady) return;
-      if (!gapiReady || !gisReady) return;
-
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: GOOGLE_CLIENT_ID,
-        scope: SCOPES,
-        callback: async (response) => {
-          if (response.error) {
-            console.error("OAuth token error:", response);
-            setStatus("Setup failed", false);
-            showMessage(getReadableError(response), "error");
-            return;
-          }
-
-          const token = gapi.client.getToken()?.access_token;
-          if (token) {
-            saveAccessTokenToSession(token, response.expires_in || 3600);
-          }
-
-          isConnected = true;
-          setStatus("Connected", true);
-          connectBtn.textContent = "Reconnect";
-
-          try {
-            await loadGroceries();
-            showMessage("", "");
-          } catch (error) {
-            console.error(error);
-            setStatus("Setup failed", false);
-            showMessage(getReadableError(error), "error");
-          } finally {
-            setBusy(false);
-          }
-        },
-      });
-
-      appReady = true;
-      restoreSessionIfPossible();
-    }
-
     function getReadableError(error) {
       const message =
-        error?.result?.error?.message ||
         error?.details ||
         error?.message ||
         error?.error ||
-        "Something went wrong with Google Sheets.";
+        "Something went wrong with Supabase.";
 
-      const code = error?.code || error?.result?.error?.code;
-      const status = error?.status || error?.result?.error?.status;
-      const suffix = [code, status].filter(Boolean).join(" / ");
-
-      return suffix ? `${message} (${suffix})` : message;
-    }
-
-    // =========================
-    // GOOGLE INIT
-    // =========================
-    function initGapi() {
-      const startedAt = Date.now();
-
-      const waitForGapi = () => {
-        if (window.gapi && typeof window.gapi.load === "function") {
-          window.gapi.load("client", async () => {
-            try {
-              await window.gapi.client.init({
-                apiKey: GOOGLE_API_KEY,
-                discoveryDocs: [DISCOVERY_DOC],
-              });
-              gapiReady = true;
-              ensureAppInitialized();
-            } catch (error) {
-              console.error("gapi init error:", error);
-              setStatus("Setup failed", false);
-              showMessage(getReadableError(error), "error");
-            }
-          });
-          return;
-        }
-
-        if (Date.now() - startedAt > 10000) {
-          setStatus("Google failed to load", false);
-          showMessage(
-            "The Google API script did not finish loading. Check your internet connection and browser extensions, then refresh.",
-            "error"
-          );
-          return;
-        }
-
-        window.setTimeout(waitForGapi, 100);
-      };
-
-      waitForGapi();
-    }
-
-    function initGisReadyCheck() {
-      const startedAt = Date.now();
-
-      const waitForGoogle = () => {
-        if (window.google && google.accounts && google.accounts.oauth2) {
-          gisReady = true;
-          ensureAppInitialized();
-          return;
-        }
-
-        if (Date.now() - startedAt > 10000) {
-          setStatus("Google failed to load", false);
-          showMessage(
-            "The Google sign-in script did not finish loading. Check your internet connection and browser extensions, then refresh.",
-            "error"
-          );
-          return;
-        }
-
-        window.setTimeout(waitForGoogle, 100);
-      };
-
-      waitForGoogle();
-    }
-
-    async function restoreSessionIfPossible() {
-      const savedToken = getAccessTokenFromSession();
-
-      if (!savedToken) {
-        setStatus("Not connected", false);
-        setBusy(false);
-        return;
+      if (/failed to fetch/i.test(message)) {
+        return "Could not reach Supabase right now.";
       }
 
-      try {
-        gapi.client.setToken({ access_token: savedToken });
-        await testSheetsAccess();
-        isConnected = true;
-        setStatus("Connected", true);
-        connectBtn.textContent = "Reconnect";
-        await loadGroceries();
-        setBusy(false);
-      } catch (error) {
-        console.warn("Saved token no longer valid:", error);
-        gapi.client.setToken(null);
-        clearAccessTokenFromSession();
-        isConnected = false;
-        setStatus("Not connected", false);
-        connectBtn.textContent = "Connect";
-        setBusy(false);
-      }
+      return message;
     }
 
-    async function connectGoogle(forceConsent = false) {
-      if (!appReady || !tokenClient) {
-        showMessage("Google is still loading. Try again in a second.", "error");
-        return;
+    function ensureSupabaseClient() {
+      const config = window.PocketSteakSupabase?.getConfig?.();
+      if (!config?.configured) {
+        throw new Error("Supabase is not configured yet.");
       }
 
-      setBusy(true);
-      showMessage("", "");
-
-      try {
-        const existingToken = gapi.client.getToken();
-
-        tokenClient.callback = async (response) => {
-          if (response.error) {
-            console.error("OAuth token error:", response);
-            setStatus("Setup failed", false);
-            showMessage(getReadableError(response), "error");
-            setBusy(false);
-            return;
-          }
-
-          const token = gapi.client.getToken()?.access_token;
-          if (token) {
-            saveAccessTokenToSession(token, response.expires_in || 3600);
-          }
-
-          isConnected = true;
-          setStatus("Connected", true);
-          connectBtn.textContent = "Reconnect";
-
-          try {
-            await loadGroceries();
-          } catch (error) {
-            console.error(error);
-            setStatus("Setup failed", false);
-            showMessage(getReadableError(error), "error");
-          } finally {
-            setBusy(false);
-          }
-        };
-
-        tokenClient.requestAccessToken({
-          prompt: forceConsent || !existingToken ? "consent" : "",
-        });
-      } catch (error) {
-        console.error(error);
-        setStatus("Setup failed", false);
-        showMessage(getReadableError(error), "error");
-        setBusy(false);
+      const signature = `${config.url}::${config.anonKey}`;
+      if (!supabaseClient || supabaseSignature !== signature) {
+        supabaseClient = window.PocketSteakSupabase.createClient();
+        supabaseSignature = signature;
       }
+
+      return supabaseClient;
     }
 
-    async function testSheetsAccess() {
-      await gapi.client.sheets.spreadsheets.values.get({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!A:C`,
-      });
-    }
-
-    // =========================
-    // SHEETS
-    // =========================
     async function loadGroceries() {
       setBusy(true);
       showMessage("", "");
 
-      const response = await gapi.client.sheets.spreadsheets.values.get({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!A:C`,
-      });
+      try {
+        const client = ensureSupabaseClient();
+        const result = await client
+          .from(GROCERY_TABLE)
+          .select("id,item,active,created_at,purchased_at")
+          .order("created_at", { ascending: false });
 
-      const values = response.result.values || [];
+        if (result.error) {
+          throw result.error;
+        }
 
-      let startIndex = 0;
-      if (values.length > 0 && isLikelyHeaderRow(values[0])) {
-        startIndex = 1;
+        groceryRows = (result.data || [])
+          .map((row) => ({
+            id: row.id,
+            item: String(row.item || "").trim(),
+            bought: row.active === false,
+            createdAt: String(row.created_at || "").trim(),
+            purchasedAt: String(row.purchased_at || "").trim(),
+          }))
+          .filter((row) => row.item);
+
+        isConnected = true;
+        setStatus("Connected", true);
+        renderGroceries();
+      } catch (error) {
+        console.error(error);
+        groceryRows = [];
+        isConnected = false;
+        setStatus("Connection failed", false);
+        renderGroceries();
+        showMessage(getReadableError(error), "error");
+      } finally {
+        setBusy(false);
       }
-
-      groceryRows = values.slice(startIndex).map((row, index) => {
-        const actualRowNumber = startIndex + index + 1;
-        return {
-          rowNumber: actualRowNumber,
-          item: String(row[0] || "").trim(),
-          bought: normalizeBool(row[1]),
-          createdAt: String(row[2] || "").trim(),
-        };
-      }).filter(row => row.item);
-
-      renderGroceries();
-      setBusy(false);
     }
 
     async function addItem() {
       const item = itemInput.value.trim();
-      if (!isConnected) {
-        showMessage("Connect Google first.", "error");
-        return;
-      }
 
       if (!item) {
         showMessage("Enter an item first.", "error");
@@ -1005,15 +823,17 @@
       showMessage("", "");
 
       try {
-        await gapi.client.sheets.spreadsheets.values.append({
-          spreadsheetId: SPREADSHEET_ID,
-          range: `${SHEET_NAME}!A:C`,
-          valueInputOption: "USER_ENTERED",
-          insertDataOption: "INSERT_ROWS",
-          resource: {
-            values: [[item, "FALSE", new Date().toISOString()]],
-          },
-        });
+        const client = ensureSupabaseClient();
+        const result = await client
+          .from(GROCERY_TABLE)
+          .insert({
+            item,
+            active: true,
+          });
+
+        if (result.error) {
+          throw result.error;
+        }
 
         itemInput.value = "";
         await loadGroceries();
@@ -1026,48 +846,23 @@
       }
     }
 
-    async function findSheetRowNumber(targetRow) {
-      const response = await gapi.client.sheets.spreadsheets.values.get({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!A:C`,
-      });
-
-      const values = response.result.values || [];
-      const startIndex = values.length > 0 && isLikelyHeaderRow(values[0]) ? 1 : 0;
-
-      for (let index = startIndex; index < values.length; index += 1) {
-        const row = values[index] || [];
-        const item = String(row[0] || "").trim();
-        const createdAt = String(row[2] || "").trim();
-
-        if (item === targetRow.item && createdAt === targetRow.createdAt) {
-          return index + 1;
-        }
-      }
-
-      return targetRow.rowNumber;
-    }
-
     async function toggleBought(targetRow) {
-      if (!isConnected) {
-        showMessage("Connect Google first.", "error");
-        return;
-      }
-
       setBusy(true);
       showMessage("", "");
 
       try {
-        const rowNumber = await findSheetRowNumber(targetRow);
+        const client = ensureSupabaseClient();
+        const result = await client
+          .from(GROCERY_TABLE)
+          .update({
+            active: targetRow.bought,
+            purchased_at: targetRow.bought ? null : new Date().toISOString(),
+          })
+          .eq("id", targetRow.id);
 
-        await gapi.client.sheets.spreadsheets.values.update({
-          spreadsheetId: SPREADSHEET_ID,
-          range: `${SHEET_NAME}!B${rowNumber}`,
-          valueInputOption: "USER_ENTERED",
-          resource: {
-            values: [[targetRow.bought ? "FALSE" : "TRUE"]],
-          },
-        });
+        if (result.error) {
+          throw result.error;
+        }
 
         await loadGroceries();
         showMessage(targetRow.bought ? "Item marked active." : "Item marked bought.", "success");
@@ -1079,51 +874,28 @@
     }
 
     async function clearAllItems() {
-      if (!isConnected) {
-        showMessage("Connect Google first.", "error");
-        return;
-      }
-
-      const boughtItems = groceryRows.filter(row => row.bought);
+      const boughtItems = groceryRows.filter((row) => row.bought);
 
       if (!boughtItems.length) {
-        showMessage("There are no bought items to clear.", "error");
+        showMessage("There are no purchased items to clear.", "error");
         return;
       }
 
-      const confirmed = window.confirm("Clear all bought grocery items?");
+      const confirmed = window.confirm("Clear all purchased grocery items?");
       if (!confirmed) return;
 
       setBusy(true);
       showMessage("", "");
 
       try {
-        const response = await gapi.client.sheets.spreadsheets.values.get({
-          spreadsheetId: SPREADSHEET_ID,
-          range: `${SHEET_NAME}!A:C`,
-        });
+        const client = ensureSupabaseClient();
+        const result = await client
+          .from(GROCERY_TABLE)
+          .delete()
+          .eq("active", false);
 
-        const values = response.result.values || [];
-        const hasHeader = values.length > 0 && isLikelyHeaderRow(values[0]);
-        const headerRow = hasHeader ? values[0] : null;
-        const startIndex = hasHeader ? 1 : 0;
-        const remainingRows = values.slice(startIndex).filter((row) => !normalizeBool(row[1]));
-        const nextValues = headerRow ? [headerRow, ...remainingRows] : remainingRows;
-
-        await gapi.client.sheets.spreadsheets.values.clear({
-          spreadsheetId: SPREADSHEET_ID,
-          range: `${SHEET_NAME}!A:C`,
-        });
-
-        if (nextValues.length) {
-          await gapi.client.sheets.spreadsheets.values.update({
-            spreadsheetId: SPREADSHEET_ID,
-            range: `${SHEET_NAME}!A1`,
-            valueInputOption: "USER_ENTERED",
-            resource: {
-              values: nextValues,
-            },
-          });
+        if (result.error) {
+          throw result.error;
         }
 
         await loadGroceries();
@@ -1135,56 +907,36 @@
       }
     }
 
-    // =========================
-    // RENDER
-    // =========================
     function renderGroceries() {
       activeListEl.innerHTML = "";
       boughtListEl.innerHTML = "";
 
-      const activeItems = groceryRows.filter(row => !row.bought);
-      const boughtItems = groceryRows.filter(row => row.bought);
+      const activeItems = groceryRows.filter((row) => !row.bought);
+      const boughtItems = groceryRows.filter((row) => row.bought);
 
       activeEmptyEl.style.display = activeItems.length ? "none" : "block";
       boughtEmptyEl.style.display = boughtItems.length ? "none" : "block";
 
-      for (const row of activeItems) {
+      activeItems.forEach((row) => {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "tile";
-        button.innerHTML = `
-          <div class="tile-title">${escapeHtml(row.item)}</div>
-        `;
+        button.innerHTML = `<div class="tile-title">${escapeHtml(row.item)}</div>`;
         button.addEventListener("click", () => toggleBought(row));
         activeListEl.appendChild(button);
-      }
+      });
 
-      for (const row of boughtItems) {
+      boughtItems.forEach((row) => {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "tile bought";
-        button.innerHTML = `
-          <div class="tile-title">${escapeHtml(row.item)}</div>
-        `;
+        button.innerHTML = `<div class="tile-title">${escapeHtml(row.item)}</div>`;
         button.addEventListener("click", () => toggleBought(row));
         boughtListEl.appendChild(button);
-      }
+      });
     }
 
-    // =========================
-    // EVENTS
-    // =========================
-    connectBtn.addEventListener("click", () => {
-      if (!appReady) {
-        setStatus("Retrying Google...", false);
-        showMessage("Trying to load Google services again...", "");
-        initGapi();
-        initGisReadyCheck();
-        return;
-      }
-
-      connectGoogle(true);
-    });
+    connectBtn.addEventListener("click", loadGroceries);
     addBtn.addEventListener("click", addItem);
     clearAllBtn.addEventListener("click", clearAllItems);
 
@@ -1205,23 +957,9 @@
       }
     });
 
-    // =========================
-    // START
-    // =========================
     setBusy(true);
-    setStatus("Loading Google...", false);
-
-    if (window.location.protocol === "file:") {
-      setBusy(false);
-      setStatus("Serve from localhost", false);
-      showMessage(
-        "Google sign-in will not work from a file:// page. Open this through a local server like http://localhost:5500 or your hosted site.",
-        "error"
-      );
-    } else {
-      initGapi();
-      initGisReadyCheck();
-    }
+    setStatus("Loading…", false);
+    loadGroceries();
   </script>
 </body>
 </html>
