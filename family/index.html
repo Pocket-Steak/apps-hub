@@ -3089,7 +3089,7 @@
       const result = await client
         .from(TASKS_TABLE)
         .select("id,title,owner_name,points,active,created_at")
-        .is("sort_order", null)
+        .or("sort_order.is.null,sort_order.eq.0")
         .order("created_at", { ascending: false });
 
       if (result.error) {
@@ -3120,7 +3120,7 @@
           .from(TASKS_TABLE)
           .select("id,title,owner_name,points,active,sort_order,created_at")
           .eq("active", true)
-          .not("sort_order", "is", null)
+          .gt("sort_order", 0)
           .order("sort_order", { ascending: true })
           .order("created_at", { ascending: true }),
         loadTaskHistoryPreview(client, currentWeekKey),

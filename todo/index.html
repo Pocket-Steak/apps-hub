@@ -1183,7 +1183,7 @@
           client
             .from(TASKS_TABLE)
             .select("id,title,owner_name,points,active,sort_order,created_at")
-            .is("sort_order", null)
+            .or("sort_order.is.null,sort_order.eq.0")
             .order("created_at", { ascending: false }),
           client
             .from(COMPLETIONS_TABLE)
@@ -1265,7 +1265,7 @@
             owner_name: owner || null,
             points,
             active: true,
-            sort_order: null,
+            sort_order: 0,
           });
 
         if (result.error) throw result.error;

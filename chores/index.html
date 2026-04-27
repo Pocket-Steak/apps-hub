@@ -1835,7 +1835,7 @@
             .from(TASKS_TABLE)
             .select("id,title,owner_name,points,active,sort_order,created_at")
             .eq("active", true)
-            .not("sort_order", "is", null)
+            .gt("sort_order", 0)
             .order("sort_order", { ascending: true })
             .order("created_at", { ascending: true }),
           client
