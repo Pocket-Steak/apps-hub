@@ -326,6 +326,38 @@
       padding-top:4px;
     }
 
+    .schema-details{
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:20px;
+      background:rgba(255,255,255,.03);
+      padding:14px 16px 16px;
+    }
+
+    .schema-details summary{
+      list-style:none;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      font-size:15px;
+      font-weight:850;
+      color:var(--text);
+      user-select:none;
+    }
+
+    .schema-details summary::-webkit-details-marker{
+      display:none;
+    }
+
+    .schema-summary-copy{
+      font-size:13px;
+      font-weight:700;
+      color:var(--muted);
+      flex:1 1 auto;
+      min-width:0;
+    }
+
     .schema-head{
       display:flex;
       align-items:center;
@@ -713,12 +745,18 @@
 
       <div class="note" id="supabaseNote">The family task screens use a Supabase project URL plus a publishable key.</div>
 
-      <div class="schema-wrap">
-        <div class="schema-head">
-          <div class="schema-title">SQL To Create The Required Tables</div>
-          <button class="action-btn" id="copySchemaBtn" type="button">Copy SQL</button>
-        </div>
-        <textarea id="schemaSql" class="schema-box" readonly>create extension if not exists pgcrypto;
+      <details class="schema-details" id="schemaDetails">
+        <summary>
+          <span>SQL To Create The Required Tables</span>
+          <span class="schema-summary-copy">Only needed the first time you set up a new Supabase project.</span>
+        </summary>
+
+        <div class="schema-wrap">
+          <div class="schema-head">
+            <div class="schema-title">SQL To Create The Required Tables</div>
+            <button class="action-btn" id="copySchemaBtn" type="button">Copy SQL</button>
+          </div>
+          <textarea id="schemaSql" class="schema-box" readonly>create extension if not exists pgcrypto;
 
 create table if not exists public.family_members (
   id uuid primary key default gen_random_uuid(),
@@ -796,8 +834,9 @@ values
   ('Jolie', '#22c55e')
 on conflict (name) do update
 set color = excluded.color;</textarea>
-        <div class="note">Paste this into the Supabase SQL Editor once for your project. These starter policies are intentionally open because this family app writes directly from the browser without login.</div>
-      </div>
+          <div class="note">Paste this into the Supabase SQL Editor once for your project. These starter policies are intentionally open because this family app writes directly from the browser without login.</div>
+        </div>
+      </details>
     </section>
 
     <section class="panel">
@@ -983,12 +1022,14 @@ set color = excluded.color;</textarea>
       const config = window.PocketSteakSupabase?.getConfig();
       const urlInput = document.getElementById("supabaseUrlInput");
       const keyInput = document.getElementById("supabaseAnonKeyInput");
+      const schemaDetails = document.getElementById("schemaDetails");
 
       if (!config) {
         urlInput.value = "";
         keyInput.value = "";
         setSupabaseStatus("Unavailable");
         setSupabaseNote("Supabase helper is not ready yet.");
+        schemaDetails.open = true;
         return;
       }
 
@@ -1024,6 +1065,7 @@ set color = excluded.color;</textarea>
         if (failures.length) {
           setSupabaseStatus("Schema missing");
           setSupabaseNote(failures.join(" | "));
+          document.getElementById("schemaDetails").open = true;
           if (reloadTasks) {
             await loadRecurringTasks();
           }
@@ -1032,6 +1074,7 @@ set color = excluded.color;</textarea>
 
         setSupabaseStatus("Connected");
         setSupabaseNote("Connection works and all three family tables are available.");
+        document.getElementById("schemaDetails").open = false;
         if (reloadTasks) {
           await loadRecurringTasks();
         }
@@ -1040,6 +1083,7 @@ set color = excluded.color;</textarea>
         console.error(error);
         setSupabaseStatus("Connection failed");
         setSupabaseNote(error?.message || "Could not reach Supabase.");
+        document.getElementById("schemaDetails").open = true;
         if (reloadTasks) {
           await loadRecurringTasks();
         }
