@@ -102,56 +102,49 @@
     }
 
     .brand-logo {
-      width: 58px;
-      height: 58px;
+      width: 42px;
+      height: 42px;
       object-fit: contain;
       filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.28));
     }
 
-    .hero {
-      margin-top: 18px;
+    .header-strip {
+      width: 100%;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 16px;
+      gap: 12px;
       flex-wrap: wrap;
     }
 
-    .hero-main {
-      display: grid;
-      gap: 8px;
+    .title-lockup {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-right: auto;
+      min-width: 0;
     }
 
     .eyebrow {
-      font-size: 12px;
+      font-size: 11px;
       letter-spacing: 0.12em;
       font-weight: 900;
       text-transform: uppercase;
       color: var(--accent-2);
+      white-space: nowrap;
     }
 
     h1 {
       margin: 0;
-      font-size: clamp(2rem, 2.8vw, 2.7rem);
-      line-height: 1.02;
+      font-size: clamp(1.7rem, 2.4vw, 2.2rem);
+      line-height: 1;
       font-weight: 850;
       letter-spacing: -0.025em;
+      white-space: nowrap;
     }
 
-    .hero-kicker {
-      min-height: 36px;
-      padding: 0 14px;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      background: linear-gradient(180deg, var(--surface-strong), rgba(255, 255, 255, 0.03));
-      color: var(--muted);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-      font-weight: 900;
-      letter-spacing: 0.04em;
-      white-space: nowrap;
+    .header-strip .btn {
+      min-height: 48px;
+      padding: 12px 16px;
     }
 
     .btn {
@@ -758,9 +751,15 @@
     <section class="card">
       <div class="topbar">
         <div class="toolbar-group">
-          <img class="brand-logo" src="/pocket_steak_logo.png" alt="PocketSteak logo" />
-          <a class="btn btn-back" id="backHomeBtn" href="/family/">← Back to Home</a>
-          <button id="resetWeekBtn" class="btn btn-danger" type="button">Reset Week</button>
+          <div class="header-strip">
+            <img class="brand-logo" src="/pocket_steak_logo.png" alt="PocketSteak logo" onerror="if(this.dataset.fallback!=='1'){this.dataset.fallback='1';this.src='/family/pocket_steak_logo.png';}else if(this.dataset.fallback!=='2'){this.dataset.fallback='2';this.src='/assets/pocket_steak_logo.png';}" />
+            <div class="title-lockup">
+              <div class="eyebrow">Family</div>
+              <h1>Tasks</h1>
+            </div>
+            <a class="btn btn-back" id="backHomeBtn" href="/family/">← Back to Home</a>
+            <button id="resetWeekBtn" class="btn btn-danger" type="button">Reset Week</button>
+          </div>
         </div>
 
         <div class="toolbar-group right" style="display:none">
@@ -774,13 +773,6 @@
         </div>
       </div>
 
-      <div class="hero">
-        <div class="hero-main">
-          <div class="eyebrow">Family</div>
-          <h1>Tasks</h1>
-        </div>
-        <div class="hero-kicker">Daily board + weekly points</div>
-      </div>
     </section>
 
     <section class="overview-grid">
