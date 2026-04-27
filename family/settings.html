@@ -214,6 +214,105 @@
       line-height:1.5;
     }
 
+    .task-form{
+      display:grid;
+      grid-template-columns:minmax(0, 1.4fr) 180px 120px auto;
+      gap:12px;
+      align-items:center;
+    }
+
+    .field,
+    .task-list-item{
+      border:1px solid rgba(255,255,255,.08);
+      background:var(--surface);
+      border-radius:18px;
+    }
+
+    .field{
+      min-height:52px;
+      padding:0 16px;
+      color:var(--text);
+      font-size:14px;
+      font-weight:800;
+      outline:none;
+    }
+
+    .field::placeholder{
+      color:rgba(255,255,255,.46);
+    }
+
+    .field:focus{
+      border-color:rgba(255,122,24,.42);
+      box-shadow:0 0 0 4px rgba(255,122,24,.12);
+    }
+
+    select.field{
+      appearance:none;
+      cursor:pointer;
+    }
+
+    .task-list{
+      display:grid;
+      gap:12px;
+    }
+
+    .task-list-item{
+      padding:14px 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+
+    .task-info{
+      display:grid;
+      gap:8px;
+      min-width:0;
+      flex:1 1 320px;
+    }
+
+    .task-title{
+      font-size:16px;
+      font-weight:850;
+      letter-spacing:-.01em;
+      word-break:break-word;
+    }
+
+    .task-meta-row{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .task-pill{
+      min-height:30px;
+      padding:0 12px;
+      border-radius:999px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.02em;
+      color:var(--text);
+      background:rgba(255,255,255,.08);
+      white-space:nowrap;
+    }
+
+    .task-pill.owner{
+      color:#fff;
+      background:var(--accent);
+    }
+
+    .task-empty{
+      font-size:14px;
+      color:var(--muted);
+      font-weight:800;
+      padding-top:4px;
+    }
+
     @media (max-width: 980px){
       .settings-grid{
         grid-template-columns:1fr;
@@ -243,6 +342,10 @@
 
       .action-btn{
         width:100%;
+      }
+
+      .task-form{
+        grid-template-columns:1fr;
       }
     }
 
@@ -332,6 +435,8 @@
     }
   </style>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/assets/family-supabase.js?v=20260421"></script>
   <script async defer src="https://apis.google.com/js/api.js"></script>
   <script async defer src="https://accounts.google.com/gsi/client"></script>
 </head>
@@ -389,6 +494,31 @@
         <div class="note" id="settingsNote">Open this page any time you want to reconnect Google or jump back home.</div>
       </section>
     </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Recurring Family Tasks</div>
+        <div class="panel-meta">Add the chores that should refresh every day. These rows are stored in Supabase and power the Family Tasks board plus weekly point scoring.</div>
+      </div>
+
+      <div class="status-pill">
+        <div class="status-label">Supabase Tasks</div>
+        <div class="status-text" id="taskStatusText">Loading…</div>
+      </div>
+
+      <div class="task-form">
+        <input id="taskTitleInput" class="field" type="text" placeholder="Add recurring task" autocomplete="off" autocapitalize="words" spellcheck="false" />
+        <select id="taskOwnerSelect" class="field" aria-label="Task owner">
+          <option value="">Unassigned</option>
+        </select>
+        <input id="taskPointsInput" class="field" type="number" min="1" step="1" value="1" aria-label="Task points" />
+        <button class="action-btn accent" id="addTaskBtn" type="button">Add Task</button>
+      </div>
+
+      <div class="task-list" id="taskList"></div>
+      <div class="task-empty" id="taskEmpty">No recurring tasks yet.</div>
+      <div class="note" id="taskNote">Recurring tasks use the built-in Supabase project.</div>
+    </section>
   </div>
 
   <script>
@@ -398,7 +528,6 @@
     const SHEETS_DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
     const SPREADSHEET_ID = "1ccfVTfNqrrzMLkD4uK8fkWs3wRJENs5XQJHJfjkWmmY";
     const GROCERY_SHEET_NAME = "Groceries";
-    const TODO_SHEET_NAME = "ToDo";
     const SCOPES = [
       "https://www.googleapis.com/auth/calendar",
       "https://www.googleapis.com/auth/spreadsheets",
@@ -406,10 +535,16 @@
 
     const TOKEN_KEY = "pocketsteak_google_access_token";
     const TOKEN_EXP_KEY = "pocketsteak_google_token_exp";
+    const TASKS_TABLE = "family_tasks";
+    const MEMBERS_TABLE = "family_members";
 
     let gapiInited = false;
     let gisInited = false;
     let tokenClient = null;
+    let recurringTasks = [];
+    let familyMembers = [];
+    let supabaseClient = null;
+    let supabaseConfigSignature = "";
 
     function setStatus(text) {
       document.getElementById("statusText").textContent = text;
@@ -450,15 +585,272 @@
       );
     }
 
+    function setTaskStatus(text) {
+      document.getElementById("taskStatusText").textContent = text;
+    }
+
+    function setTaskNote(text) {
+      document.getElementById("taskNote").textContent = text;
+    }
+
+    function normalizeOwner(value) {
+      return window.PocketSteakSupabase?.normalizeOwner(value) || String(value || "").trim();
+    }
+
+    function normalizePoints(value) {
+      const numeric = Number(String(value || "").trim());
+      if (!Number.isFinite(numeric) || numeric < 0) {
+        return 0;
+      }
+      return Math.max(0, Math.round(numeric));
+    }
+
+    function formatPoints(points) {
+      return `${points} pt${points === 1 ? "" : "s"}`;
+    }
+
+    function getDefaultMembers() {
+      return (window.PocketSteakSupabase?.defaultMembers || []).map((member) => ({
+        name: normalizeOwner(member.name),
+        color: member.color,
+      }));
+    }
+
+    function buildMembers(records) {
+      const mapped = Array.isArray(records)
+        ? records
+          .map((record) => ({
+            name: normalizeOwner(record?.name),
+            color: String(record?.color || "").trim(),
+          }))
+          .filter((record) => record.name)
+        : [];
+
+      return mapped.length ? mapped : getDefaultMembers();
+    }
+
+    function getMemberChoices() {
+      return familyMembers.length ? familyMembers : getDefaultMembers();
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function hasSupabaseConfig() {
+      return Boolean(window.PocketSteakSupabase?.getConfig().configured);
+    }
+
+    function ensureSupabaseClient() {
+      const config = window.PocketSteakSupabase?.getConfig();
+      if (!config?.configured) {
+        throw new Error("The built-in Supabase Tasks connection is not ready yet.");
+      }
+
+      const signature = `${config.url}::${config.anonKey}`;
+      if (!supabaseClient || supabaseConfigSignature !== signature) {
+        supabaseClient = window.PocketSteakSupabase.createClient();
+        supabaseConfigSignature = signature;
+      }
+
+      return supabaseClient;
+    }
+
+    function renderOwnerOptions() {
+      const select = document.getElementById("taskOwnerSelect");
+      const currentValue = select.value;
+      const options = [`<option value="">Unassigned</option>`]
+        .concat(
+          getMemberChoices().map((member) => (
+            `<option value="${escapeHtml(member.name)}">${escapeHtml(member.name)}</option>`
+          ))
+        )
+        .join("");
+
+      select.innerHTML = options;
+      select.value = getMemberChoices().some((member) => member.name === currentValue) ? currentValue : "";
+    }
+
+    function renderRecurringTasks() {
+      const listEl = document.getElementById("taskList");
+      const emptyEl = document.getElementById("taskEmpty");
+
+      listEl.innerHTML = "";
+      emptyEl.style.display = recurringTasks.length ? "none" : "block";
+
+      recurringTasks.forEach((task) => {
+        const item = document.createElement("div");
+        item.className = "task-list-item";
+        item.innerHTML = `
+          <div class="task-info">
+            <div class="task-title">${escapeHtml(task.title)}</div>
+            <div class="task-meta-row">
+              <span class="task-pill owner">${escapeHtml(task.owner || "Unassigned")}</span>
+              <span class="task-pill">${escapeHtml(formatPoints(task.points))}</span>
+              <span class="task-pill">Order ${task.sortOrder}</span>
+            </div>
+          </div>
+          <button class="action-btn" type="button" data-task-id="${task.id}">Archive</button>
+        `;
+        listEl.appendChild(item);
+      });
+    }
+
+    async function loadRecurringTasks() {
+      renderOwnerOptions();
+
+      if (!hasSupabaseConfig()) {
+        recurringTasks = [];
+        renderRecurringTasks();
+        setTaskStatus("Unavailable");
+        setTaskNote("Supabase Tasks is still starting up.");
+        return;
+      }
+
+      setTaskStatus("Loading…");
+      setTaskNote("Refreshing recurring tasks from Supabase.");
+
+      try {
+        const client = ensureSupabaseClient();
+        const [memberResult, taskResult] = await Promise.allSettled([
+          client
+            .from(MEMBERS_TABLE)
+            .select("name,color")
+            .order("name", { ascending: true }),
+          client
+            .from(TASKS_TABLE)
+            .select("id,title,owner_name,points,sort_order,created_at")
+            .eq("active", true)
+            .not("sort_order", "is", null)
+            .order("sort_order", { ascending: true })
+            .order("created_at", { ascending: true }),
+        ]);
+
+        familyMembers = memberResult.status === "fulfilled" && !memberResult.value.error
+          ? buildMembers(memberResult.value.data)
+          : buildMembers([]);
+
+        renderOwnerOptions();
+
+        if (taskResult.status !== "fulfilled") {
+          throw taskResult.reason;
+        }
+        if (taskResult.value.error) {
+          throw taskResult.value.error;
+        }
+
+        recurringTasks = (taskResult.value.data || [])
+          .map((task) => ({
+            id: task.id,
+            title: String(task.title || "").trim(),
+            owner: normalizeOwner(task.owner_name),
+            points: normalizePoints(task.points),
+            sortOrder: Number.isFinite(Number(task.sort_order)) ? Number(task.sort_order) : 0,
+          }))
+          .filter((task) => task.title);
+
+        renderRecurringTasks();
+        setTaskStatus("Connected");
+        setTaskNote("Recurring family tasks are using the built-in Supabase project.");
+      } catch (error) {
+        console.error(error);
+        recurringTasks = [];
+        renderRecurringTasks();
+        setTaskStatus("Load failed");
+        setTaskNote(error?.message || "Could not load recurring tasks.");
+      }
+    }
+
+    async function addRecurringTask() {
+      const titleInput = document.getElementById("taskTitleInput");
+      const ownerSelect = document.getElementById("taskOwnerSelect");
+      const pointsInput = document.getElementById("taskPointsInput");
+      const title = String(titleInput.value || "").trim();
+      const owner = normalizeOwner(ownerSelect.value);
+      const points = normalizePoints(pointsInput.value);
+
+      if (!title) {
+        setTaskNote("Enter a recurring task name first.");
+        titleInput.focus();
+        return;
+      }
+
+      if (points <= 0) {
+        setTaskNote("Recurring tasks need at least 1 point.");
+        pointsInput.focus();
+        return;
+      }
+
+      try {
+        setTaskStatus("Saving…");
+        setTaskNote("Adding recurring task to Supabase.");
+        const client = ensureSupabaseClient();
+        const nextSortOrder = recurringTasks.length
+          ? Math.max(...recurringTasks.map((task) => task.sortOrder || 0)) + 10
+          : 10;
+
+        const result = await client
+          .from(TASKS_TABLE)
+          .insert({
+            title,
+            owner_name: owner || null,
+            points,
+            active: true,
+            sort_order: nextSortOrder,
+          });
+
+        if (result.error) {
+          throw result.error;
+        }
+
+        titleInput.value = "";
+        ownerSelect.value = "";
+        pointsInput.value = "1";
+        await loadRecurringTasks();
+        setTaskNote(`Added "${title}" as a recurring task.`);
+        titleInput.focus();
+      } catch (error) {
+        console.error(error);
+        setTaskStatus("Save failed");
+        setTaskNote(error?.message || "Could not save recurring task.");
+      }
+    }
+
+    async function archiveRecurringTask(taskId) {
+      if (!taskId) return;
+
+      try {
+        setTaskStatus("Saving…");
+        setTaskNote("Archiving recurring task.");
+        const client = ensureSupabaseClient();
+        const result = await client
+          .from(TASKS_TABLE)
+          .update({ active: false })
+          .eq("id", taskId);
+
+        if (result.error) {
+          throw result.error;
+        }
+
+        await loadRecurringTasks();
+        setTaskNote("Recurring task archived.");
+      } catch (error) {
+        console.error(error);
+        setTaskStatus("Save failed");
+        setTaskNote(error?.message || "Could not archive recurring task.");
+      }
+    }
+
     async function testGoogleAccess() {
       await gapi.client.calendar.calendarList.list();
       await gapi.client.sheets.spreadsheets.values.get({
         spreadsheetId: SPREADSHEET_ID,
         range: `${GROCERY_SHEET_NAME}!A:C`,
-      });
-      await gapi.client.sheets.spreadsheets.values.get({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `${TODO_SHEET_NAME}!A:D`,
       });
     }
 
@@ -563,10 +955,23 @@
 
     document.getElementById("authBtn").addEventListener("click", handleAuthClick);
     document.getElementById("signOutBtn").addEventListener("click", handleSignoutClick);
+    document.getElementById("addTaskBtn").addEventListener("click", addRecurringTask);
+    document.getElementById("taskTitleInput").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        addRecurringTask();
+      }
+    });
+    document.getElementById("taskList").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-task-id]");
+      if (!button) return;
+      archiveRecurringTask(button.getAttribute("data-task-id"));
+    });
 
     document.getElementById("authBtn").disabled = true;
 
     window.addEventListener("load", async () => {
+      loadRecurringTasks();
       try {
         await gapiLoaded();
         gisLoaded();

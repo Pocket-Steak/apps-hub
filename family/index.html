@@ -2016,12 +2016,12 @@
         <div class="preview-head">
           <div class="preview-heading">
             <div class="preview-title">To-Do List</div>
-            <div class="preview-meta" id="todoPreviewMeta">Connect Google to load to-do items.</div>
+            <div class="preview-meta" id="todoPreviewMeta">Loading one-off Supabase to-dos.</div>
           </div>
           <button class="preview-open" id="todoPreviewBtn" type="button">Open List</button>
         </div>
         <div class="preview-list" id="todoPreviewList">
-          <div class="preview-empty">Waiting for Google Sheets…</div>
+          <div class="preview-empty">Waiting for Supabase To-Dos…</div>
         </div>
         </article>
 
@@ -2064,7 +2064,6 @@
     const SHEETS_DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
     const SPREADSHEET_ID = "1ccfVTfNqrrzMLkD4uK8fkWs3wRJENs5XQJHJfjkWmmY";
     const GROCERY_SHEET_NAME = "Groceries";
-    const TODO_SHEET_NAME = "ToDo";
     const TASKS_TABLE = "family_tasks";
     const TASK_COMPLETIONS_TABLE = "family_task_completions";
     const TASK_MEMBERS_TABLE = "family_members";
@@ -2435,10 +2434,10 @@
 
     function normalizePoints(value) {
       const numeric = Number(String(value || "").trim());
-      if (!Number.isFinite(numeric) || numeric <= 0) {
-        return 1;
+      if (!Number.isFinite(numeric) || numeric < 0) {
+        return 0;
       }
-      return Math.max(1, Math.round(numeric));
+      return Math.max(0, Math.round(numeric));
     }
 
     function getOwnerColor(owner) {
@@ -2718,15 +2717,9 @@
       document.getElementById("overlayFrame").src = "";
       document.body.classList.remove("modal-open");
 
-      if (gapiInited && gisInited && gapi.client.getToken()) {
-        loadDashboardLists().catch((err) => {
-          console.error(err);
-        });
-      } else {
-        refreshTaskPreview().catch((err) => {
-          console.error(err);
-        });
-      }
+      loadDashboardLists().catch((err) => {
+        console.error(err);
+      });
     }
 
     async function loadSheetPreview(sheetName, hasOwner = false) {
@@ -2773,6 +2766,34 @@
         .filter((row) => row.taskId && row.person && row.weekStart === currentWeekKey && row.dayKey);
     }
 
+    async function loadTodoPreview() {
+      const client = getTaskPreviewClient();
+      if (!client) {
+        throw new Error("The built-in Supabase To-Do preview is not ready yet.");
+      }
+
+      await loadTaskMemberColors(client);
+
+      const result = await client
+        .from(TASKS_TABLE)
+        .select("id,title,owner_name,points,active,created_at")
+        .is("sort_order", null)
+        .order("created_at", { ascending: false });
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      return (result.data || [])
+        .map((task) => ({
+          title: String(task.title || "").trim(),
+          done: task.active === false,
+          owner: normalizeOwner(task.owner_name),
+          points: normalizePoints(task.points),
+        }))
+        .filter((row) => row.title);
+    }
+
     async function loadChorePreview() {
       const client = getTaskPreviewClient();
       if (!client) {
@@ -2787,6 +2808,7 @@
           .from(TASKS_TABLE)
           .select("id,title,owner_name,points,active,sort_order,created_at")
           .eq("active", true)
+          .not("sort_order", "is", null)
           .order("sort_order", { ascending: true })
           .order("created_at", { ascending: true }),
         loadTaskHistoryPreview(client, currentWeekKey),
@@ -2826,26 +2848,13 @@
       };
     }
 
-    async function refreshTaskPreview() {
-      try {
-        const result = await loadChorePreview();
-        choresPreviewRows = result.rows;
-        chorePreviewHistoryEntries = result.historyEntries;
-        chorePreviewError = "";
-      } catch (error) {
-        console.error(error);
-        choresPreviewRows = [];
-        chorePreviewHistoryEntries = [];
-        chorePreviewError = error?.message || "Could not load tasks preview.";
-      }
-
-      renderAll();
-    }
-
     async function loadDashboardLists() {
+      const canLoadGoogleSheets = Boolean(gapiInited && gisInited && gapi.client.getToken());
       const results = await Promise.allSettled([
-        loadSheetPreview(GROCERY_SHEET_NAME, false),
-        loadSheetPreview(TODO_SHEET_NAME, true),
+        canLoadGoogleSheets
+          ? loadSheetPreview(GROCERY_SHEET_NAME, false)
+          : Promise.reject(new Error("Connect Google to load grocery items.")),
+        loadTodoPreview(),
         loadChorePreview(),
       ]);
 
@@ -2855,7 +2864,9 @@
       } else {
         console.error(results[0].reason);
         groceryPreviewRows = [];
-        groceryPreviewError = "Could not load grocery preview.";
+        groceryPreviewError = canLoadGoogleSheets
+          ? "Could not load grocery preview."
+          : "Connect Google to load grocery items.";
       }
 
       if (results[1].status === "fulfilled") {
@@ -2864,7 +2875,7 @@
       } else {
         console.error(results[1].reason);
         todoPreviewRows = [];
-        todoPreviewError = "Could not load to-do preview.";
+        todoPreviewError = results[1].reason?.message || "Could not load to-do preview.";
       }
 
       if (results[2].status === "fulfilled") {
@@ -3076,13 +3087,11 @@
       calendarsById = new Map();
       weekEvents = [];
       groceryPreviewRows = [];
-      todoPreviewRows = [];
       groceryPreviewError = "";
-      todoPreviewError = "";
       document.getElementById("authBtn").textContent = "Connect";
       document.getElementById("signOutBtn").style.display = "none";
       setStatus("Not connected");
-      refreshTaskPreview().catch((err) => {
+      loadDashboardLists().catch((err) => {
         console.error(err);
       });
     }
@@ -3205,7 +3214,7 @@
     });
 
     renderAll();
-    refreshTaskPreview().catch((err) => {
+    loadDashboardLists().catch((err) => {
       console.error(err);
     });
     loadWeather();

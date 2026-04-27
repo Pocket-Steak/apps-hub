@@ -1113,10 +1113,10 @@
 
     function normalizePoints(value) {
       const numeric = Number(String(value || "").trim());
-      if (!Number.isFinite(numeric) || numeric <= 0) {
-        return 1;
+      if (!Number.isFinite(numeric) || numeric < 0) {
+        return 0;
       }
-      return Math.max(1, Math.round(numeric));
+      return Math.max(0, Math.round(numeric));
     }
 
     function formatPoints(points) {
@@ -1835,6 +1835,7 @@
             .from(TASKS_TABLE)
             .select("id,title,owner_name,points,active,sort_order,created_at")
             .eq("active", true)
+            .not("sort_order", "is", null)
             .order("sort_order", { ascending: true })
             .order("created_at", { ascending: true }),
           client

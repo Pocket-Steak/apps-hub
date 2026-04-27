@@ -203,7 +203,7 @@
 
     .input-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 240px auto;
+      grid-template-columns: minmax(0, 1fr) 220px 120px auto;
       gap: 16px;
       align-items: center;
     }
@@ -247,6 +247,24 @@
     }
 
     .owner-select:focus {
+      border-color: rgba(255, 138, 31, 0.6);
+      box-shadow: 0 0 0 4px rgba(255, 138, 31, 0.14);
+    }
+
+    .points-input {
+      width: 100%;
+      min-height: 54px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 800;
+      padding: 0 24px;
+      outline: none;
+    }
+
+    .points-input:focus {
       border-color: rgba(255, 138, 31, 0.6);
       box-shadow: 0 0 0 4px rgba(255, 138, 31, 0.14);
     }
@@ -314,6 +332,13 @@
       line-height: 1.2;
     }
 
+    .tile-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
     .tile-owner {
       display: inline-flex;
       align-items: center;
@@ -343,6 +368,34 @@
 
     .tile-owner.default {
       background: var(--owner-default);
+    }
+
+    .tile-points,
+    .tile-status {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 0 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+
+    .tile-points {
+      color: var(--accent-2);
+      background: rgba(255, 138, 31, 0.14);
+    }
+
+    .tile-status {
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .tile-status.done {
+      color: #b9f8c8;
+      background: rgba(22, 163, 74, 0.14);
     }
 
     .tile-owner-dot {
@@ -386,6 +439,111 @@
       pointer-events: none;
     }
 
+    .task-picker-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(7, 9, 13, 0.72);
+      backdrop-filter: blur(12px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .task-picker-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .task-picker-shell {
+      width: min(100%, 620px);
+      border-radius: 26px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background:
+        radial-gradient(circle at top left, rgba(255, 157, 47, 0.14), transparent 32%),
+        linear-gradient(180deg, #1a1c22, #22252d);
+      box-shadow: 0 26px 80px rgba(0, 0, 0, 0.48);
+      padding: 24px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .task-picker-label {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 900;
+      color: var(--accent-2);
+    }
+
+    .task-picker-title {
+      margin: 0;
+      font-size: clamp(1.7rem, 3vw, 2.15rem);
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      font-weight: 900;
+    }
+
+    .task-picker-copy {
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.55;
+      font-weight: 700;
+    }
+
+    .task-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .task-picker-choice {
+      min-height: 144px;
+      border: 1px solid color-mix(in srgb, var(--choice-color, var(--owner-default)) 34%, rgba(255, 255, 255, 0.12));
+      border-radius: 20px;
+      padding: 16px;
+      background:
+        linear-gradient(180deg, color-mix(in srgb, var(--choice-color, var(--owner-default)) 18%, rgba(255, 255, 255, 0.04)), rgba(255, 255, 255, 0.03)),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+      color: var(--text);
+      cursor: pointer;
+      display: grid;
+      gap: 12px;
+      align-content: start;
+      text-align: left;
+    }
+
+    .task-picker-choice-swatch {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: var(--choice-color, var(--owner-default));
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--choice-color, var(--owner-default)) 20%, transparent);
+    }
+
+    .task-picker-choice-name {
+      font-size: 20px;
+      line-height: 1.08;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+    }
+
+    .task-picker-choice-note {
+      font-size: 12px;
+      line-height: 1.4;
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .task-picker-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+
     @media (max-width: 1180px) {
       .status-pill {
         min-width: min(100%, 320px);
@@ -420,7 +578,8 @@
 
       .btn,
       .item-input,
-      .owner-select {
+      .owner-select,
+      .points-input {
         font-size: 15px;
       }
     }
@@ -442,6 +601,7 @@
       .btn,
       .item-input,
       .owner-select,
+      .points-input,
       .tile {
         font-size: 15px;
       }
@@ -474,12 +634,13 @@
       }
 
       .input-row {
-        grid-template-columns: minmax(0, 1fr) 220px auto;
+        grid-template-columns: minmax(0, 1fr) 200px 110px auto;
         gap: 12px;
       }
 
       .item-input,
       .owner-select,
+      .points-input,
       .btn {
         min-height: 46px;
       }
@@ -538,7 +699,8 @@
 
       .btn,
       .item-input,
-      .owner-select {
+      .owner-select,
+      .points-input {
         min-height: 48px;
         padding: 10px 16px;
         font-size: 14px;
@@ -552,12 +714,15 @@
       .input-row {
         gap: 12px;
       }
+
+      .task-picker-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 
-  <!-- Google APIs -->
-  <script async defer src="https://apis.google.com/js/api.js"></script>
-  <script async defer src="https://accounts.google.com/gsi/client"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/assets/family-supabase.js?v=20260421"></script>
 </head>
 <body>
   <main class="app">
@@ -570,13 +735,13 @@
         </div>
 
         <div class="toolbar-group right">
-          <button class="btn" type="button" onclick="window.location.href='/family/settings.html'">Settings</button>
+          <button class="btn" type="button" onclick="window.location.href='/settings/'">Settings</button>
           <div id="statusPill" class="status-pill status-bad">
-            <div class="status-label">GOOGLE</div>
-            <div id="statusText" class="status-text">Not connected</div>
+            <div class="status-label">SUPABASE</div>
+            <div id="statusText" class="status-text">Built in</div>
           </div>
           <div class="connect-wrap">
-            <button id="connectBtn" class="btn btn-accent" type="button">Connect</button>
+            <button id="connectBtn" class="btn btn-accent" type="button">Reload</button>
           </div>
         </div>
       </div>
@@ -601,14 +766,12 @@
         />
         <select id="ownerSelect" class="owner-select" aria-label="Owner">
           <option value="">Owner</option>
-          <option value="Andrew">Andrew</option>
-          <option value="Nichol">Nichol</option>
-          <option value="Jolie">Jolie</option>
         </select>
+        <input id="pointsInput" class="points-input" type="number" min="1" step="1" value="1" aria-label="Points" />
         <button id="addBtn" class="btn btn-accent" type="button">Add Task</button>
       </div>
 
-      <div class="helper">Tap a task tile to mark it done.</div>
+      <div class="helper">Use this for one-off family to-dos. When a to-do is done it awards points and stays in the completed list until you clear it.</div>
       <div id="message" class="message"></div>
     </section>
 
@@ -626,36 +789,30 @@
     </section>
   </main>
 
+  <div class="task-picker-backdrop" id="taskPicker" aria-hidden="true">
+    <section class="task-picker-shell" role="dialog" aria-modal="true" aria-labelledby="taskPickerTitle">
+      <div class="task-picker-label">Choose Your Color</div>
+      <h2 class="task-picker-title" id="taskPickerTitle">Who finished this task?</h2>
+      <div class="task-picker-copy" id="taskPickerCopy">Tap your family color to claim the points.</div>
+      <div class="task-picker-grid" id="taskPickerGrid"></div>
+      <div class="task-picker-actions">
+        <button class="btn btn-back" id="taskPickerCancelBtn" type="button">Cancel</button>
+      </div>
+    </section>
+  </div>
+
   <script>
-    // =========================
-    // REQUIRED CONFIG
-    // =========================
-    const GOOGLE_API_KEY = "AIzaSyBPZEeYB8IaheJPJA2Y44msGfDwIhJMpGU";
-    const GOOGLE_CLIENT_ID = "82204016171-ta1ipuu88gie0tkq69je3di5uifu1kki.apps.googleusercontent.com";
+    const TASKS_TABLE = "family_tasks";
+    const COMPLETIONS_TABLE = "family_task_completions";
+    const MEMBERS_TABLE = "family_members";
 
-    const SPREADSHEET_ID = "1ccfVTfNqrrzMLkD4uK8fkWs3wRJENs5XQJHJfjkWmmY";
-    const SHEET_NAME = "ToDo";
-
-    const SHARED_TOKEN_KEY = "pocketsteak_google_access_token";
-    const SHARED_TOKEN_EXP_KEY = "pocketsteak_google_token_exp";
-
-    const DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
-    const SCOPES = "https://www.googleapis.com/auth/spreadsheets";
-
-    // =========================
-    // STATE
-    // =========================
-    let tokenClient = null;
-    let gapiReady = false;
-    let gisReady = false;
-    let appReady = false;
-    let isConnected = false;
-    let groceryRows = [];
+    let familyMembers = [];
+    let todoRows = [];
     let isBusy = false;
+    let supabaseClient = null;
+    let supabaseConfigSignature = "";
+    let completionPickerResolve = null;
 
-    // =========================
-    // DOM
-    // =========================
     const statusPill = document.getElementById("statusPill");
     const statusText = document.getElementById("statusText");
     const connectBtn = document.getElementById("connectBtn");
@@ -663,23 +820,27 @@
     const addBtn = document.getElementById("addBtn");
     const itemInput = document.getElementById("itemInput");
     const ownerSelect = document.getElementById("ownerSelect");
+    const pointsInput = document.getElementById("pointsInput");
     const messageEl = document.getElementById("message");
     const activeListEl = document.getElementById("activeList");
     const activeEmptyEl = document.getElementById("activeEmpty");
     const boughtListEl = document.getElementById("boughtList");
     const boughtEmptyEl = document.getElementById("boughtEmpty");
     const inputCard = document.getElementById("inputCard");
+    const taskPickerEl = document.getElementById("taskPicker");
+    const taskPickerTitleEl = document.getElementById("taskPickerTitle");
+    const taskPickerCopyEl = document.getElementById("taskPickerCopy");
+    const taskPickerGridEl = document.getElementById("taskPickerGrid");
+    const taskPickerCancelBtn = document.getElementById("taskPickerCancelBtn");
 
-    // =========================
-    // HELPERS
-    // =========================
     function setBusy(value) {
       isBusy = value;
-      addBtn.disabled = value || !isConnected;
-      clearAllBtn.disabled = value || !isConnected;
-      connectBtn.disabled = value && appReady;
-      itemInput.disabled = value || !isConnected;
-      ownerSelect.disabled = value || !isConnected;
+      addBtn.disabled = value;
+      clearAllBtn.disabled = value;
+      connectBtn.disabled = value;
+      itemInput.disabled = value;
+      ownerSelect.disabled = value;
+      pointsInput.disabled = value;
       inputCard.classList.toggle("loading", value);
     }
 
@@ -706,333 +867,235 @@
         .replaceAll("'", "&#039;");
     }
 
-    function normalizeBool(value) {
-      const str = String(value || "").trim().toLowerCase();
-      return str === "true" || str === "yes" || str === "1" || str === "y";
+    function normalizeOwner(value) {
+      return window.PocketSteakSupabase?.normalizeOwner(value) || String(value || "").trim();
     }
 
-    function normalizeOwner(value) {
-      const str = String(value || "").trim().toLowerCase();
-      if (str === "andrew") return "Andrew";
-      if (str === "nichol") return "Nichol";
-      if (str === "jolie") return "Jolie";
-      return "";
+    function normalizePoints(value) {
+      const numeric = Number(String(value || "").trim());
+      if (!Number.isFinite(numeric) || numeric < 0) {
+        return 0;
+      }
+      return Math.max(0, Math.round(numeric));
+    }
+
+    function formatPoints(points) {
+      return `${points} pt${points === 1 ? "" : "s"}`;
     }
 
     function getOwnerColor(owner) {
-      if (owner === "Andrew") return "var(--owner-andrew)";
-      if (owner === "Nichol") return "var(--owner-nichol)";
-      if (owner === "Jolie") return "var(--owner-jolie)";
+      const normalizedOwner = normalizeOwner(owner);
+      const match = getMemberChoices().find((member) => member.name === normalizedOwner);
+      if (match?.color) return match.color;
+      if (normalizedOwner === "Andrew") return "var(--owner-andrew)";
+      if (normalizedOwner === "Nichol") return "var(--owner-nichol)";
+      if (normalizedOwner === "Jolie") return "var(--owner-jolie)";
       return "var(--owner-default)";
     }
 
     function getOwnerClassName(owner) {
-      if (owner === "Andrew") return "andrew";
-      if (owner === "Nichol") return "nichol";
-      if (owner === "Jolie") return "jolie";
+      const normalizedOwner = normalizeOwner(owner);
+      if (normalizedOwner === "Andrew") return "andrew";
+      if (normalizedOwner === "Nichol") return "nichol";
+      if (normalizedOwner === "Jolie") return "jolie";
       return "default";
     }
 
     function getOwnerLabel(owner) {
-      return owner || "Unassigned";
+      return normalizeOwner(owner) || "Unassigned";
     }
 
-    function isLikelyHeaderRow(row) {
-      const first = String(row?.[0] || "").trim().toLowerCase();
-      const second = String(row?.[1] || "").trim().toLowerCase();
-      const third = String(row?.[2] || "").trim().toLowerCase();
-      const fourth = String(row?.[3] || "").trim().toLowerCase();
-
-      return (
-        ["item", "items", "task", "tasks", "todo", "to-do", "name"].includes(first) ||
-        ["bought", "done", "status", "checked", "complete", "completed"].includes(second) ||
-        ["created", "createdat", "timestamp", "date"].includes(third) ||
-        ["owner", "person", "addedby", "added by", "who"].includes(fourth)
-      );
+    function getDefaultMembers() {
+      return (window.PocketSteakSupabase?.defaultMembers || []).map((member) => ({
+        name: normalizeOwner(member.name),
+        color: member.color,
+      }));
     }
 
-    function getAccessTokenFromSession() {
-      const sharedToken = localStorage.getItem(SHARED_TOKEN_KEY);
-      const sharedExp = Number(localStorage.getItem(SHARED_TOKEN_EXP_KEY) || "0");
+    function buildMembers(records) {
+      const mapped = Array.isArray(records)
+        ? records
+          .map((record) => ({
+            name: normalizeOwner(record?.name),
+            color: String(record?.color || "").trim(),
+          }))
+          .filter((record) => record.name)
+        : [];
 
-      if (!sharedToken || !sharedExp) {
-        return null;
-      }
-
-      if (Date.now() >= sharedExp) {
-        localStorage.removeItem(SHARED_TOKEN_KEY);
-        localStorage.removeItem(SHARED_TOKEN_EXP_KEY);
-        return null;
-      }
-
-      return sharedToken;
+      return mapped.length ? mapped : getDefaultMembers();
     }
 
-    function saveAccessTokenToSession(token, expiresInSeconds = 3600) {
-      if (token) {
-        localStorage.setItem(SHARED_TOKEN_KEY, token);
-        localStorage.setItem(
-          SHARED_TOKEN_EXP_KEY,
-          String(Date.now() + (Number(expiresInSeconds || 3600) * 1000))
-        );
-      }
+    function getMemberChoices() {
+      return familyMembers.length ? familyMembers : getDefaultMembers();
     }
 
-    function clearAccessTokenFromSession() {
-      localStorage.removeItem(SHARED_TOKEN_KEY);
-      localStorage.removeItem(SHARED_TOKEN_EXP_KEY);
-    }
-
-    function ensureAppInitialized() {
-      if (appReady) return;
-      if (!gapiReady || !gisReady) return;
-
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: GOOGLE_CLIENT_ID,
-        scope: SCOPES,
-        callback: async (response) => {
-          if (response.error) {
-            console.error("OAuth token error:", response);
-            setStatus("Setup failed", false);
-            showMessage(getReadableError(response), "error");
-            return;
-          }
-
-          const token = gapi.client.getToken()?.access_token;
-          if (token) {
-            saveAccessTokenToSession(token, response.expires_in || 3600);
-          }
-
-          isConnected = true;
-          setStatus("Connected", true);
-          connectBtn.textContent = "Reconnect";
-
-          try {
-            await loadGroceries();
-            showMessage("", "");
-          } catch (error) {
-            console.error(error);
-            setStatus("Setup failed", false);
-            showMessage(getReadableError(error), "error");
-          } finally {
-            setBusy(false);
-          }
-        },
-      });
-
-      appReady = true;
-      restoreSessionIfPossible();
+    function renderOwnerOptions() {
+      const currentValue = ownerSelect.value;
+      ownerSelect.innerHTML = [`<option value="">Owner</option>`]
+        .concat(
+          getMemberChoices().map((member) => (
+            `<option value="${escapeHtml(member.name)}">${escapeHtml(member.name)}</option>`
+          ))
+        )
+        .join("");
+      ownerSelect.value = getMemberChoices().some((member) => member.name === currentValue) ? currentValue : "";
     }
 
     function getReadableError(error) {
-      const message =
+      return (
         error?.result?.error?.message ||
         error?.details ||
         error?.message ||
         error?.error ||
-        "Something went wrong with Google Sheets.";
-
-      const code = error?.code || error?.result?.error?.code;
-      const status = error?.status || error?.result?.error?.status;
-      const suffix = [code, status].filter(Boolean).join(" / ");
-
-      return suffix ? `${message} (${suffix})` : message;
+        "Something went wrong with Supabase Tasks."
+      );
     }
 
-    // =========================
-    // GOOGLE INIT
-    // =========================
-    function initGapi() {
-      const startedAt = Date.now();
-
-      const waitForGapi = () => {
-        if (window.gapi && typeof window.gapi.load === "function") {
-          window.gapi.load("client", async () => {
-            try {
-              await window.gapi.client.init({
-                apiKey: GOOGLE_API_KEY,
-                discoveryDocs: [DISCOVERY_DOC],
-              });
-              gapiReady = true;
-              ensureAppInitialized();
-            } catch (error) {
-              console.error("gapi init error:", error);
-              setStatus("Setup failed", false);
-              showMessage(getReadableError(error), "error");
-            }
-          });
-          return;
-        }
-
-        if (Date.now() - startedAt > 10000) {
-          setStatus("Google failed to load", false);
-          showMessage(
-            "The Google API script did not finish loading. Check your internet connection and browser extensions, then refresh.",
-            "error"
-          );
-          return;
-        }
-
-        window.setTimeout(waitForGapi, 100);
-      };
-
-      waitForGapi();
-    }
-
-    function initGisReadyCheck() {
-      const startedAt = Date.now();
-
-      const waitForGoogle = () => {
-        if (window.google && google.accounts && google.accounts.oauth2) {
-          gisReady = true;
-          ensureAppInitialized();
-          return;
-        }
-
-        if (Date.now() - startedAt > 10000) {
-          setStatus("Google failed to load", false);
-          showMessage(
-            "The Google sign-in script did not finish loading. Check your internet connection and browser extensions, then refresh.",
-            "error"
-          );
-          return;
-        }
-
-        window.setTimeout(waitForGoogle, 100);
-      };
-
-      waitForGoogle();
-    }
-
-    async function restoreSessionIfPossible() {
-      const savedToken = getAccessTokenFromSession();
-
-      if (!savedToken) {
-        setStatus("Not connected", false);
-        setBusy(false);
-        return;
+    function ensureSupabaseClient() {
+      const config = window.PocketSteakSupabase?.getConfig();
+      if (!config?.configured) {
+        throw new Error("The built-in Supabase Tasks connection is not ready yet.");
       }
 
-      try {
-        gapi.client.setToken({ access_token: savedToken });
-        await testSheetsAccess();
-        isConnected = true;
-        setStatus("Connected", true);
-        connectBtn.textContent = "Reconnect";
-        await loadGroceries();
-        setBusy(false);
-      } catch (error) {
-        console.warn("Saved token no longer valid:", error);
-        gapi.client.setToken(null);
-        clearAccessTokenFromSession();
-        isConnected = false;
-        setStatus("Not connected", false);
-        connectBtn.textContent = "Connect";
-        setBusy(false);
+      const signature = `${config.url}::${config.anonKey}`;
+      if (!supabaseClient || supabaseConfigSignature !== signature) {
+        supabaseClient = window.PocketSteakSupabase.createClient();
+        supabaseConfigSignature = signature;
+      }
+
+      return supabaseClient;
+    }
+
+    function getCurrentDayKey() {
+      return window.PocketSteakSupabase.getCurrentDayKey();
+    }
+
+    function getCurrentWeekKey() {
+      return window.PocketSteakSupabase.getCurrentWeekKey();
+    }
+
+    function formatCompletedAt(value) {
+      if (!value) return "Completed";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) {
+        return "Completed";
+      }
+      return `Done ${date.toLocaleDateString(undefined, { month: "short", day: "numeric" })}`;
+    }
+
+    function closeCompletionPicker(selectedOwner = "") {
+      const resolve = completionPickerResolve;
+      completionPickerResolve = null;
+      taskPickerEl.classList.remove("open");
+      taskPickerEl.setAttribute("aria-hidden", "true");
+      taskPickerGridEl.innerHTML = "";
+      if (resolve) {
+        resolve(selectedOwner);
       }
     }
 
-    async function connectGoogle(forceConsent = false) {
-      if (!appReady || !tokenClient) {
-        showMessage("Google is still loading. Try again in a second.", "error");
-        return;
+    function openCompletionPicker(row) {
+      if (completionPickerResolve) {
+        closeCompletionPicker("");
       }
 
+      taskPickerTitleEl.textContent = `Who finished "${row.item}"?`;
+      taskPickerCopyEl.textContent = `Tap a family color to claim ${formatPoints(row.points)} for this task.`;
+      taskPickerGridEl.innerHTML = "";
+
+      getMemberChoices().forEach((member) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "task-picker-choice";
+        button.style.setProperty("--choice-color", getOwnerColor(member.name));
+        button.innerHTML = `
+          <span class="task-picker-choice-swatch"></span>
+          <span class="task-picker-choice-name">${escapeHtml(member.name)}</span>
+          <span class="task-picker-choice-note">Tap to give ${escapeHtml(member.name)} the points.</span>
+        `;
+        button.addEventListener("click", () => closeCompletionPicker(member.name));
+        taskPickerGridEl.appendChild(button);
+      });
+
+      taskPickerEl.classList.add("open");
+      taskPickerEl.setAttribute("aria-hidden", "false");
+
+      return new Promise((resolve) => {
+        completionPickerResolve = resolve;
+      });
+    }
+
+    async function loadTodos() {
       setBusy(true);
       showMessage("", "");
 
       try {
-        const existingToken = gapi.client.getToken();
+        const client = ensureSupabaseClient();
+        const [memberResult, taskResult, completionResult] = await Promise.allSettled([
+          client
+            .from(MEMBERS_TABLE)
+            .select("name,color")
+            .order("name", { ascending: true }),
+          client
+            .from(TASKS_TABLE)
+            .select("id,title,owner_name,points,active,sort_order,created_at")
+            .is("sort_order", null)
+            .order("created_at", { ascending: false }),
+          client
+            .from(COMPLETIONS_TABLE)
+            .select("id,task_id,completed_by,points,completed_at,day_key,week_start")
+            .order("completed_at", { ascending: false }),
+        ]);
 
-        tokenClient.callback = async (response) => {
-          if (response.error) {
-            console.error("OAuth token error:", response);
-            setStatus("Setup failed", false);
-            showMessage(getReadableError(response), "error");
-            setBusy(false);
-            return;
+        familyMembers = memberResult.status === "fulfilled" && !memberResult.value.error
+          ? buildMembers(memberResult.value.data)
+          : buildMembers([]);
+        renderOwnerOptions();
+
+        if (taskResult.status !== "fulfilled") throw taskResult.reason;
+        if (taskResult.value.error) throw taskResult.value.error;
+        if (completionResult.status !== "fulfilled") throw completionResult.reason;
+        if (completionResult.value.error) throw completionResult.value.error;
+
+        const latestCompletionByTask = new Map();
+        (completionResult.value.data || []).forEach((entry) => {
+          if (!latestCompletionByTask.has(entry.task_id)) {
+            latestCompletionByTask.set(entry.task_id, entry);
           }
-
-          const token = gapi.client.getToken()?.access_token;
-          if (token) {
-            saveAccessTokenToSession(token, response.expires_in || 3600);
-          }
-
-          isConnected = true;
-          setStatus("Connected", true);
-          connectBtn.textContent = "Reconnect";
-
-          try {
-            await loadGroceries();
-          } catch (error) {
-            console.error(error);
-            setStatus("Setup failed", false);
-            showMessage(getReadableError(error), "error");
-          } finally {
-            setBusy(false);
-          }
-        };
-
-        tokenClient.requestAccessToken({
-          prompt: forceConsent || !existingToken ? "consent" : "",
         });
+
+        todoRows = (taskResult.value.data || [])
+          .map((task) => {
+            const completion = latestCompletionByTask.get(task.id);
+            return {
+              id: task.id,
+              item: String(task.title || "").trim(),
+              bought: task.active === false,
+              owner: normalizeOwner(task.owner_name),
+              points: normalizePoints(task.points),
+              completedAt: String(completion?.completed_at || "").trim(),
+              completedBy: normalizeOwner(completion?.completed_by),
+            };
+          })
+          .filter((row) => row.item);
+
+        renderTodos();
+        setStatus("Connected", true);
       } catch (error) {
         console.error(error);
-        setStatus("Setup failed", false);
+        todoRows = [];
+        renderTodos();
+        setStatus("Load failed", false);
         showMessage(getReadableError(error), "error");
+      } finally {
         setBusy(false);
       }
-    }
-
-    async function testSheetsAccess() {
-      await gapi.client.sheets.spreadsheets.values.get({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!A:D`,
-      });
-    }
-
-    // =========================
-    // SHEETS
-    // =========================
-    async function loadGroceries() {
-      setBusy(true);
-      showMessage("", "");
-
-      const response = await gapi.client.sheets.spreadsheets.values.get({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!A:D`,
-      });
-
-      const values = response.result.values || [];
-
-      let startIndex = 0;
-      if (values.length > 0 && isLikelyHeaderRow(values[0])) {
-        startIndex = 1;
-      }
-
-      groceryRows = values.slice(startIndex).map((row, index) => {
-        const actualRowNumber = startIndex + index + 1;
-        return {
-          rowNumber: actualRowNumber,
-          item: String(row[0] || "").trim(),
-          bought: normalizeBool(row[1]),
-          createdAt: String(row[2] || "").trim(),
-          owner: normalizeOwner(row[3]),
-        };
-      }).filter(row => row.item);
-
-      renderGroceries();
-      setBusy(false);
     }
 
     async function addItem() {
       const item = itemInput.value.trim();
       const owner = normalizeOwner(ownerSelect.value);
-
-      if (!isConnected) {
-        showMessage("Connect Google first.", "error");
-        return;
-      }
+      const points = normalizePoints(pointsInput.value);
 
       if (!item) {
         showMessage("Enter an item first.", "error");
@@ -1040,23 +1103,33 @@
         return;
       }
 
+      if (points <= 0) {
+        showMessage("To-do items need at least 1 point.", "error");
+        pointsInput.focus();
+        return;
+      }
+
       setBusy(true);
       showMessage("", "");
 
       try {
-        await gapi.client.sheets.spreadsheets.values.append({
-          spreadsheetId: SPREADSHEET_ID,
-          range: `${SHEET_NAME}!A:D`,
-          valueInputOption: "USER_ENTERED",
-          insertDataOption: "INSERT_ROWS",
-          resource: {
-            values: [[item, "FALSE", new Date().toISOString(), owner]],
-          },
-        });
+        const client = ensureSupabaseClient();
+        const result = await client
+          .from(TASKS_TABLE)
+          .insert({
+            title: item,
+            owner_name: owner || null,
+            points,
+            active: true,
+            sort_order: null,
+          });
+
+        if (result.error) throw result.error;
 
         itemInput.value = "";
         ownerSelect.value = "";
-        await loadGroceries();
+        pointsInput.value = "1";
+        await loadTodos();
         showMessage("Task added.", "success");
         itemInput.focus();
       } catch (error) {
@@ -1066,51 +1139,58 @@
       }
     }
 
-    async function findSheetRowNumber(targetRow) {
-      const response = await gapi.client.sheets.spreadsheets.values.get({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!A:D`,
-      });
-
-      const values = response.result.values || [];
-      const startIndex = values.length > 0 && isLikelyHeaderRow(values[0]) ? 1 : 0;
-
-      for (let index = startIndex; index < values.length; index += 1) {
-        const row = values[index] || [];
-        const item = String(row[0] || "").trim();
-        const createdAt = String(row[2] || "").trim();
-
-        if (item === targetRow.item && createdAt === targetRow.createdAt) {
-          return index + 1;
-        }
-      }
-
-      return targetRow.rowNumber;
-    }
-
     async function toggleBought(targetRow) {
-      if (!isConnected) {
-        showMessage("Connect Google first.", "error");
-        return;
-      }
-
       setBusy(true);
       showMessage("", "");
 
       try {
-        const rowNumber = await findSheetRowNumber(targetRow);
+        const client = ensureSupabaseClient();
+        const nextDone = !targetRow.bought;
+        let completedBy = normalizeOwner(targetRow.owner);
 
-        await gapi.client.sheets.spreadsheets.values.update({
-          spreadsheetId: SPREADSHEET_ID,
-          range: `${SHEET_NAME}!B${rowNumber}`,
-          valueInputOption: "USER_ENTERED",
-          resource: {
-            values: [[targetRow.bought ? "FALSE" : "TRUE"]],
-          },
-        });
+        if (nextDone && !completedBy) {
+          completedBy = await openCompletionPicker(targetRow);
+          if (!completedBy) {
+            showMessage("Task completion canceled.", "");
+            setBusy(false);
+            return;
+          }
+        }
 
-        await loadGroceries();
-        showMessage(targetRow.bought ? "Task marked active." : "Task marked done.", "success");
+        const deleteResult = await client
+          .from(COMPLETIONS_TABLE)
+          .delete()
+          .eq("task_id", targetRow.id);
+
+        if (deleteResult.error) throw deleteResult.error;
+
+        if (nextDone) {
+          const insertResult = await client
+            .from(COMPLETIONS_TABLE)
+            .insert({
+              task_id: targetRow.id,
+              completed_by: normalizeOwner(completedBy || targetRow.owner),
+              points: targetRow.points,
+              completed_at: new Date().toISOString(),
+              day_key: getCurrentDayKey(),
+              week_start: getCurrentWeekKey(),
+            });
+
+          if (insertResult.error) throw insertResult.error;
+        }
+
+        const updateResult = await client
+          .from(TASKS_TABLE)
+          .update({
+            active: !nextDone,
+            owner_name: normalizeOwner(completedBy || targetRow.owner) || null,
+          })
+          .eq("id", targetRow.id);
+
+        if (updateResult.error) throw updateResult.error;
+
+        await loadTodos();
+        showMessage(nextDone ? "Task marked done." : "Task moved back to active.", "success");
       } catch (error) {
         console.error(error);
         showMessage(getReadableError(error), "error");
@@ -1119,12 +1199,7 @@
     }
 
     async function clearAllItems() {
-      if (!isConnected) {
-        showMessage("Connect Google first.", "error");
-        return;
-      }
-
-      const doneItems = groceryRows.filter(row => row.bought);
+      const doneItems = todoRows.filter((row) => row.bought);
 
       if (!doneItems.length) {
         showMessage("There are no completed tasks to clear.", "error");
@@ -1138,35 +1213,17 @@
       showMessage("", "");
 
       try {
-        const response = await gapi.client.sheets.spreadsheets.values.get({
-          spreadsheetId: SPREADSHEET_ID,
-          range: `${SHEET_NAME}!A:D`,
-        });
+        const client = ensureSupabaseClient();
+        const ids = doneItems.map((row) => row.id).filter(Boolean);
 
-        const values = response.result.values || [];
-        const hasHeader = values.length > 0 && isLikelyHeaderRow(values[0]);
-        const headerRow = hasHeader ? values[0] : null;
-        const startIndex = hasHeader ? 1 : 0;
-        const remainingRows = values.slice(startIndex).filter((row) => !normalizeBool(row[1]));
-        const nextValues = headerRow ? [headerRow, ...remainingRows] : remainingRows;
+        const deleteTasks = await client
+          .from(TASKS_TABLE)
+          .delete()
+          .in("id", ids);
 
-        await gapi.client.sheets.spreadsheets.values.clear({
-          spreadsheetId: SPREADSHEET_ID,
-          range: `${SHEET_NAME}!A:D`,
-        });
+        if (deleteTasks.error) throw deleteTasks.error;
 
-        if (nextValues.length) {
-          await gapi.client.sheets.spreadsheets.values.update({
-            spreadsheetId: SPREADSHEET_ID,
-            range: `${SHEET_NAME}!A1`,
-            valueInputOption: "USER_ENTERED",
-            resource: {
-              values: nextValues,
-            },
-          });
-        }
-
-        await loadGroceries();
+        await loadTodos();
         showMessage("Completed tasks cleared.", "success");
       } catch (error) {
         console.error(error);
@@ -1175,68 +1232,68 @@
       }
     }
 
-    // =========================
-    // RENDER
-    // =========================
-    function renderGroceries() {
+    function renderTodos() {
       activeListEl.innerHTML = "";
       boughtListEl.innerHTML = "";
 
-      const activeItems = groceryRows.filter(row => !row.bought);
-      const boughtItems = groceryRows.filter(row => row.bought);
+      const activeItems = todoRows.filter((row) => !row.bought);
+      const boughtItems = todoRows.filter((row) => row.bought);
 
       activeEmptyEl.style.display = activeItems.length ? "none" : "block";
       boughtEmptyEl.style.display = boughtItems.length ? "none" : "block";
 
-      for (const row of activeItems) {
+      activeItems.forEach((row) => {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "tile";
         button.style.borderLeftColor = getOwnerColor(row.owner);
         button.innerHTML = `
           <div class="tile-title">${escapeHtml(row.item)}</div>
-          <div class="tile-owner ${getOwnerClassName(row.owner)}">
-            <span class="tile-owner-dot"></span>
-            ${escapeHtml(getOwnerLabel(row.owner))}
+          <div class="tile-meta">
+            <div class="tile-owner ${getOwnerClassName(row.owner)}">
+              <span class="tile-owner-dot"></span>
+              ${escapeHtml(getOwnerLabel(row.owner))}
+            </div>
+            <div class="tile-points">${escapeHtml(formatPoints(row.points))}</div>
+            <div class="tile-status">Ready</div>
           </div>
         `;
         button.addEventListener("click", () => toggleBought(row));
         activeListEl.appendChild(button);
-      }
+      });
 
-      for (const row of boughtItems) {
+      boughtItems.forEach((row) => {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "tile done";
-        button.style.borderLeftColor = getOwnerColor(row.owner);
+        button.style.borderLeftColor = getOwnerColor(row.completedBy || row.owner);
         button.innerHTML = `
           <div class="tile-title">${escapeHtml(row.item)}</div>
-          <div class="tile-owner ${getOwnerClassName(row.owner)}">
-            <span class="tile-owner-dot"></span>
-            ${escapeHtml(getOwnerLabel(row.owner))}
+          <div class="tile-meta">
+            <div class="tile-owner ${getOwnerClassName(row.completedBy || row.owner)}">
+              <span class="tile-owner-dot"></span>
+              ${escapeHtml(getOwnerLabel(row.completedBy || row.owner))}
+            </div>
+            <div class="tile-points">${escapeHtml(formatPoints(row.points))}</div>
+            <div class="tile-status done">${escapeHtml(formatCompletedAt(row.completedAt))}</div>
           </div>
         `;
         button.addEventListener("click", () => toggleBought(row));
         boughtListEl.appendChild(button);
-      }
+      });
     }
 
-    // =========================
-    // EVENTS
-    // =========================
     connectBtn.addEventListener("click", () => {
-      if (!appReady) {
-        setStatus("Retrying Google...", false);
-        showMessage("Trying to load Google services again...", "");
-        initGapi();
-        initGisReadyCheck();
-        return;
-      }
-
-      connectGoogle(true);
+      loadTodos();
     });
     addBtn.addEventListener("click", addItem);
     clearAllBtn.addEventListener("click", clearAllItems);
+    taskPickerCancelBtn.addEventListener("click", () => closeCompletionPicker(""));
+    taskPickerEl.addEventListener("click", (event) => {
+      if (event.target === taskPickerEl) {
+        closeCompletionPicker("");
+      }
+    });
 
     if (new URLSearchParams(window.location.search).has("overlay")) {
       const backBtn = document.getElementById("backHomeBtn");
@@ -1255,23 +1312,15 @@
       }
     });
 
-    // =========================
-    // START
-    // =========================
-    setBusy(true);
-    setStatus("Loading Google...", false);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && taskPickerEl.classList.contains("open")) {
+        closeCompletionPicker("");
+      }
+    });
 
-    if (window.location.protocol === "file:") {
-      setBusy(false);
-      setStatus("Serve from localhost", false);
-      showMessage(
-        "Google sign-in will not work from a file:// page. Open this through a local server like http://localhost:5500 or your hosted site.",
-        "error"
-      );
-    } else {
-      initGapi();
-      initGisReadyCheck();
-    }
+    renderOwnerOptions();
+    setStatus("Loading...", false);
+    loadTodos();
   </script>
 </body>
 </html>
