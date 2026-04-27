@@ -17,6 +17,9 @@ create table if not exists public.family_tasks (
   created_at timestamptz not null default now()
 );
 
+alter table public.family_tasks
+  alter column sort_order drop not null;
+
 create table if not exists public.family_task_completions (
   id uuid primary key default gen_random_uuid(),
   task_id uuid not null references public.family_tasks(id) on delete cascade,
