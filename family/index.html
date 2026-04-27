@@ -2919,8 +2919,6 @@
 
       const activeRows = rows.filter(row => !row.done);
       const doneRows = rows.filter(row => row.done);
-      const previewRows = activeRows.slice(0, 4);
-
       if (rows.length === 0) {
         metaEl.textContent = emptyText;
         listEl.innerHTML = `<div class="preview-empty">${emptyText}</div>`;
@@ -2928,8 +2926,8 @@
       }
 
       metaEl.textContent = `${activeRows.length} ${activeLabel} • ${doneRows.length} ${doneLabel}`;
-      listEl.innerHTML = previewRows.length
-        ? previewRows.map(row => `
+      listEl.innerHTML = activeRows.length
+        ? activeRows.map(row => `
             <div class="preview-item${row.done ? " done" : ""}" style="border-left-color:${accentColor || getOwnerColor(row.owner)}">
               <div class="preview-item-title">${escapeHtml(row.title)}</div>
               ${showOwner ? `
@@ -2996,9 +2994,8 @@
         ? `${activeRows.length} tasks left today • ${doneRows.length} done today • ${leader.owner} leads with ${leader.points} pt${leader.points === 1 ? "" : "s"}`
         : `${activeRows.length} tasks left today • ${doneRows.length} done today`;
 
-      const previewRows = activeRows.slice(0, 4);
-      listEl.innerHTML = previewRows.length
-        ? previewRows.map((row) => `
+      listEl.innerHTML = activeRows.length
+        ? activeRows.map((row) => `
             <button class="preview-item" type="button" data-task-id="${escapeHtml(row.id)}" style="border-left-color:${getOwnerColor(row.owner)}">
               <div class="preview-item-title">${escapeHtml(row.title)}</div>
               <div class="preview-item-meta">
