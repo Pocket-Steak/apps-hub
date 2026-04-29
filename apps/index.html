@@ -55,8 +55,10 @@
     }
     .live-logo{
       display:block;
-      width:min(100%, clamp(280px, 38vw, 520px));
-      height:auto;
+      width:auto;
+      height:clamp(118px, 17vw, 190px);
+      max-width:100%;
+      object-fit:contain;
       grid-column:1;
       justify-self:end;
     }
@@ -145,7 +147,7 @@
     @media (max-height: 900px){
       header{padding:16px 16px 0}
       .logo{width:clamp(96px,13vw,132px)}
-      .live-logo{width:min(100%, clamp(240px, 34vw, 440px))}
+      .live-logo{height:clamp(104px, 15vw, 168px)}
       .mast-title .line1{font-size:clamp(28px,4.2vw,60px)}
       .mast-title .line2{font-size:clamp(26px,3.8vw,54px)}
       .mast-bar{margin:10px 0 12px 0}
@@ -170,7 +172,11 @@
         gap:12px;
       }
       .logo{width:96px}
-      .live-logo{width:min(100%, 320px)}
+      .live-logo{
+        width:auto;
+        height:120px;
+        justify-self:center;
+      }
       main{padding:6px 14px 28px}
       .app-layout{gap:14px}
       .grid{gap:14px;grid-template-columns:1fr}
@@ -181,7 +187,7 @@
 <body class="theme-night">
   <header>
     <div class="mast">
-      <img class="logo live-logo" src="/pocket_steak_logo.png" alt="PocketSteak logo" onerror="if(this.dataset.fallback!=='1'){this.dataset.fallback='1';this.src='/apps/pocket_steak_logo.png';}else if(this.dataset.fallback!=='2'){this.dataset.fallback='2';this.src='pocket_steak_logo.png';}else if(this.dataset.fallback!=='3'){this.dataset.fallback='3';this.src='/assets/pocket_steak_logo.png';}" />
+      <img class="logo live-logo" src="./pocket_steak_logo.png" alt="PocketSteak logo" onerror="this.onerror=null;this.src='../pocket_steak_logo.png';" />
       <div class="mast-title">
         <span class="line1">PocketSteak's</span>
         <span class="line2">Apps</span>
