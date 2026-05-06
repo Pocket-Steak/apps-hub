@@ -36,13 +36,19 @@
     .page{
       height:calc(100dvh - 24px);
       display:grid;
-      grid-template-rows:auto minmax(0, 1fr);
-      gap:12px;
+      grid-template-rows:minmax(0, 1fr);
+      gap:0;
       max-width:1800px;
       margin:0 auto;
     }
 
     .topbar{
+      position:fixed;
+      top:12px;
+      left:50%;
+      z-index:20;
+      width:calc(100% - 24px);
+      max-width:1800px;
       min-height:66px;
       padding:10px 12px;
       display:flex;
@@ -56,6 +62,50 @@
         radial-gradient(circle at top left, rgba(255,255,255,.05), transparent 34%),
         linear-gradient(180deg,var(--panel),var(--panel-2));
       box-shadow:var(--shadow);
+      transform:translateX(-50%);
+      transition:transform .28s ease, opacity .22s ease;
+      will-change:transform, opacity;
+    }
+
+    body.nav-hidden .topbar{
+      opacity:0;
+      pointer-events:none;
+      transform:translate(-50%, calc(-100% - 18px));
+    }
+
+    .topbar-hint{
+      position:fixed;
+      top:8px;
+      left:50%;
+      z-index:21;
+      min-height:30px;
+      padding:7px 12px;
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:999px;
+      background:rgba(27,30,39,.92);
+      color:var(--accent-2);
+      box-shadow:0 10px 24px rgba(0,0,0,.32);
+      font-size:10px;
+      font-weight:900;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      cursor:pointer;
+      opacity:0;
+      pointer-events:none;
+      transform:translate(-50%, -150%);
+      transition:transform .24s ease, opacity .2s ease, background .18s ease;
+    }
+
+    .topbar-hint:hover,
+    .topbar-hint:focus-visible{
+      background:rgba(38,42,52,.96);
+      outline:none;
+    }
+
+    body.nav-hidden .topbar-hint{
+      opacity:1;
+      pointer-events:auto;
+      transform:translate(-50%, 0);
     }
 
     .brand{
@@ -160,6 +210,8 @@
       }
 
       .topbar{
+        top:10px;
+        width:calc(100% - 20px);
         min-height:auto;
         align-items:stretch;
         flex-direction:column;
@@ -182,6 +234,8 @@
 </head>
 <body>
   <main class="page">
+    <button class="topbar-hint" id="topbarHint" type="button">Command Center</button>
+
     <header class="topbar">
       <div class="brand" aria-label="PocketSteak Recipes">
         <div class="brand-copy">
@@ -206,9 +260,59 @@
   </main>
 
   <script>
+    const AUTO_HIDE_DELAY = 2400;
+    let hideTimer = 0;
+
+    function showTopbar() {
+      document.body.classList.remove("nav-hidden");
+      window.clearTimeout(hideTimer);
+      hideTimer = window.setTimeout(() => {
+        document.body.classList.add("nav-hidden");
+      }, AUTO_HIDE_DELAY);
+    }
+
+    function keepTopbarVisible() {
+      document.body.classList.remove("nav-hidden");
+      window.clearTimeout(hideTimer);
+    }
+
+    function scheduleTopbarHide() {
+      window.clearTimeout(hideTimer);
+      hideTimer = window.setTimeout(() => {
+        document.body.classList.add("nav-hidden");
+      }, AUTO_HIDE_DELAY);
+    }
+
     document.getElementById("backHomeBtn").addEventListener("click", () => {
       window.location.href = "/family/";
     });
+
+    document.getElementById("topbarHint").addEventListener("click", showTopbar);
+    document.getElementById("topbarHint").addEventListener("mouseenter", showTopbar);
+    document.querySelector(".topbar").addEventListener("mouseenter", keepTopbarVisible);
+    document.querySelector(".topbar").addEventListener("mouseleave", scheduleTopbarHide);
+    document.querySelector(".topbar").addEventListener("focusin", keepTopbarVisible);
+    document.querySelector(".topbar").addEventListener("focusout", scheduleTopbarHide);
+
+    document.addEventListener("pointermove", (event) => {
+      if (event.clientY <= 28) {
+        showTopbar();
+      }
+    });
+
+    document.addEventListener("touchstart", (event) => {
+      if (event.touches[0]?.clientY <= 44) {
+        showTopbar();
+      }
+    }, { passive: true });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        showTopbar();
+      }
+    });
+
+    scheduleTopbarHide();
   </script>
 </body>
 </html>
