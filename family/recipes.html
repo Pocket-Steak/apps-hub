@@ -288,7 +288,7 @@
     });
 
     document.getElementById("topbarHint").addEventListener("click", showTopbar);
-    document.getElementById("topbarHint").addEventListener("mouseenter", showTopbar);
+    document.getElementById("topbarHint").addEventListener("focus", showTopbar);
     document.querySelector(".topbar").addEventListener("mouseenter", keepTopbarVisible);
     document.querySelector(".topbar").addEventListener("mouseleave", scheduleTopbarHide);
     document.querySelector(".topbar").addEventListener("focusin", keepTopbarVisible);
