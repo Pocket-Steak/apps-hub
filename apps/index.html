@@ -100,22 +100,15 @@
     .s-bar:nth-child(2) { width: 84px; opacity: 0.65; }
     .s-bar:nth-child(3) { width: 50px; opacity: 0.35; }
 
-    .s-studio {
-      font-family: 'Space Mono', monospace;
-      font-size: 9px;
-      letter-spacing: 6px;
-      color: var(--hot);
-      opacity: 0.5;
-      text-transform: uppercase;
-      margin-bottom: 2px;
-    }
-
     .s-wordmark {
       font-family: 'Black Ops One', sans-serif;
-      font-size: clamp(36px, 5.5vw, 58px);
+      font-size: clamp(30px, 4.5vw, 52px);
       letter-spacing: -1px;
       color: #fff;
-      line-height: 0.95;
+      line-height: 1.0;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
     }
 
     .s-wordmark .hot {
@@ -292,15 +285,17 @@
 
   <header class="s-header">
     <div class="s-lockup">
-      <img class="s-logo-img" src="./pocket_steak_logo.png" alt="Pocket Steak" onerror="this.onerror=null;this.src='../pocket_steak_logo.png';" />
+      <img class="s-logo-img" src="/assets/pocket_steak_logo.png" alt="Pocket Steak" onerror="this.onerror=null;this.src='/pocket_steak_logo.png';" />
       <div class="s-title-col">
         <div class="s-bar-mark">
           <div class="s-bar"></div>
           <div class="s-bar"></div>
           <div class="s-bar"></div>
         </div>
-        <div class="s-studio">Pocket Steak</div>
-        <div class="s-wordmark">STACK<span class="hot">D</span></div>
+        <div class="s-wordmark">
+          <span>POCKET STEAK</span>
+          <span>STACK<span class="hot">D</span></span>
+        </div>
         <div class="s-tagline">Every Tool. One Stack.</div>
       </div>
       <div class="s-hud">
