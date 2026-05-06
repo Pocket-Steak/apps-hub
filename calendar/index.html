@@ -543,18 +543,19 @@
     const CLIENT_ID = "82204016171-ta1ipuu88gie0tkq69je3di5uifu1kki.apps.googleusercontent.com";
     const API_KEY = "AIzaSyBPZEeYB8IaheJPJA2Y44msGfDwIhJMpGU";
     const DISCOVERY_DOC = "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest";
-    const SCOPES = [
-      "https://www.googleapis.com/auth/calendar",
-      "https://www.googleapis.com/auth/spreadsheets",
-    ].join(" ");
+    const SCOPES = "https://www.googleapis.com/auth/calendar";
 
     const TOKEN_KEY = "pocketsteak_google_access_token";
     const TOKEN_EXP_KEY = "pocketsteak_google_token_exp";
+    const CONNECTION_KEY = "pocketsteak_google_connected";
+    const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000;
     const STORAGE_KEY = "pocketsteak-family-events";
 
     let tokenClient = null;
     let gapiInited = false;
     let gisInited = false;
+    let googleTokenRefreshTimer = null;
+    let pendingGoogleTokenRequest = null;
     let currentDate = new Date();
     let calendarsById = new Map();
     let monthEvents = [];
@@ -564,25 +565,67 @@
     }
 
     function saveToken(accessToken, expiresInSeconds = 3600) {
-      const expiresAt = Date.now() + (expiresInSeconds * 1000);
+      const safeExpiresIn = Number(expiresInSeconds) || 3600;
+      const expiresAt = Date.now() + (safeExpiresIn * 1000);
       localStorage.setItem(TOKEN_KEY, accessToken);
       localStorage.setItem(TOKEN_EXP_KEY, String(expiresAt));
+      localStorage.setItem(CONNECTION_KEY, "1");
+      scheduleTokenRefresh(expiresAt);
     }
 
     function getSavedToken() {
       const token = localStorage.getItem(TOKEN_KEY);
       const exp = Number(localStorage.getItem(TOKEN_EXP_KEY) || "0");
       if (!token || !exp) return null;
-      if (Date.now() >= exp) {
-        clearSavedToken();
+      if (Date.now() >= exp - TOKEN_REFRESH_BUFFER_MS) {
+        clearSavedToken({ keepConnection: true });
         return null;
       }
+      scheduleTokenRefresh(exp);
       return token;
     }
 
-    function clearSavedToken() {
+    function clearSavedToken({ keepConnection = false } = {}) {
+      if (googleTokenRefreshTimer) {
+        clearTimeout(googleTokenRefreshTimer);
+        googleTokenRefreshTimer = null;
+      }
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(TOKEN_EXP_KEY);
+      if (!keepConnection) {
+        localStorage.removeItem(CONNECTION_KEY);
+      }
+    }
+
+    function hasSavedGoogleConnection() {
+      return localStorage.getItem(CONNECTION_KEY) === "1";
+    }
+
+    function scheduleTokenRefresh(expiresAt) {
+      if (googleTokenRefreshTimer) {
+        clearTimeout(googleTokenRefreshTimer);
+        googleTokenRefreshTimer = null;
+      }
+
+      if (!Number.isFinite(expiresAt)) return;
+
+      const delay = expiresAt - Date.now() - TOKEN_REFRESH_BUFFER_MS;
+      if (delay <= 0) return;
+
+      googleTokenRefreshTimer = window.setTimeout(() => {
+        refreshGoogleConnection({ silent: true });
+      }, delay);
+    }
+
+    function refreshGoogleConnection({ silent = false } = {}) {
+      if (!tokenClient) return false;
+      pendingGoogleTokenRequest = { silent };
+      tokenClient.requestAccessToken({ prompt: "" });
+      return true;
+    }
+
+    function isGoogleAuthError(error) {
+      return Number(error?.status || error?.result?.error?.code) === 401;
     }
 
     function formatDateKey(date) {
@@ -725,8 +768,20 @@
         client_id: CLIENT_ID,
         scope: SCOPES,
         callback: async (resp) => {
+          const request = pendingGoogleTokenRequest || {};
+          pendingGoogleTokenRequest = null;
+
           if (resp.error) {
             console.error(resp);
+            if (request.silent) {
+              gapi.client.setToken("");
+              clearSavedToken({ keepConnection: true });
+              document.getElementById("authBtn").textContent = "Reconnect";
+              document.getElementById("signOutBtn").style.display = "none";
+              setStatus("Reconnect needed");
+              return;
+            }
+
             setStatus("Connection failed");
             return;
           }
@@ -759,6 +814,13 @@
         document.getElementById("signOutBtn").style.display = "inline-flex";
         setStatus("Restoring connection…");
         await loadGoogleCalendarData();
+      } else if (hasSavedGoogleConnection()) {
+        document.getElementById("authBtn").textContent = "Reconnect";
+        document.getElementById("signOutBtn").style.display = "none";
+        setStatus("Refreshing connection…");
+        if (!refreshGoogleConnection({ silent: true })) {
+          setStatus("Reconnect needed");
+        }
       } else {
         setStatus("Not connected");
       }
@@ -767,7 +829,8 @@
     async function handleAuthClick() {
       if (!tokenClient) return;
       setStatus("Connecting…");
-      tokenClient.requestAccessToken({ prompt: "consent" });
+      pendingGoogleTokenRequest = { silent: false };
+      tokenClient.requestAccessToken({ prompt: hasSavedGoogleConnection() ? "" : "consent" });
     }
 
     function handleSignoutClick() {
@@ -831,6 +894,14 @@
         setStatus(`Loaded ${monthEvents.length} events`);
       } catch (err) {
         console.error(err);
+        if (isGoogleAuthError(err) && hasSavedGoogleConnection()) {
+          gapi.client.setToken("");
+          clearSavedToken({ keepConnection: true });
+          document.getElementById("authBtn").textContent = "Reconnect";
+          document.getElementById("signOutBtn").style.display = "none";
+          setStatus("Refreshing connection…");
+          if (refreshGoogleConnection({ silent: true })) return;
+        }
         setStatus("Load failed");
       }
     }

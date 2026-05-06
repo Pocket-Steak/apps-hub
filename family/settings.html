@@ -879,12 +879,16 @@ set color = excluded.color;</textarea>
 
     const TOKEN_KEY = "pocketsteak_google_access_token";
     const TOKEN_EXP_KEY = "pocketsteak_google_token_exp";
+    const CONNECTION_KEY = "pocketsteak_google_connected";
+    const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000;
     const TASKS_TABLE = "family_tasks";
     const MEMBERS_TABLE = "family_members";
 
     let gapiInited = false;
     let gisInited = false;
     let tokenClient = null;
+    let googleTokenRefreshTimer = null;
+    let pendingGoogleTokenRequest = null;
     let recurringTasks = [];
     let familyMembers = [];
     let supabaseClient = null;
@@ -899,25 +903,63 @@ set color = excluded.color;</textarea>
     }
 
     function saveToken(accessToken, expiresInSeconds = 3600) {
-      const expiresAt = Date.now() + (expiresInSeconds * 1000);
+      const safeExpiresIn = Number(expiresInSeconds) || 3600;
+      const expiresAt = Date.now() + (safeExpiresIn * 1000);
       localStorage.setItem(TOKEN_KEY, accessToken);
       localStorage.setItem(TOKEN_EXP_KEY, String(expiresAt));
+      localStorage.setItem(CONNECTION_KEY, "1");
+      scheduleTokenRefresh(expiresAt);
     }
 
     function getSavedToken() {
       const token = localStorage.getItem(TOKEN_KEY);
       const exp = Number(localStorage.getItem(TOKEN_EXP_KEY) || "0");
       if (!token || !exp) return null;
-      if (Date.now() >= exp) {
-        clearSavedToken();
+      if (Date.now() >= exp - TOKEN_REFRESH_BUFFER_MS) {
+        clearSavedToken({ keepConnection: true });
         return null;
       }
+      scheduleTokenRefresh(exp);
       return token;
     }
 
-    function clearSavedToken() {
+    function clearSavedToken({ keepConnection = false } = {}) {
+      if (googleTokenRefreshTimer) {
+        clearTimeout(googleTokenRefreshTimer);
+        googleTokenRefreshTimer = null;
+      }
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(TOKEN_EXP_KEY);
+      if (!keepConnection) {
+        localStorage.removeItem(CONNECTION_KEY);
+      }
+    }
+
+    function hasSavedGoogleConnection() {
+      return localStorage.getItem(CONNECTION_KEY) === "1";
+    }
+
+    function scheduleTokenRefresh(expiresAt) {
+      if (googleTokenRefreshTimer) {
+        clearTimeout(googleTokenRefreshTimer);
+        googleTokenRefreshTimer = null;
+      }
+
+      if (!Number.isFinite(expiresAt)) return;
+
+      const delay = expiresAt - Date.now() - TOKEN_REFRESH_BUFFER_MS;
+      if (delay <= 0) return;
+
+      googleTokenRefreshTimer = window.setTimeout(() => {
+        refreshGoogleConnection({ silent: true });
+      }, delay);
+    }
+
+    function refreshGoogleConnection({ silent = false } = {}) {
+      if (!tokenClient) return false;
+      pendingGoogleTokenRequest = { silent };
+      tokenClient.requestAccessToken({ prompt: "" });
+      return true;
     }
 
     function getReadableError(error) {
@@ -1341,8 +1383,19 @@ set color = excluded.color;</textarea>
 
       const savedToken = getSavedToken();
       if (!savedToken) {
-        setStatus("Not connected");
-        setNote("Connect Google here to power the family dashboard and calendar pages.");
+        if (hasSavedGoogleConnection()) {
+          document.getElementById("authBtn").textContent = "Reconnect";
+          document.getElementById("signOutBtn").style.display = "none";
+          setStatus("Refreshing connection…");
+          setNote("Refreshing Google access in the background.");
+          if (!refreshGoogleConnection({ silent: true })) {
+            setStatus("Reconnect needed");
+            setNote("Tap Reconnect to refresh Google access.");
+          }
+        } else {
+          setStatus("Not connected");
+          setNote("Connect Google here to power the family dashboard and calendar pages.");
+        }
         return;
       }
 
@@ -1357,11 +1410,15 @@ set color = excluded.color;</textarea>
       } catch (error) {
         console.warn("Saved Google token is no longer valid:", error);
         gapi.client.setToken("");
-        clearSavedToken();
-        document.getElementById("authBtn").textContent = "Connect";
+        clearSavedToken({ keepConnection: true });
+        document.getElementById("authBtn").textContent = "Reconnect";
         document.getElementById("signOutBtn").style.display = "none";
-        setStatus("Not connected");
-        setNote(getReadableError(error));
+        setStatus("Refreshing connection…");
+        setNote("The saved Google token expired. Refreshing access now.");
+        if (!refreshGoogleConnection({ silent: true })) {
+          setStatus("Reconnect needed");
+          setNote(getReadableError(error));
+        }
       }
     }
 
@@ -1380,8 +1437,21 @@ set color = excluded.color;</textarea>
         client_id: CLIENT_ID,
         scope: SCOPES,
         callback: async (resp) => {
+          const request = pendingGoogleTokenRequest || {};
+          pendingGoogleTokenRequest = null;
+
           if (resp.error) {
             console.error(resp);
+            if (request.silent) {
+              gapi.client.setToken("");
+              clearSavedToken({ keepConnection: true });
+              document.getElementById("authBtn").textContent = "Reconnect";
+              document.getElementById("signOutBtn").style.display = "none";
+              setStatus("Reconnect needed");
+              setNote("Google needs a quick manual refresh. Tap Reconnect once and the app will keep refreshing quietly when possible.");
+              return;
+            }
+
             setStatus("Connection failed");
             setNote(getReadableError(resp));
             return;
@@ -1415,8 +1485,9 @@ set color = excluded.color;</textarea>
     async function handleAuthClick() {
       if (!tokenClient) return;
       setStatus("Connecting…");
-      setNote("Waiting for Google approval…");
-      tokenClient.requestAccessToken({ prompt: "consent" });
+      setNote(hasSavedGoogleConnection() ? "Refreshing Google access…" : "Waiting for Google approval…");
+      pendingGoogleTokenRequest = { silent: false };
+      tokenClient.requestAccessToken({ prompt: hasSavedGoogleConnection() ? "" : "consent" });
     }
 
     function handleSignoutClick() {
