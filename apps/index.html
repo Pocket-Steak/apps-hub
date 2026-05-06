@@ -10,13 +10,8 @@
   <style>
     :root {
       --hot: #FF4500;
-      --hot-dim: #cc3700;
-      --hot-bright: #ff6a33;
-      --hot-glow: rgba(255,69,0,0.55);
       --hot-faint: rgba(255,69,0,0.08);
-      --hot-mid: rgba(255,69,0,0.2);
       --bg-deep: #080300;
-      --bg-mid: #0f0500;
       --text: #f0ece4;
       --muted: #888;
       --dim: #1a0a00;
@@ -32,198 +27,129 @@
       overflow-x: hidden;
     }
 
-    /* ── Nav ── */
-    .tab-nav {
-      display: flex;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: #050200;
-      border-bottom: 1px solid var(--dim);
-    }
-
-    .tab-btn {
-      flex: 1;
-      padding: 16px 8px;
-      border: none;
-      cursor: pointer;
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      transition: all 0.3s;
-      background: transparent;
-      color: #444;
-      border-bottom: 3px solid transparent;
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-    }
-
-    .tab-btn.active {
-      color: var(--hot);
-      border-bottom-color: var(--hot);
-      background: var(--hot-faint);
-    }
-
-    .tab-btn:hover:not(.active) { color: #666; }
-
-    /* ── Hero ── */
-    .s-hero {
-      min-height: 100vh;
-      background: var(--bg-deep);
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 60px 24px 40px;
-    }
-
-    .s-grid {
-      position: absolute;
+    /* Full-page subtle grid */
+    body::before {
+      content: '';
+      position: fixed;
       inset: 0;
       background-image:
-        linear-gradient(rgba(255,69,0,0.06) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,69,0,0.06) 1px, transparent 1px);
+        linear-gradient(rgba(255,69,0,0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,69,0,0.045) 1px, transparent 1px);
       background-size: 44px 44px;
-    }
-
-    .s-glow {
-      position: absolute;
-      width: 560px;
-      height: 560px;
-      background: radial-gradient(circle, rgba(255,69,0,0.16) 0%, transparent 68%);
-      top: 44%;
-      left: 50%;
-      transform: translate(-50%, -50%);
       pointer-events: none;
+      z-index: 0;
     }
 
-    .s-scan {
-      position: absolute;
-      inset: 0;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 3px,
-        rgba(0,0,0,0.10) 3px,
-        rgba(0,0,0,0.10) 4px
-      );
-      pointer-events: none;
-    }
+    /* Page corner brackets */
+    .c { position: fixed; width: 28px; height: 28px; z-index: 10; pointer-events: none; }
+    .c-tl { top: 16px; left: 16px; border-top: 2px solid rgba(255,69,0,0.45); border-left: 2px solid rgba(255,69,0,0.45); }
+    .c-tr { top: 16px; right: 16px; border-top: 2px solid rgba(255,69,0,0.45); border-right: 2px solid rgba(255,69,0,0.45); }
+    .c-bl { bottom: 16px; left: 16px; border-bottom: 2px solid rgba(255,69,0,0.45); border-left: 2px solid rgba(255,69,0,0.45); }
+    .c-br { bottom: 16px; right: 16px; border-bottom: 2px solid rgba(255,69,0,0.45); border-right: 2px solid rgba(255,69,0,0.45); }
 
-    .s-corner { position: absolute; width: 32px; height: 32px; }
-    .s-corner.tl { top: 24px; left: 24px; border-top: 2px solid rgba(255,69,0,0.45); border-left: 2px solid rgba(255,69,0,0.45); }
-    .s-corner.tr { top: 24px; right: 24px; border-top: 2px solid rgba(255,69,0,0.45); border-right: 2px solid rgba(255,69,0,0.45); }
-    .s-corner.bl { bottom: 24px; left: 24px; border-bottom: 2px solid rgba(255,69,0,0.45); border-left: 2px solid rgba(255,69,0,0.45); }
-    .s-corner.br { bottom: 24px; right: 24px; border-bottom: 2px solid rgba(255,69,0,0.45); border-right: 2px solid rgba(255,69,0,0.45); }
+    /* ── Header ── */
+    .s-header {
+      position: relative;
+      z-index: 1;
+      padding: 36px 48px 32px;
+      border-bottom: 1px solid var(--dim);
+      background: linear-gradient(180deg, rgba(255,69,0,0.04) 0%, transparent 100%);
+    }
 
     .s-lockup {
-      position: relative;
-      z-index: 2;
       display: flex;
-      flex-direction: column;
       align-items: center;
-      gap: 0;
-      margin-bottom: 36px;
+      gap: 24px;
+      max-width: 1160px;
+      margin: 0 auto;
     }
 
     .s-logo-img {
-      width: 190px;
+      width: clamp(72px, 9vw, 100px);
+      flex-shrink: 0;
       filter:
-        drop-shadow(0 0 28px rgba(255,69,0,0.65))
-        drop-shadow(0 0 70px rgba(255,69,0,0.25));
-      margin-bottom: 4px;
+        drop-shadow(0 0 20px rgba(255,69,0,0.7))
+        drop-shadow(0 0 50px rgba(255,69,0,0.3));
       animation: float 4.5s ease-in-out infinite;
     }
 
     @keyframes float {
       0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
+      50% { transform: translateY(-5px); }
+    }
+
+    .s-title-col {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
     }
 
     .s-bar-mark {
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      align-items: flex-start;
-      width: 190px;
-      padding-left: 12px;
-      margin-bottom: 10px;
+      gap: 3px;
+      margin-bottom: 6px;
     }
 
     .s-bar {
-      height: 4px;
+      height: 3px;
       border-radius: 2px;
       background: linear-gradient(90deg, #FF4500, #ff2200);
     }
-    .s-bar:nth-child(1) { width: 100%; }
-    .s-bar:nth-child(2) { width: 70%; opacity: 0.65; }
-    .s-bar:nth-child(3) { width: 42%; opacity: 0.38; }
+    .s-bar:nth-child(1) { width: 120px; }
+    .s-bar:nth-child(2) { width: 84px; opacity: 0.65; }
+    .s-bar:nth-child(3) { width: 50px; opacity: 0.35; }
 
     .s-studio {
       font-family: 'Space Mono', monospace;
-      font-size: 10px;
-      letter-spacing: 7px;
-      color: var(--hot);
-      opacity: 0.5;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-
-    .s-wordmark {
-      font-family: 'Black Ops One', sans-serif;
-      font-size: clamp(58px, 14vw, 88px);
-      letter-spacing: -2px;
-      color: #fff;
-      line-height: 1;
-    }
-
-    .s-wordmark .hot {
-      color: var(--hot);
-      text-shadow: 0 0 28px rgba(255,69,0,0.8);
-    }
-
-    .s-tagline {
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
+      font-size: 9px;
       letter-spacing: 6px;
       color: var(--hot);
       opacity: 0.5;
       text-transform: uppercase;
-      margin-top: 8px;
+      margin-bottom: 2px;
+    }
+
+    .s-wordmark {
+      font-family: 'Black Ops One', sans-serif;
+      font-size: clamp(36px, 5.5vw, 58px);
+      letter-spacing: -1px;
+      color: #fff;
+      line-height: 0.95;
+    }
+
+    .s-wordmark .hot {
+      color: var(--hot);
+      text-shadow: 0 0 22px rgba(255,69,0,0.8);
+    }
+
+    .s-tagline {
+      font-family: 'Space Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 5px;
+      color: var(--hot);
+      opacity: 0.4;
+      text-transform: uppercase;
+      margin-top: 6px;
     }
 
     .s-hud {
-      position: relative;
-      z-index: 2;
+      margin-left: auto;
       display: flex;
-      gap: 28px;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 5px;
       font-family: 'Space Mono', monospace;
-      font-size: 9px;
-      color: rgba(255,69,0,0.35);
+      font-size: 8px;
+      color: rgba(255,69,0,0.3);
       letter-spacing: 2px;
-      margin-top: 32px;
     }
 
-    /* ── Stack modules section ── */
+    /* ── Tiles section ── */
     .grid-section {
-      background: var(--bg-deep);
-      padding: 56px 28px 72px;
       position: relative;
-    }
-
-    .grid-section::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--dim) 30%, var(--dim) 70%, transparent);
+      z-index: 1;
+      padding: 48px 48px 64px;
     }
 
     .modules-inner {
@@ -237,26 +163,22 @@
       letter-spacing: 5px;
       text-transform: uppercase;
       color: var(--hot);
-      margin-bottom: 28px;
-      padding-bottom: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
       border-bottom: 1px solid rgba(255,69,0,0.18);
-      opacity: 0.7;
+      opacity: 0.65;
     }
 
     .app-layout { display: flex; flex-direction: column; gap: 14px; }
 
-    .grid {
-      display: grid;
-      gap: 14px;
-    }
-
+    .grid { display: grid; gap: 14px; }
     .row-primary { grid-template-columns: repeat(4, 1fr); }
     .row-secondary { grid-template-columns: repeat(2, 1fr); }
 
     .row-divider {
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255,69,0,0.18) 30%, rgba(255,69,0,0.18) 70%, transparent);
-      margin: 8px 0;
+      background: linear-gradient(90deg, transparent, rgba(255,69,0,0.15) 30%, rgba(255,69,0,0.15) 70%, transparent);
+      margin: 6px 0;
     }
 
     .tile {
@@ -280,21 +202,21 @@
     }
 
     .mark {
-      width: 50px;
-      height: 50px;
+      width: 48px;
+      height: 48px;
       display: grid;
       place-items: center;
       border-radius: 10px;
-      font-size: 26px;
+      font-size: 24px;
       background: rgba(255,69,0,0.08);
-      border: 1px solid rgba(255,69,0,0.15);
+      border: 1px solid rgba(255,69,0,0.14);
     }
 
     .name {
       font-family: 'Black Ops One', sans-serif;
-      font-size: 16px;
+      font-size: 15px;
       letter-spacing: 0.5px;
-      line-height: 1.15;
+      line-height: 1.2;
       color: var(--text);
     }
 
@@ -322,10 +244,7 @@
       color: #fff;
     }
 
-    .btn:hover {
-      background: #fff;
-      color: #000;
-    }
+    .btn:hover { background: #fff; color: #000; }
 
     .btn.disabled {
       background: rgba(255,255,255,0.04);
@@ -334,15 +253,14 @@
       border: 1px solid rgba(255,255,255,0.06);
     }
 
-    .btn.disabled:hover {
-      background: rgba(255,255,255,0.04);
-      color: rgba(255,255,255,0.2);
-    }
+    .btn.disabled:hover { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.2); }
 
     /* ── Footer ── */
     footer {
+      position: relative;
+      z-index: 1;
       text-align: center;
-      padding: 22px;
+      padding: 20px;
       font-family: 'Space Mono', monospace;
       font-size: 9px;
       letter-spacing: 3px;
@@ -354,53 +272,44 @@
     /* ── Mobile ── */
     @media (max-width: 980px) {
       .row-primary { grid-template-columns: repeat(2, 1fr); }
+      .s-hud { display: none; }
     }
 
     @media (max-width: 700px) {
-      .grid { grid-template-columns: 1fr; }
+      .s-header { padding: 24px 20px; }
+      .grid-section { padding: 32px 20px 48px; }
       .row-primary, .row-secondary { grid-template-columns: 1fr; }
-      .s-hud { flex-direction: column; gap: 10px; align-items: center; }
-      .tab-btn { font-size: 9px; padding: 13px 6px; }
-      .s-logo-img { width: 140px; }
+      .s-logo-img { width: 60px; }
     }
   </style>
 </head>
 <body>
 
-  <nav class="tab-nav">
-    <a class="tab-btn active" href="/apps/">⬡ PS STACKD</a>
-    <a class="tab-btn" href="https://pocketsteak-recipes.vercel.app/" target="_blank" rel="noopener noreferrer">🔥 PS FORGE</a>
-    <a class="tab-btn" href="https://pocket-steak.github.io/secret-vote/#/" target="_blank" rel="noopener noreferrer">⊞ COMPARE</a>
-  </nav>
+  <div class="c c-tl"></div>
+  <div class="c c-tr"></div>
+  <div class="c c-bl"></div>
+  <div class="c c-br"></div>
 
-  <section class="s-hero">
-    <div class="s-grid"></div>
-    <div class="s-glow"></div>
-    <div class="s-scan"></div>
-
-    <div class="s-corner tl"></div>
-    <div class="s-corner tr"></div>
-    <div class="s-corner bl"></div>
-    <div class="s-corner br"></div>
-
+  <header class="s-header">
     <div class="s-lockup">
       <img class="s-logo-img" src="./pocket_steak_logo.png" alt="Pocket Steak" onerror="this.onerror=null;this.src='../pocket_steak_logo.png';" />
-      <div class="s-bar-mark">
-        <div class="s-bar"></div>
-        <div class="s-bar"></div>
-        <div class="s-bar"></div>
+      <div class="s-title-col">
+        <div class="s-bar-mark">
+          <div class="s-bar"></div>
+          <div class="s-bar"></div>
+          <div class="s-bar"></div>
+        </div>
+        <div class="s-studio">Pocket Steak</div>
+        <div class="s-wordmark">STACK<span class="hot">D</span></div>
+        <div class="s-tagline">Every Tool. One Stack.</div>
       </div>
-      <div class="s-studio">Pocket Steak</div>
-      <div class="s-wordmark">STACK<span class="hot">D</span></div>
-      <div class="s-tagline">Every Tool. One Stack.</div>
+      <div class="s-hud">
+        <span>SYS // ONLINE</span>
+        <span>STACK // LOADED</span>
+        <span>BUILD // ACTIVE</span>
+      </div>
     </div>
-
-    <div class="s-hud">
-      <span>SYS // ONLINE</span>
-      <span>STACK // LOADED</span>
-      <span>BUILD // ACTIVE</span>
-    </div>
-  </section>
+  </header>
 
   <div class="grid-section">
     <div class="modules-inner">
@@ -476,10 +385,9 @@
         <div class="name">${app.name}</div>
         <div class="desc">${app.desc}</div>
         <div class="actions">
-          ${
-            app.underConstruction
-              ? `<button class="btn disabled">// COMING SOON</button>`
-              : `<button class="btn">LAUNCH ></button>`
+          ${app.underConstruction
+            ? `<button class="btn disabled">// COMING SOON</button>`
+            : `<button class="btn">LAUNCH ></button>`
           }
         </div>
       </article>
@@ -490,12 +398,9 @@
 
     document.addEventListener("click", (e) => {
       const tile = e.target.closest(".tile");
-      if (!tile) return;
-      if (tile.dataset.wip === "1") return;
-
+      if (!tile || tile.dataset.wip === "1") return;
       const url = tile.dataset.url;
       if (!url) return;
-
       if (url.startsWith("/")) {
         window.location.href = url;
       } else {
