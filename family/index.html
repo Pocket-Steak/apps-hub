@@ -2289,7 +2289,6 @@
     let todoPreviewError = "";
     let chorePreviewError = "";
     let activeOverlayPath = "";
-    let activeOverlayAllowsFullPage = true;
     let taskPreviewClient = null;
     let taskPreviewClientSignature = "";
     let taskMemberColors = new Map([
@@ -3027,26 +3026,11 @@
         : `<div class="preview-empty">Every task is done for today.</div>`;
     }
 
-    function openDashboardOverlay(title, path, options = {}) {
-      const {
-        addOverlayParam = true,
-        allowFullPage = true,
-        label = "Family",
-        sandbox = "",
-      } = options;
+    function openDashboardOverlay(title, path) {
       activeOverlayPath = path;
-      activeOverlayAllowsFullPage = allowFullPage;
-      document.querySelector(".overlay-label").textContent = label;
       document.getElementById("overlayTitle").textContent = title;
-      document.getElementById("overlayOpenPageBtn").style.display = allowFullPage ? "" : "none";
-      const frame = document.getElementById("overlayFrame");
-      if (sandbox) {
-        frame.setAttribute("sandbox", sandbox);
-      } else {
-        frame.removeAttribute("sandbox");
-      }
       const separator = path.includes("?") ? "&" : "?";
-      frame.src = addOverlayParam ? `${path}${separator}overlay=${Date.now()}` : path;
+      document.getElementById("overlayFrame").src = `${path}${separator}overlay=${Date.now()}`;
       document.getElementById("dashboardOverlay").classList.add("open");
       document.getElementById("dashboardOverlay").setAttribute("aria-hidden", "false");
       document.body.classList.add("modal-open");
@@ -3056,9 +3040,6 @@
       document.getElementById("dashboardOverlay").classList.remove("open");
       document.getElementById("dashboardOverlay").setAttribute("aria-hidden", "true");
       document.getElementById("overlayFrame").src = "";
-      document.getElementById("overlayFrame").removeAttribute("sandbox");
-      document.getElementById("overlayOpenPageBtn").style.display = "";
-      document.querySelector(".overlay-label").textContent = "Family";
       document.body.classList.remove("modal-open");
 
       loadDashboardLists().catch((err) => {
@@ -3492,12 +3473,7 @@
       window.location.href = "/apps/";
     });
     document.getElementById("recipesBtn").addEventListener("click", () => {
-      openDashboardOverlay("Recipes", "https://pocketsteak-recipes.vercel.app/", {
-        addOverlayParam: false,
-        allowFullPage: false,
-        label: "Command Center",
-        sandbox: "allow-forms allow-scripts allow-same-origin",
-      });
+      window.location.href = "/family/recipes.html";
     });
     document.getElementById("choresBtn").addEventListener("click", () => {
       window.location.href = "/chores/";
@@ -3548,7 +3524,7 @@
     });
     document.getElementById("overlayCloseBtn").addEventListener("click", closeDashboardOverlay);
     document.getElementById("overlayOpenPageBtn").addEventListener("click", () => {
-      if (activeOverlayPath && activeOverlayAllowsFullPage) {
+      if (activeOverlayPath) {
         window.location.href = activeOverlayPath;
       }
     });
