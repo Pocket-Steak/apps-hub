@@ -3,195 +3,445 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>POCKET STEAK STACKD</title>
+  <title>PS STACKD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&family=Space+Mono:wght@400;700&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      /* Base Colors */
-      --ink: #111;
-      --ink-invert: #fff;
-      --grid-max: 1120px;
-      --brand: #FF4500; /* Keeping your exact orange */
-      --brand-glow: rgba(255, 69, 0, 0.4);
-      --glass: blur(14px);
-      --card-bg-wip: rgba(255, 255, 255, 0.04);
-      --card-border-wip: rgba(255, 255, 255, 0.1);
+      --hot: #FF4500;
+      --hot-dim: #cc3700;
+      --hot-bright: #ff6a33;
+      --hot-glow: rgba(255,69,0,0.55);
+      --hot-faint: rgba(255,69,0,0.08);
+      --hot-mid: rgba(255,69,0,0.2);
+      --bg-deep: #080300;
+      --bg-mid: #0f0500;
+      --text: #f0ece4;
+      --muted: #888;
+      --dim: #1a0a00;
     }
 
-    /* THE FLASH: Let's give the background vibrant energy */
-    .theme-night {
-      background-color: #0b0b0d;
-      background-image: 
-        radial-gradient(1200px 700px at 15% -15%, rgba(255, 255, 255, 0.15), transparent 70%),
-        radial-gradient(1100px 700px at 105% 15%, rgba(255, 255, 255, 0.1), transparent 65%),
-        /* A large, moving gradient blob for extra fun */
-        radial-gradient(circle at 50% 120%, rgba(255, 69, 0, 0.08), transparent 45%),
-        linear-gradient(135deg, #0b0b0d, #141417 35%, #1c1c20 70%, #2a2a2f);
-      background-size: 200% 200%;
-      animation: bgPulse 18s ease-in-out infinite alternate;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      min-height: 100vh;
+      background: var(--bg-deep);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      overflow-x: hidden;
     }
 
-    @keyframes bgPulse {
-      0% { background-position: 0% 40% }
-      100% { background-position: 100% 60% }
+    /* ── Nav ── */
+    .tab-nav {
+      display: flex;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #050200;
+      border-bottom: 1px solid var(--dim);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0 }
-    html, body { min-height: 100%; }
-    body {
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color: var(--ink-invert);
-    }
-
-    header { max-width: var(--grid-max); margin: 0 auto; padding: 40px 18px 0 }
-    .mast {
+    .tab-btn {
+      flex: 1;
+      padding: 16px 8px;
+      border: none;
+      cursor: pointer;
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      transition: all 0.3s;
+      background: transparent;
+      color: #444;
+      border-bottom: 3px solid transparent;
+      text-decoration: none;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 15px;
-      width: 100%;
+      gap: 7px;
     }
 
-    .logo {
-      width: clamp(100px, 15vw, 150px);
-      height: auto;
-      display: block;
-      filter: brightness(1.1) drop-shadow(0 0 30px rgba(255,255,255,0.1));
+    .tab-btn.active {
+      color: var(--hot);
+      border-bottom-color: var(--hot);
+      background: var(--hot-faint);
     }
 
-    .mast-title {
-      display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
-      line-height: 1.0;
-      letter-spacing: -1px;
+    .tab-btn:hover:not(.active) { color: #666; }
+
+    /* ── STACKD Hero ── */
+    .s-hero {
+      min-height: 100vh;
+      background: var(--bg-deep);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 24px 40px;
+    }
+
+    .s-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,69,0,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,69,0,0.06) 1px, transparent 1px);
+      background-size: 44px 44px;
+    }
+
+    .s-glow {
+      position: absolute;
+      width: 560px;
+      height: 560px;
+      background: radial-gradient(circle, rgba(255,69,0,0.16) 0%, transparent 68%);
+      top: 44%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .s-scan {
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(0,0,0,0.10) 3px,
+        rgba(0,0,0,0.10) 4px
+      );
+      pointer-events: none;
+    }
+
+    .s-corner {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+    }
+    .s-corner.tl { top: 24px; left: 24px; border-top: 2px solid rgba(255,69,0,0.45); border-left: 2px solid rgba(255,69,0,0.45); }
+    .s-corner.tr { top: 24px; right: 24px; border-top: 2px solid rgba(255,69,0,0.45); border-right: 2px solid rgba(255,69,0,0.45); }
+    .s-corner.bl { bottom: 24px; left: 24px; border-bottom: 2px solid rgba(255,69,0,0.45); border-left: 2px solid rgba(255,69,0,0.45); }
+    .s-corner.br { bottom: 24px; right: 24px; border-bottom: 2px solid rgba(255,69,0,0.45); border-right: 2px solid rgba(255,69,0,0.45); }
+
+    .s-lockup {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 36px;
+    }
+
+    .s-logo-img {
+      width: 190px;
+      filter:
+        drop-shadow(0 0 28px rgba(255,69,0,0.65))
+        drop-shadow(0 0 70px rgba(255,69,0,0.25));
+      margin-bottom: 4px;
+      animation: float 4.5s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .s-bar-mark {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: flex-start;
+      width: 190px;
+      padding-left: 12px;
+      margin-bottom: 10px;
+    }
+
+    .s-bar {
+      height: 4px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, #FF4500, #ff2200);
+    }
+    .s-bar:nth-child(1) { width: 100%; }
+    .s-bar:nth-child(2) { width: 70%; opacity: 0.65; }
+    .s-bar:nth-child(3) { width: 42%; opacity: 0.38; }
+
+    .s-studio {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 7px;
+      color: var(--hot);
+      opacity: 0.5;
       text-transform: uppercase;
-    }
-    .mast-title .line1 { font-weight: 900; font-size: clamp(34px, 4.2vw, 56px); color: #fff; }
-    .mast-title .line2 { font-weight: 900; font-size: clamp(31px, 3.8vw, 52px); color: var(--brand); }
-
-    .mast-bar {
-      height: 8px; border-radius: 999px;
-      background: linear-gradient(to right, transparent, rgba(255,255,255,0.1) 15%, #fff 50%, rgba(255,255,255,0.1) 85%, transparent);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 10px 30px rgba(0,0,0,0.3);
-      margin: 20px 0 25px 0;
+      margin-bottom: 4px;
     }
 
-    main { max-width: var(--grid-max); margin: 0 auto; padding: 10px 18px 50px }
+    .s-wordmark {
+      font-family: 'Black Ops One', sans-serif;
+      font-size: clamp(58px, 14vw, 88px);
+      letter-spacing: -2px;
+      color: #fff;
+      line-height: 1;
+    }
 
-    /* The Bento-style hierarchy */
+    .s-wordmark .hot {
+      color: var(--hot);
+      text-shadow: 0 0 28px rgba(255,69,0,0.8);
+    }
+
+    .s-tagline {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 6px;
+      color: var(--hot);
+      opacity: 0.5;
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
+
+    .s-hud {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      gap: 28px;
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      color: rgba(255,69,0,0.35);
+      letter-spacing: 2px;
+      margin-top: 32px;
+    }
+
+    /* ── Stack modules section ── */
+    .grid-section {
+      background: var(--bg-deep);
+      padding: 56px 28px 72px;
+      position: relative;
+    }
+
+    .grid-section::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--dim) 30%, var(--dim) 70%, transparent);
+    }
+
+    .modules-inner {
+      max-width: 1160px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: var(--hot);
+      margin-bottom: 28px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255,69,0,0.18);
+      opacity: 0.7;
+    }
+
     .grid {
       display: grid;
-      gap: 20px;
+      gap: 14px;
       grid-template-columns: repeat(6, 1fr);
     }
 
     .tile {
       position: relative;
-      background: var(--card-bg-wip);
-      backdrop-filter: var(--glass);
-      -webkit-backdrop-filter: var(--glass);
-      border-radius: 28px;
+      background: rgba(255,69,0,0.025);
+      border: 1px solid rgba(255,69,0,0.1);
+      border-radius: 8px;
       padding: 24px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      transition: all 0.3s cubic-bezier(0.2, 1, 0.3, 1);
+      gap: 10px;
+      transition: all 0.22s ease;
       overflow: hidden;
       cursor: pointer;
     }
 
-    /* THE FUN: Large cards glow and pulsate when active */
     .tile.active {
       grid-column: span 3;
-      border: 1px solid rgba(255, 69, 0, 0.3);
-      background: linear-gradient(160deg, rgba(255, 69, 0, 0.05) 0%, rgba(0,0,0,0.4) 100%);
-      box-shadow: 0 0 50px rgba(0,0,0,0.4);
+      border-color: rgba(255,69,0,0.2);
     }
-    
+
     .tile.active::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(circle at top right, rgba(255, 69, 0, 0.1), transparent 50%);
-        opacity: 0;
-        transition: opacity 0.5s ease;
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 140px; height: 140px;
+      background: radial-gradient(circle at top right, rgba(255,69,0,0.08), transparent 70%);
+      pointer-events: none;
     }
 
     .tile.active:hover {
-      transform: translateY(-8px);
-      border-color: var(--brand);
-      box-shadow: 0 0 60px var(--brand-glow);
+      background: rgba(255,69,0,0.07);
+      border-color: rgba(255,69,0,0.45);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 50px rgba(255,69,0,0.1), 0 0 0 1px rgba(255,69,0,0.3);
     }
-    .tile.active:hover::after { opacity: 1; }
 
-    /* THE WIP: Smaller, grayscale, blurred */
     .tile.wip {
       grid-column: span 2;
-      border: 1px solid var(--card-border-wip);
-      color: rgba(255, 255, 255, 0.5);
+      opacity: 0.36;
       cursor: default;
     }
-    .tile.wip .mark, .tile.wip .name, .tile.wip .desc { filter: grayscale(1); opacity: 0.5; }
 
-    /* The Status Badges are key for modern UI */
+    .tile.wip:hover { opacity: 0.48; }
+
     .status {
-      position: absolute; top: 18px; right: 18px;
-      font-size: 10px; font-weight: 800; text-transform: uppercase;
-      padding: 4px 8px; border-radius: 6px;
-      background: rgba(255,255,255,0.1);
+      position: absolute;
+      top: 14px; right: 14px;
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 1px;
+      padding: 3px 8px;
+      border-radius: 3px;
     }
-    .tile.active .status { background: var(--brand); color: #fff; font-weight: 900; }
-    .tile.wip .status { background: #333; }
-    .status-tst { background: #222 !important; color: #0f0 !important; font-family: monospace; }
 
-    .mark { font-size: 36px; margin-bottom: 5px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.1)); }
-    .name { font-weight: 900; font-size: 24px; line-height: 1.1; letter-spacing: -0.5px; }
-    .desc { font-weight: 400; font-size: 14px; color: rgba(255,255,255,0.7); line-height: 1.5; }
-    
-    .actions { margin-top: auto; display: flex; justify-content: flex-start; }
+    .tile.active .status {
+      background: rgba(255,69,0,0.14);
+      color: var(--hot);
+      border: 1px solid rgba(255,69,0,0.25);
+    }
+
+    .tile.wip .status {
+      background: rgba(255,255,255,0.03);
+      color: rgba(255,255,255,0.22);
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+
+    .status-tst {
+      background: rgba(0,255,80,0.05) !important;
+      color: rgba(0,255,100,0.55) !important;
+      border-color: rgba(0,255,80,0.1) !important;
+    }
+
+    .mark { font-size: 30px; margin-bottom: 2px; }
+
+    .name {
+      font-family: 'Black Ops One', sans-serif;
+      font-size: 17px;
+      letter-spacing: 0.5px;
+      line-height: 1.15;
+      color: var(--text);
+    }
+
+    .desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.55;
+      font-weight: 400;
+    }
+
+    .actions { margin-top: auto; }
 
     .btn {
-      font-weight: 900; padding: 11px 18px; border-radius: 12px;
-      font-size: 14px; cursor: pointer; border: none; transition: 0.2s;
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 8px 16px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.18s;
     }
 
     .tile.active .btn {
-      background: #fff; color: #000;
-      box-shadow: 0 0 20px rgba(255,255,255,0.1);
+      background: var(--hot);
+      color: #fff;
     }
-    .tile.active .btn:hover { background: var(--brand); color: #fff; transform: scale(1.05); }
 
-    .tile.wip .btn { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.5); cursor: not-allowed; }
+    .tile.active .btn:hover {
+      background: #fff;
+      color: #000;
+    }
 
-    footer { text-align: center; color: rgba(255,255,255,0.4); font-weight: 600; padding-bottom: 25px; font-size: 13px; letter-spacing: 1px; }
+    .tile.wip .btn {
+      background: rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.2);
+      cursor: not-allowed;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
 
-    /* Mobile Cleanup */
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 22px;
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: #1a0800;
+      border-top: 1px solid var(--dim);
+      background: #050200;
+    }
+
+    /* ── Mobile ── */
     @media (max-width: 900px) {
       .grid { grid-template-columns: 1fr; }
       .tile.active, .tile.wip { grid-column: span 1; }
-      .mast-title { align-items: center; text-align: center; }
+      .s-hud { flex-direction: column; gap: 10px; align-items: center; }
+      .tab-btn { font-size: 9px; padding: 13px 6px; }
+      .s-logo-img { width: 140px; }
     }
   </style>
 </head>
-<body class="theme-night">
+<body>
 
-  <header>
-    <div class="mast">
-      <img class="logo" src="/assets/pocket_steak_logo.png" alt="Logo" />
-      <div class="mast-title">
-        <span class="line1">POCKET STEAK</span>
-        <span class="line2">STACKD</span>
+  <nav class="tab-nav">
+    <a class="tab-btn active" href="/">⬡ PS STACKD</a>
+    <a class="tab-btn" href="https://pocketsteak-recipes.vercel.app/" target="_blank" rel="noopener noreferrer">🔥 PS FORGE</a>
+    <a class="tab-btn" href="https://pocket-steak.github.io/secret-vote/#/" target="_blank" rel="noopener noreferrer">⊞ COMPARE</a>
+  </nav>
+
+  <section class="s-hero">
+    <div class="s-grid"></div>
+    <div class="s-glow"></div>
+    <div class="s-scan"></div>
+
+    <div class="s-corner tl"></div>
+    <div class="s-corner tr"></div>
+    <div class="s-corner bl"></div>
+    <div class="s-corner br"></div>
+
+    <div class="s-lockup">
+      <img class="s-logo-img" src="/assets/pocket_steak_logo.png" alt="Pocket Steak" />
+      <div class="s-bar-mark">
+        <div class="s-bar"></div>
+        <div class="s-bar"></div>
+        <div class="s-bar"></div>
       </div>
+      <div class="s-studio">Pocket Steak</div>
+      <div class="s-wordmark">STACK<span class="hot">D</span></div>
+      <div class="s-tagline">Every Tool. One Stack.</div>
     </div>
-    <div class="mast-bar"></div>
-  </header>
 
-  <main>
-    <div class="grid" id="grid"></div>
-  </main>
+    <div class="s-hud">
+      <span>SYS // ONLINE</span>
+      <span>STACK // LOADED</span>
+      <span>BUILD // ACTIVE</span>
+    </div>
+  </section>
 
-  <footer>© 2026 POCKET STEAK STACKD</footer>
+  <div class="grid-section">
+    <div class="modules-inner">
+      <div class="section-label">// STACK MODULES</div>
+      <div class="grid" id="grid"></div>
+    </div>
+  </div>
+
+  <footer>© 2026 POCKET STEAK STACKD &nbsp;·&nbsp; ALL SYSTEMS NOMINAL</footer>
 
   <script>
-    // Priority: FCC & Recipe are larger (span 3), TST and others smaller (span 2)
     const APPS = [
       {
         emoji: "🏠",
@@ -212,7 +462,7 @@
         name: "Command Center TST",
         desc: "Sandbox clone for experimental testing.",
         url: "/family-tst/",
-        type: "wip", // Still in the smaller grid but functional
+        type: "wip",
         status: "TEST"
       },
       {
@@ -238,13 +488,13 @@
     grid.innerHTML = APPS.map((app) => `
       <div class="tile ${app.type}" data-url="${app.url}">
         <span class="status ${app.status === 'TEST' ? 'status-tst' : ''}">
-          ${app.status ? app.status : 'Active'}
+          ${app.status || '// LIVE'}
         </span>
         <div class="mark">${app.emoji}</div>
         <div class="name">${app.name}</div>
         <div class="desc">${app.desc}</div>
         <div class="actions">
-          <button class="btn">${app.status === 'WIP' ? 'Coming soon' : 'Launch'}</button>
+          <button class="btn">${app.status === 'WIP' ? '// COMING SOON' : 'LAUNCH >'}</button>
         </div>
       </div>
     `).join("");
@@ -252,11 +502,11 @@
     grid.addEventListener("click", (e) => {
       const tile = e.target.closest(".tile");
       if (!tile) return;
-      
+
       const url = tile.dataset.url;
-      const status = tile.querySelector('.status').innerText;
-      
-      if (status === "WIP") return;
+      const statusText = tile.querySelector('.status').innerText.trim();
+
+      if (statusText === "WIP") return;
 
       if (url.startsWith("/")) {
         window.location.href = url;
