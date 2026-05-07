@@ -2160,8 +2160,6 @@
       <div class="top-right">
         <button class="top-btn" id="backAppsBtn" type="button" style="display:none;">← Back to Apps</button>
         <a class="top-btn" id="recipesBtn" href="/family/recipes/">Recipes</a>
-        <button class="top-btn" id="choresBtn" type="button">Tasks</button>
-        <button class="top-btn" id="notesBtn" type="button" onclick="window.location.href='/notes/'">Notes</button>
         <button class="top-btn" id="settingsBtn" type="button" onclick="window.location.href='/settings/'">Settings</button>
         <div style="display:none;">
           <div class="status-pill">
@@ -3878,9 +3876,6 @@
 
     document.getElementById("backAppsBtn").addEventListener("click", () => {
       window.location.href = "/apps/";
-    });
-    document.getElementById("choresBtn").addEventListener("click", () => {
-      window.location.href = "/chores/";
     });
     document.getElementById("mobileHomeDate").textContent = new Date().toLocaleDateString(undefined, {
       weekday: "long",
