@@ -874,13 +874,6 @@
       flex-wrap:wrap;
     }
 
-    .owner-dot{
-      width:10px;
-      height:10px;
-      border-radius:999px;
-      flex:0 0 auto;
-    }
-
     .preview-empty{
       color:var(--muted);
       font-weight:700;
@@ -984,136 +977,6 @@
       border-radius:18px;
       background:#111319;
       box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
-    }
-
-    .task-picker-backdrop{
-      position:fixed;
-      inset:0;
-      background:rgba(9,11,16,.62);
-      backdrop-filter:blur(10px);
-      display:none;
-      align-items:center;
-      justify-content:center;
-      padding:20px;
-      z-index:1100;
-    }
-
-    .task-picker-backdrop.open{
-      display:flex;
-    }
-
-    .task-picker-shell{
-      width:min(560px, 100%);
-      padding:24px;
-      display:grid;
-      gap:16px;
-      border-radius:28px;
-      border:1px solid rgba(255,255,255,.08);
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)),
-        rgba(27,30,39,.96);
-      box-shadow:0 28px 70px rgba(0,0,0,.4);
-    }
-
-    .task-picker-label{
-      font-size:12px;
-      font-weight:900;
-      letter-spacing:.14em;
-      text-transform:uppercase;
-      color:var(--accent-2);
-    }
-
-    .task-picker-title{
-      margin:0;
-      font-size:34px;
-      line-height:1;
-      font-weight:900;
-      letter-spacing:-.03em;
-    }
-
-    .task-picker-copy{
-      color:var(--muted);
-      font-size:15px;
-      font-weight:800;
-      line-height:1.5;
-    }
-
-    .task-picker-grid{
-      display:grid;
-      grid-template-columns:repeat(3, minmax(0, 1fr));
-      gap:12px;
-    }
-
-    .task-picker-choice{
-      border:none;
-      border-radius:20px;
-      padding:16px 14px;
-      display:grid;
-      justify-items:flex-start;
-      gap:10px;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)),
-        rgba(255,255,255,.02);
-      color:var(--text);
-      cursor:pointer;
-      transition:transform .18s ease, background .18s ease, box-shadow .18s ease;
-    }
-
-    .task-picker-choice:hover{
-      transform:translateY(-2px);
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.05)),
-        rgba(255,255,255,.03);
-      box-shadow:0 14px 28px rgba(0,0,0,.22);
-    }
-
-    .task-picker-choice:focus-visible{
-      outline:2px solid var(--choice-color, var(--accent));
-      outline-offset:2px;
-    }
-
-    .task-picker-choice-swatch{
-      width:26px;
-      height:26px;
-      border-radius:999px;
-      background:var(--choice-color, var(--accent));
-      box-shadow:0 0 0 3px rgba(255,255,255,.08);
-    }
-
-    .task-picker-choice-name{
-      font-size:19px;
-      font-weight:900;
-      line-height:1.1;
-    }
-
-    .task-picker-choice-note{
-      color:var(--muted);
-      font-size:12px;
-      font-weight:800;
-      line-height:1.4;
-    }
-
-    .task-picker-actions{
-      display:flex;
-      justify-content:flex-end;
-    }
-
-    .task-picker-cancel{
-      border:none;
-      min-height:44px;
-      padding:10px 16px;
-      border-radius:14px;
-      background:rgba(255,255,255,.08);
-      color:var(--text);
-      font-size:14px;
-      font-weight:900;
-      cursor:pointer;
-      transition:transform .18s ease, background .18s ease;
-    }
-
-    .task-picker-cancel:hover{
-      transform:translateY(-1px);
-      background:rgba(255,255,255,.14);
     }
 
     body.modal-open{
@@ -2034,19 +1897,6 @@
         align-items:stretch;
       }
 
-      .task-picker-shell{
-        padding:20px;
-        border-radius:24px;
-      }
-
-      .task-picker-title{
-        font-size:28px;
-      }
-
-      .task-picker-grid{
-        grid-template-columns:1fr;
-      }
-
       .month-btn,
       .quick-add-btn,
       .preview-open{
@@ -2192,29 +2042,16 @@
         </div>
         </article>
 
-        <article class="preview-card" id="todoPreviewCard">
+        <article class="preview-card" id="taskPreviewCard">
         <div class="preview-head">
           <div class="preview-heading">
-            <div class="preview-title">To-Do List</div>
-            <div class="preview-meta" id="todoPreviewMeta">Loading one-off Supabase to-dos.</div>
+            <div class="preview-title">Tasks</div>
+            <div class="preview-meta" id="taskPreviewMeta">Loading recurring and ad hoc tasks.</div>
           </div>
-          <button class="preview-open" id="todoPreviewBtn" type="button">Open List</button>
+          <button class="preview-open" id="taskPreviewBtn" type="button">Open Tasks</button>
         </div>
-        <div class="preview-list" id="todoPreviewList">
-          <div class="preview-empty">Waiting for Supabase To-Dos…</div>
-        </div>
-        </article>
-
-        <article class="preview-card" id="chorePreviewCard">
-        <div class="preview-head">
-          <div class="preview-heading">
-            <div class="preview-title">Family Tasks</div>
-            <div class="preview-meta" id="chorePreviewMeta">Loading today&apos;s Supabase tasks.</div>
-          </div>
-          <button class="preview-open" id="chorePreviewBtn" type="button">Open Tasks</button>
-        </div>
-        <div class="preview-list" id="chorePreviewList">
-          <div class="preview-empty">Waiting for Supabase Tasks…</div>
+        <div class="preview-list" id="taskPreviewList">
+          <div class="preview-empty">Waiting for Supabase tasks…</div>
         </div>
         </article>
       </section>
@@ -2237,18 +2074,6 @@
     </section>
   </div>
 
-  <div class="task-picker-backdrop" id="homeTaskPicker" aria-hidden="true">
-    <section class="task-picker-shell" role="dialog" aria-modal="true" aria-labelledby="homeTaskPickerTitle">
-      <div class="task-picker-label">Choose Who Finished It</div>
-      <h2 class="task-picker-title" id="homeTaskPickerTitle">Who finished this task?</h2>
-      <div class="task-picker-copy" id="homeTaskPickerCopy">Tap a family color to claim the points.</div>
-      <div class="task-picker-grid" id="homeTaskPickerGrid"></div>
-      <div class="task-picker-actions">
-        <button class="task-picker-cancel" id="homeTaskPickerCancelBtn" type="button">Cancel</button>
-      </div>
-    </section>
-  </div>
-
   <script>
     const CLIENT_ID = "82204016171-ta1ipuu88gie0tkq69je3di5uifu1kki.apps.googleusercontent.com";
     const API_KEY = "AIzaSyBPZEeYB8IaheJPJA2Y44msGfDwIhJMpGU";
@@ -2256,14 +2081,8 @@
     const GROCERY_TABLE = "family_grocery_items";
     const TASKS_TABLE = "family_tasks";
     const TASK_COMPLETIONS_TABLE = "family_task_completions";
-    const TASK_MEMBERS_TABLE = "family_members";
     const BUILT_IN_SUPABASE_URL = "https://vmmdskviwqddgalccoyc.supabase.co";
     const BUILT_IN_SUPABASE_ANON_KEY = "sb_publishable_Y95c2qYSmD8YKdaIeOZYWA_6GmC2OHM";
-    const BUILT_IN_MEMBERS = [
-      { name: "Andrew", color: "#ff9d2f" },
-      { name: "Nichol", color: "#8b5cf6" },
-      { name: "Jolie", color: "#22c55e" },
-    ];
     const SCOPES = [
       "https://www.googleapis.com/auth/calendar",
     ].join(" ");
@@ -2290,21 +2109,12 @@
     let calendarsById = new Map();
     let weekEvents = [];
     let groceryPreviewRows = [];
-    let todoPreviewRows = [];
-    let choresPreviewRows = [];
-    let chorePreviewHistoryEntries = [];
+    let taskPreviewRows = [];
     let groceryPreviewError = "";
-    let todoPreviewError = "";
-    let chorePreviewError = "";
+    let taskPreviewError = "";
     let activeOverlayPath = "";
     let taskPreviewClient = null;
     let taskPreviewClientSignature = "";
-    let taskMemberColors = new Map([
-      ["Andrew", "#ff8a1f"],
-      ["Nichol", "#8b5cf6"],
-      ["Jolie", "#22c55e"],
-    ]);
-    let homeTaskPickerResolve = null;
     let isSubmittingHomeTask = false;
 
     function normalizeSupabaseText(value) {
@@ -2328,14 +2138,6 @@
       } catch (error) {
         return text.replace(/\/$/, "");
       }
-    }
-
-    function basicNormalizeOwner(value) {
-      return normalizeSupabaseText(value)
-        .split(/\s+/)
-        .filter(Boolean)
-        .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-        .join(" ");
     }
 
     function baseFormatDateKey(date) {
@@ -2365,9 +2167,7 @@
 
       window.PocketSteakSupabase = {
         ...existing,
-        defaultMembers: BUILT_IN_MEMBERS.map((member) => ({ ...member })),
         normalizeUrl: normalizeSupabaseUrl,
-        normalizeOwner: basicNormalizeOwner,
         formatDateKey: baseFormatDateKey,
         getStartOfDay: baseGetStartOfDay,
         getWeekStartDateFor: baseGetWeekStartDateFor,
@@ -2558,39 +2358,6 @@
       return taskPreviewClient;
     }
 
-    function resetTaskMemberColors() {
-      taskMemberColors = new Map([
-        ["Andrew", "#ff8a1f"],
-        ["Nichol", "#8b5cf6"],
-        ["Jolie", "#22c55e"],
-      ]);
-    }
-
-    async function loadTaskMemberColors(client) {
-      try {
-        const result = await client
-          .from(TASK_MEMBERS_TABLE)
-          .select("name,color")
-          .order("name", { ascending: true });
-
-        if (result.error) {
-          throw result.error;
-        }
-
-        resetTaskMemberColors();
-        (result.data || []).forEach((member) => {
-          const name = normalizeOwner(member.name);
-          const color = String(member.color || "").trim();
-          if (name && color) {
-            taskMemberColors.set(name, color);
-          }
-        });
-      } catch (error) {
-        console.warn("Could not load task member colors:", error);
-        resetTaskMemberColors();
-      }
-    }
-
     function renderRideWaits(values) {
       const container = document.getElementById("rideWaits");
       container.innerHTML = values.map((ride) => `
@@ -2651,70 +2418,6 @@
         });
     }
 
-    function normalizeBool(value) {
-      const str = String(value || "").trim().toLowerCase();
-      return str === "true" || str === "yes" || str === "1" || str === "y";
-    }
-
-    function titleCase(value) {
-      return String(value || "")
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean)
-        .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-        .join(" ");
-    }
-
-    function normalizeOwner(value) {
-      return window.PocketSteakSupabase?.normalizeOwner(value) || titleCase(value);
-    }
-
-    function normalizePoints(value) {
-      const numeric = Number(String(value || "").trim());
-      if (!Number.isFinite(numeric) || numeric < 0) {
-        return 0;
-      }
-      return Math.max(0, Math.round(numeric));
-    }
-
-    function getOwnerColor(owner) {
-      const normalizedOwner = normalizeOwner(owner);
-      if (taskMemberColors.has(normalizedOwner)) {
-        return taskMemberColors.get(normalizedOwner);
-      }
-      if (normalizedOwner === "Andrew") return "#ff8a1f";
-      if (normalizedOwner === "Nichol") return "#8b5cf6";
-      if (normalizedOwner === "Jolie") return "#22c55e";
-      return "#ec4899";
-    }
-
-    function getOwnerLabel(owner) {
-      return normalizeOwner(owner) || "Unassigned";
-    }
-
-    function formatPoints(points) {
-      const normalized = normalizePoints(points);
-      return `${normalized} pt${normalized === 1 ? "" : "s"}`;
-    }
-
-    function getTaskMemberChoices() {
-      const loadedMembers = Array.from(taskMemberColors.entries())
-        .map(([name, color]) => ({
-          name: normalizeOwner(name),
-          color: String(color || "").trim(),
-        }))
-        .filter((member) => member.name && member.color);
-
-      if (loadedMembers.length) {
-        return loadedMembers;
-      }
-
-      return BUILT_IN_MEMBERS.map((member) => ({
-        name: normalizeOwner(member.name),
-        color: member.color,
-      }));
-    }
-
     function getReadableTaskError(error, fallback = "Something went wrong.") {
       const message = String(error?.message || "").trim();
       if (!message) return fallback;
@@ -2724,79 +2427,60 @@
       return message;
     }
 
-    function closeHomeTaskPicker(selectedOwner = "") {
-      const pickerEl = document.getElementById("homeTaskPicker");
-      const gridEl = document.getElementById("homeTaskPickerGrid");
-      const resolve = homeTaskPickerResolve;
-      homeTaskPickerResolve = null;
-      pickerEl.classList.remove("open");
-      pickerEl.setAttribute("aria-hidden", "true");
-      document.body.classList.remove("modal-open");
-      gridEl.innerHTML = "";
-      if (resolve) {
-        resolve(selectedOwner);
-      }
+    function getTaskAccentColor(row) {
+      return row?.isRecurring ? "#ff8a1f" : "#ec4899";
     }
 
-    function openHomeTaskPicker(row) {
-      if (homeTaskPickerResolve) {
-        closeHomeTaskPicker("");
+    function getTaskKindLabel(row) {
+      return row?.isRecurring ? "Recurring" : "Ad hoc";
+    }
+
+    function formatTaskCompletionTime(value) {
+      if (!value) return "";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "";
+      return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    }
+
+    async function insertTaskCompletion(client, taskId, dayKey, weekKey) {
+      const completion = {
+        task_id: taskId,
+        completed_at: new Date().toISOString(),
+        day_key: dayKey,
+        week_start: weekKey,
+      };
+      const result = await client
+        .from(TASK_COMPLETIONS_TABLE)
+        .upsert(completion, { onConflict: "task_id,day_key" });
+
+      if (!result.error || !/completed_by/i.test(String(result.error.message || ""))) {
+        return result;
       }
 
-      const pickerEl = document.getElementById("homeTaskPicker");
-      const titleEl = document.getElementById("homeTaskPickerTitle");
-      const copyEl = document.getElementById("homeTaskPickerCopy");
-      const gridEl = document.getElementById("homeTaskPickerGrid");
-
-      titleEl.textContent = `Who finished "${row.title}"?`;
-      copyEl.textContent = `Tap a family color to claim ${formatPoints(row.points)} for this task.`;
-      gridEl.innerHTML = "";
-
-      getTaskMemberChoices().forEach((member) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "task-picker-choice";
-        button.style.setProperty("--choice-color", member.color || getOwnerColor(member.name));
-        button.innerHTML = `
-          <span class="task-picker-choice-swatch"></span>
-          <span class="task-picker-choice-name">${escapeHtml(member.name)}</span>
-          <span class="task-picker-choice-note">Tap to give ${escapeHtml(member.name)} the points.</span>
-        `;
-        button.addEventListener("click", () => closeHomeTaskPicker(member.name));
-        gridEl.appendChild(button);
-      });
-
-      pickerEl.classList.add("open");
-      pickerEl.setAttribute("aria-hidden", "false");
-      document.body.classList.add("modal-open");
-
-      return new Promise((resolve) => {
-        homeTaskPickerResolve = resolve;
-        requestAnimationFrame(() => {
-          gridEl.querySelector(".task-picker-choice")?.focus();
+      return client
+        .from(TASK_COMPLETIONS_TABLE)
+        .upsert({
+          ...completion,
+          completed_by: "Completed",
+        }, {
+          onConflict: "task_id,day_key",
         });
-      });
     }
 
-    async function completeChoreFromPreview(taskId) {
+    async function completeTaskFromPreview(taskId) {
       if (isSubmittingHomeTask) {
         return;
       }
 
-      const row = choresPreviewRows.find((entry) => entry.id === taskId && !entry.done);
+      const row = taskPreviewRows.find((entry) => entry.id === taskId && !entry.done);
       if (!row) {
         return;
       }
 
       const client = getTaskPreviewClient();
       if (!client) {
-        chorePreviewError = "Supabase Tasks is not connected yet.";
-        renderChorePreviewCard();
-        return;
-      }
-
-      const completedBy = await openHomeTaskPicker(row);
-      if (!completedBy) {
+        taskPreviewError = "Supabase Tasks is not connected yet.";
+        renderTaskPreviewCard();
         return;
       }
 
@@ -2805,24 +2489,24 @@
       try {
         const currentDayKey = window.PocketSteakSupabase.getCurrentDayKey();
         const currentWeekKey = window.PocketSteakSupabase.getCurrentWeekKey();
-        const upsertResult = await client
-          .from(TASK_COMPLETIONS_TABLE)
-          .upsert({
-            task_id: row.id,
-            completed_by: normalizeOwner(completedBy),
-            points: normalizePoints(row.points),
-            completed_at: new Date().toISOString(),
-            day_key: currentDayKey,
-            week_start: currentWeekKey,
-          }, {
-            onConflict: "task_id,day_key",
-          });
+        const upsertResult = await insertTaskCompletion(client, row.id, currentDayKey, currentWeekKey);
 
         if (upsertResult.error) {
           throw upsertResult.error;
         }
 
-        chorePreviewError = "";
+        if (!row.isRecurring) {
+          const updateResult = await client
+            .from(TASKS_TABLE)
+            .update({ active: false })
+            .eq("id", row.id);
+
+          if (updateResult.error) {
+            throw updateResult.error;
+          }
+        }
+
+        taskPreviewError = "";
         await loadDashboardLists();
         renderAll();
       } catch (error) {
@@ -2831,42 +2515,6 @@
       } finally {
         isSubmittingHomeTask = false;
       }
-    }
-
-    function isLikelyHeaderRow(row) {
-      const first = String(row?.[0] || "").trim().toLowerCase();
-      const second = String(row?.[1] || "").trim().toLowerCase();
-      const third = String(row?.[2] || "").trim().toLowerCase();
-      const fourth = String(row?.[3] || "").trim().toLowerCase();
-
-      return (
-        ["item", "items", "task", "tasks", "todo", "to-do", "grocery", "groceries", "chore", "chores", "name"].includes(first) ||
-        ["bought", "done", "status", "checked", "complete", "completed"].includes(second) ||
-        ["created", "createdat", "timestamp", "date"].includes(third) ||
-        ["owner", "person", "addedby", "added by", "who"].includes(fourth) ||
-        ["point", "points", "score", "scores", "pts"].includes(String(row?.[4] || "").trim().toLowerCase()) ||
-        ["week", "weekstart", "week start"].includes(String(row?.[5] || "").trim().toLowerCase())
-      );
-    }
-
-    function isTaskHistoryHeaderRow(row) {
-      const first = String(row?.[0] || "").trim().toLowerCase();
-      const second = String(row?.[1] || "").trim().toLowerCase();
-      const third = String(row?.[2] || "").trim().toLowerCase();
-      const fourth = String(row?.[3] || "").trim().toLowerCase();
-      const fifth = String(row?.[4] || "").trim().toLowerCase();
-      const sixth = String(row?.[5] || "").trim().toLowerCase();
-      const seventh = String(row?.[6] || "").trim().toLowerCase();
-
-      return (
-        ["task row", "source row", "row", "taskrow", "sourcerow"].includes(first) ||
-        ["task", "item", "title", "name"].includes(second) ||
-        ["person", "owner", "completed by", "completedby"].includes(third) ||
-        ["point", "points", "score", "scores", "pts"].includes(fourth) ||
-        ["completedat", "completed at", "timestamp", "date"].includes(fifth) ||
-        ["week", "weekstart", "week start"].includes(sixth) ||
-        ["day", "daykey", "day key", "date key"].includes(seventh)
-      );
     }
 
     function escapeHtml(value) {
@@ -2961,22 +2609,11 @@
         activeLabel: "items to grab",
         doneLabel: "bought",
         accentColor: "#ff7a18",
-        showOwner: false,
       });
-      renderPreviewCard({
-        rows: todoPreviewRows,
-        listId: "todoPreviewList",
-        metaId: "todoPreviewMeta",
-        errorText: todoPreviewError,
-        emptyText: "No to-do items right now.",
-        activeLabel: "active tasks",
-        doneLabel: "done",
-        showOwner: true,
-      });
-      renderChorePreviewCard();
+      renderTaskPreviewCard();
     }
 
-    function renderPreviewCard({ rows, listId, metaId, emptyText, activeLabel, doneLabel, accentColor = null, showOwner = true, errorText = "" }) {
+    function renderPreviewCard({ rows, listId, metaId, emptyText, activeLabel, doneLabel, accentColor = "#ff7a18", errorText = "" }) {
       const listEl = document.getElementById(listId);
       const metaEl = document.getElementById(metaId);
 
@@ -2997,83 +2634,46 @@
       metaEl.textContent = `${activeRows.length} ${activeLabel} • ${doneRows.length} ${doneLabel}`;
       listEl.innerHTML = activeRows.length
         ? activeRows.map(row => `
-            <div class="preview-item${row.done ? " done" : ""}" style="border-left-color:${accentColor || getOwnerColor(row.owner)}">
+            <div class="preview-item${row.done ? " done" : ""}" style="border-left-color:${accentColor}">
               <div class="preview-item-title">${escapeHtml(row.title)}</div>
-              ${showOwner ? `
-              <div class="preview-item-meta">
-                <span class="owner-dot" style="background:${accentColor || getOwnerColor(row.owner)}"></span>
-                ${row.done ? "Completed" : "Ready for action"} • ${escapeHtml(getOwnerLabel(row.owner))}
-              </div>
-              ` : `
               <div class="preview-item-meta">
                 ${row.done ? "Purchased" : "Ready for action"}
               </div>
-              `}
             </div>
           `).join("")
         : `<div class="preview-empty">Everything here is completed.</div>`;
     }
 
-    function buildChoreLeaderboard(historyEntries) {
-      const entries = new Map();
+    function renderTaskPreviewCard() {
+      const listEl = document.getElementById("taskPreviewList");
+      const metaEl = document.getElementById("taskPreviewMeta");
 
-      historyEntries.forEach((entry) => {
-        const owner = getOwnerLabel(entry.person);
-        if (!entries.has(owner)) {
-          entries.set(owner, {
-            owner,
-            completed: 0,
-            points: 0,
-          });
-        }
-
-        entries.get(owner).completed += 1;
-        entries.get(owner).points += entry.points;
-      });
-
-      return Array.from(entries.values()).sort((a, b) => {
-        if (b.points !== a.points) return b.points - a.points;
-        if (b.completed !== a.completed) return b.completed - a.completed;
-        return a.owner.localeCompare(b.owner);
-      });
-    }
-
-    function renderChorePreviewCard() {
-      const listEl = document.getElementById("chorePreviewList");
-      const metaEl = document.getElementById("chorePreviewMeta");
-
-      if (chorePreviewError) {
-        metaEl.textContent = chorePreviewError;
-        listEl.innerHTML = `<div class="preview-empty">${escapeHtml(chorePreviewError)}</div>`;
+      if (taskPreviewError) {
+        metaEl.textContent = taskPreviewError;
+        listEl.innerHTML = `<div class="preview-empty">${escapeHtml(taskPreviewError)}</div>`;
         return;
       }
 
-      if (!choresPreviewRows.length) {
+      if (!taskPreviewRows.length) {
         metaEl.textContent = "No tasks loaded yet.";
-        listEl.innerHTML = `<div class="preview-empty">Open the Tasks board to add daily tasks.</div>`;
+        listEl.innerHTML = `<div class="preview-empty">Open Tasks to add recurring or ad hoc work.</div>`;
         return;
       }
 
-      const activeRows = choresPreviewRows.filter((row) => !row.done);
-      const doneRows = choresPreviewRows.filter((row) => row.done);
-      const leaderboard = buildChoreLeaderboard(chorePreviewHistoryEntries);
-      const leader = leaderboard[0];
-
-      metaEl.textContent = leader && leader.points > 0
-        ? `${activeRows.length} tasks left today • ${doneRows.length} done today • ${leader.owner} leads with ${leader.points} pt${leader.points === 1 ? "" : "s"}`
-        : `${activeRows.length} tasks left today • ${doneRows.length} done today`;
+      const activeRows = taskPreviewRows.filter((row) => !row.done);
+      const doneRows = taskPreviewRows.filter((row) => row.done);
+      metaEl.textContent = `${activeRows.length} active • ${doneRows.length} done today`;
 
       listEl.innerHTML = activeRows.length
         ? activeRows.map((row) => `
-            <button class="preview-item" type="button" data-task-id="${escapeHtml(row.id)}" style="border-left-color:${getOwnerColor(row.owner)}">
+            <button class="preview-item" type="button" data-task-id="${escapeHtml(row.id)}" style="border-left-color:${getTaskAccentColor(row)}">
               <div class="preview-item-title">${escapeHtml(row.title)}</div>
               <div class="preview-item-meta">
-                <span class="owner-dot" style="background:${getOwnerColor(row.owner)}"></span>
-                ${escapeHtml(getOwnerLabel(row.owner))} • ${formatPoints(row.points)}
+                ${escapeHtml(getTaskKindLabel(row))} • Ready
               </div>
             </button>
           `).join("")
-        : `<div class="preview-empty">Every task is done for today.</div>`;
+        : `<div class="preview-empty">Everything is completed for today.</div>`;
     }
 
     function openDashboardOverlay(title, path) {
@@ -3121,118 +2721,73 @@
         .filter((row) => row.title);
     }
 
-    async function loadTaskHistoryPreview(client, currentWeekKey) {
-      const result = await client
-        .from(TASK_COMPLETIONS_TABLE)
-        .select("id,task_id,completed_by,points,completed_at,day_key,week_start")
-        .eq("week_start", currentWeekKey)
-        .order("completed_at", { ascending: false });
-
-      if (result.error) {
-        throw result.error;
-      }
-
-      return (result.data || [])
-        .map((row) => ({
-          id: row.id,
-          taskId: row.task_id,
-          person: normalizeOwner(row.completed_by),
-          points: normalizePoints(row.points),
-          completedAt: String(row.completed_at || "").trim(),
-          weekStart: String(row.week_start || "").trim(),
-          dayKey: String(row.day_key || "").trim(),
-        }))
-        .filter((row) => row.taskId && row.person && row.weekStart === currentWeekKey && row.dayKey);
-    }
-
-    async function loadTodoPreview() {
-      const client = getTaskPreviewClient();
-      if (!client) {
-        throw new Error("The built-in Supabase To-Do preview is not ready yet.");
-      }
-
-      await loadTaskMemberColors(client);
-
-      const result = await client
-        .from(TASKS_TABLE)
-        .select("id,title,owner_name,points,active,created_at")
-        .or("sort_order.is.null,sort_order.eq.0")
-        .order("created_at", { ascending: false });
-
-      if (result.error) {
-        throw result.error;
-      }
-
-      return (result.data || [])
-        .map((task) => ({
-          title: String(task.title || "").trim(),
-          done: task.active === false,
-          owner: normalizeOwner(task.owner_name),
-          points: normalizePoints(task.points),
-        }))
-        .filter((row) => row.title);
-    }
-
-    async function loadChorePreview() {
+    async function loadTaskPreview() {
       const client = getTaskPreviewClient();
       if (!client) {
         throw new Error("The built-in Supabase Tasks preview is not ready yet.");
       }
 
       const currentDayKey = window.PocketSteakSupabase.getCurrentDayKey();
-      const currentWeekKey = window.PocketSteakSupabase.getCurrentWeekKey();
-
-      const [taskResult, historyEntries] = await Promise.all([
+      const [taskResult, completionResult] = await Promise.all([
         client
           .from(TASKS_TABLE)
-          .select("id,title,owner_name,points,active,sort_order,created_at")
-          .eq("active", true)
-          .gt("sort_order", 0)
-          .order("sort_order", { ascending: true })
-          .order("created_at", { ascending: true }),
-        loadTaskHistoryPreview(client, currentWeekKey),
-        loadTaskMemberColors(client),
+          .select("id,title,active,sort_order,created_at")
+          .order("created_at", { ascending: false }),
+        client
+          .from(TASK_COMPLETIONS_TABLE)
+          .select("id,task_id,completed_at,day_key,week_start")
+          .order("completed_at", { ascending: false }),
       ]);
 
       if (taskResult.error) {
         throw taskResult.error;
       }
+      if (completionResult.error) {
+        throw completionResult.error;
+      }
 
+      const latestCompletions = new Map();
       const todayCompletions = new Map();
-      historyEntries
-        .filter((entry) => entry.dayKey === currentDayKey)
-        .forEach((entry) => {
-          if (!todayCompletions.has(entry.taskId)) {
-            todayCompletions.set(entry.taskId, entry);
-          }
-        });
+      (completionResult.data || []).forEach((entry) => {
+        if (!latestCompletions.has(entry.task_id)) {
+          latestCompletions.set(entry.task_id, entry);
+        }
+        if (entry.day_key === currentDayKey && !todayCompletions.has(entry.task_id)) {
+          todayCompletions.set(entry.task_id, entry);
+        }
+      });
 
-      const rows = (taskResult.data || [])
+      return (taskResult.data || [])
         .map((task) => {
-          const completion = todayCompletions.get(task.id);
+          const sortOrder = Number(task.sort_order || 0);
+          const isRecurring = Number.isFinite(sortOrder) && sortOrder > 0;
+          const completion = isRecurring
+            ? todayCompletions.get(task.id)
+            : latestCompletions.get(task.id);
           return {
             id: String(task.id || "").trim(),
             title: String(task.title || "").trim(),
-            done: Boolean(completion),
-            completedAt: completion?.completedAt || "",
-            owner: normalizeOwner(task.owner_name),
-            points: normalizePoints(task.points),
-            completedBy: completion?.person || "",
+            done: isRecurring ? Boolean(completion) : task.active === false,
+            completedAt: String(completion?.completed_at || "").trim(),
+            isRecurring,
+            active: task.active !== false,
+            sortOrder,
+            createdAt: String(task.created_at || "").trim(),
           };
         })
-        .filter((row) => row.id && row.title);
-
-      return {
-        rows,
-        historyEntries,
-      };
+        .filter((row) => row.id && row.title && (!row.isRecurring || row.active))
+        .sort((a, b) => {
+          if (a.done !== b.done) return a.done ? 1 : -1;
+          if (a.isRecurring !== b.isRecurring) return a.isRecurring ? -1 : 1;
+          if (a.isRecurring && a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+          return String(b.createdAt).localeCompare(String(a.createdAt));
+        });
     }
 
     async function loadDashboardLists() {
       const results = await Promise.allSettled([
         loadGroceryPreview(),
-        loadTodoPreview(),
-        loadChorePreview(),
+        loadTaskPreview(),
       ]);
 
       if (results[0].status === "fulfilled") {
@@ -3245,23 +2800,12 @@
       }
 
       if (results[1].status === "fulfilled") {
-        todoPreviewRows = results[1].value;
-        todoPreviewError = "";
+        taskPreviewRows = results[1].value;
+        taskPreviewError = "";
       } else {
         console.error(results[1].reason);
-        todoPreviewRows = [];
-        todoPreviewError = results[1].reason?.message || "Could not load to-do preview.";
-      }
-
-      if (results[2].status === "fulfilled") {
-        choresPreviewRows = results[2].value.rows;
-        chorePreviewHistoryEntries = results[2].value.historyEntries;
-        chorePreviewError = "";
-      } else {
-        console.error(results[2].reason);
-        choresPreviewRows = [];
-        chorePreviewHistoryEntries = [];
-        chorePreviewError = results[2].reason?.message || "Could not load tasks preview.";
+        taskPreviewRows = [];
+        taskPreviewError = results[1].reason?.message || "Could not load tasks preview.";
       }
 
       renderAll();
@@ -3573,29 +3117,25 @@
     document.getElementById("groceryPreviewCard").addEventListener("click", () => {
       openDashboardOverlay("Grocery List", "/grocery/");
     });
-    document.getElementById("todoPreviewCard").addEventListener("click", () => {
-      openDashboardOverlay("To-Do List", "/todo/");
+    document.getElementById("taskPreviewCard").addEventListener("click", () => {
+      openDashboardOverlay("Tasks", "/chores/");
     });
     document.getElementById("groceryPreviewBtn").addEventListener("click", (event) => {
       event.stopPropagation();
       openDashboardOverlay("Grocery List", "/grocery/");
     });
-    document.getElementById("todoPreviewBtn").addEventListener("click", (event) => {
+    document.getElementById("taskPreviewBtn").addEventListener("click", (event) => {
       event.stopPropagation();
-      openDashboardOverlay("To-Do List", "/todo/");
+      openDashboardOverlay("Tasks", "/chores/");
     });
-    document.getElementById("chorePreviewBtn").addEventListener("click", (event) => {
-      event.stopPropagation();
-      openDashboardOverlay("Family Tasks", "/chores/");
-    });
-    document.getElementById("chorePreviewList").addEventListener("click", (event) => {
+    document.getElementById("taskPreviewList").addEventListener("click", (event) => {
       const button = event.target.closest("[data-task-id]");
       if (!button) {
         return;
       }
 
       event.stopPropagation();
-      completeChoreFromPreview(button.getAttribute("data-task-id") || "");
+      completeTaskFromPreview(button.getAttribute("data-task-id") || "");
     });
     document.getElementById("overlayCloseBtn").addEventListener("click", closeDashboardOverlay);
     document.getElementById("overlayOpenPageBtn").addEventListener("click", () => {
@@ -3608,23 +3148,12 @@
         closeDashboardOverlay();
       }
     });
-    document.getElementById("homeTaskPickerCancelBtn").addEventListener("click", () => closeHomeTaskPicker(""));
-    document.getElementById("homeTaskPicker").addEventListener("click", (event) => {
-      if (event.target === event.currentTarget) {
-        closeHomeTaskPicker("");
-      }
-    });
     window.addEventListener("message", (event) => {
       if (event.data?.type === "family-overlay-close") {
         closeDashboardOverlay();
       }
     });
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && document.getElementById("homeTaskPicker").classList.contains("open")) {
-        closeHomeTaskPicker("");
-        return;
-      }
-
       if (event.key === "Escape" && document.getElementById("dashboardOverlay").classList.contains("open")) {
         closeDashboardOverlay();
       }

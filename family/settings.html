@@ -223,7 +223,7 @@
 
     .task-form{
       display:grid;
-      grid-template-columns:minmax(0, 1.4fr) 180px 120px auto;
+      grid-template-columns:minmax(0, 1fr) auto;
       gap:12px;
       align-items:center;
     }
@@ -694,8 +694,7 @@
           <a class="nav-link" href="/family/">Family Home</a>
           <a class="nav-link" href="/calendar/">Month Calendar</a>
           <a class="nav-link" href="/grocery/">Grocery List</a>
-          <a class="nav-link" href="/todo/">To-Do List</a>
-          <a class="nav-link" href="/chores/">Family Tasks</a>
+          <a class="nav-link" href="/chores/">Tasks</a>
           <a class="nav-link" href="/cookbook/">Cookbook</a>
           <a class="nav-link" href="/notes/">Notes</a>
         </div>
@@ -758,18 +757,9 @@
           </div>
           <textarea id="schemaSql" class="schema-box" readonly>create extension if not exists pgcrypto;
 
-create table if not exists public.family_members (
-  id uuid primary key default gen_random_uuid(),
-  name text not null unique,
-  color text not null,
-  created_at timestamptz not null default now()
-);
-
 create table if not exists public.family_tasks (
   id uuid primary key default gen_random_uuid(),
   title text not null,
-  owner_name text,
-  points integer not null default 1 check (points >= 0),
   active boolean not null default true,
   sort_order integer,
   created_at timestamptz not null default now()
@@ -778,8 +768,6 @@ create table if not exists public.family_tasks (
 create table if not exists public.family_task_completions (
   id uuid primary key default gen_random_uuid(),
   task_id uuid not null references public.family_tasks(id) on delete cascade,
-  completed_by text not null,
-  points integer not null default 0 check (points >= 0),
   completed_at timestamptz not null default now(),
   day_key text not null,
   week_start text not null
@@ -795,21 +783,11 @@ create unique index if not exists family_task_completions_task_day_idx
   on public.family_task_completions (task_id, day_key);
 
 grant usage on schema public to anon, authenticated;
-grant select, insert, update, delete on public.family_members to anon, authenticated;
 grant select, insert, update, delete on public.family_tasks to anon, authenticated;
 grant select, insert, update, delete on public.family_task_completions to anon, authenticated;
 
-alter table public.family_members enable row level security;
 alter table public.family_tasks enable row level security;
 alter table public.family_task_completions enable row level security;
-
-drop policy if exists "family_members_public_all" on public.family_members;
-create policy "family_members_public_all"
-  on public.family_members
-  for all
-  to anon, authenticated
-  using (true)
-  with check (true);
 
 drop policy if exists "family_tasks_public_all" on public.family_tasks;
 create policy "family_tasks_public_all"
@@ -825,15 +803,7 @@ create policy "family_task_completions_public_all"
   for all
   to anon, authenticated
   using (true)
-  with check (true);
-
-insert into public.family_members (name, color)
-values
-  ('Andrew', '#ff9d2f'),
-  ('Nichol', '#8b5cf6'),
-  ('Jolie', '#22c55e')
-on conflict (name) do update
-set color = excluded.color;</textarea>
+  with check (true);</textarea>
           <div class="note">Paste this into the Supabase SQL Editor once for your project. These starter policies are intentionally open because this family app writes directly from the browser without login.</div>
         </div>
       </details>
@@ -841,8 +811,8 @@ set color = excluded.color;</textarea>
 
     <section class="panel">
       <div class="panel-head">
-        <div class="panel-title">Recurring Family Tasks</div>
-        <div class="panel-meta">Add the chores that should refresh every day. These rows are stored in the Supabase project configured above and power the Family Tasks board plus weekly point scoring.</div>
+        <div class="panel-title">Recurring Tasks</div>
+        <div class="panel-meta">Add the tasks that should refresh every day. Ad hoc tasks can be added from the Tasks page.</div>
       </div>
 
       <div class="status-pill">
@@ -852,10 +822,6 @@ set color = excluded.color;</textarea>
 
       <div class="task-form">
         <input id="taskTitleInput" class="field" type="text" placeholder="Add recurring task" autocomplete="off" autocapitalize="words" spellcheck="false" />
-        <select id="taskOwnerSelect" class="field" aria-label="Task owner">
-          <option value="">Unassigned</option>
-        </select>
-        <input id="taskPointsInput" class="field" type="number" min="1" step="1" value="1" aria-label="Task points" />
         <button class="action-btn accent" id="addTaskBtn" type="button">Add Task</button>
       </div>
 
@@ -882,7 +848,7 @@ set color = excluded.color;</textarea>
     const CONNECTION_KEY = "pocketsteak_google_connected";
     const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000;
     const TASKS_TABLE = "family_tasks";
-    const MEMBERS_TABLE = "family_members";
+    const TASK_COMPLETIONS_TABLE = "family_task_completions";
 
     let gapiInited = false;
     let gisInited = false;
@@ -890,7 +856,6 @@ set color = excluded.color;</textarea>
     let googleTokenRefreshTimer = null;
     let pendingGoogleTokenRequest = null;
     let recurringTasks = [];
-    let familyMembers = [];
     let supabaseClient = null;
     let supabaseConfigSignature = "";
 
@@ -987,46 +952,6 @@ set color = excluded.color;</textarea>
       document.getElementById("supabaseNote").textContent = text;
     }
 
-    function normalizeOwner(value) {
-      return window.PocketSteakSupabase?.normalizeOwner(value) || String(value || "").trim();
-    }
-
-    function normalizePoints(value) {
-      const numeric = Number(String(value || "").trim());
-      if (!Number.isFinite(numeric) || numeric < 0) {
-        return 0;
-      }
-      return Math.max(0, Math.round(numeric));
-    }
-
-    function formatPoints(points) {
-      return `${points} pt${points === 1 ? "" : "s"}`;
-    }
-
-    function getDefaultMembers() {
-      return (window.PocketSteakSupabase?.defaultMembers || []).map((member) => ({
-        name: normalizeOwner(member.name),
-        color: member.color,
-      }));
-    }
-
-    function buildMembers(records) {
-      const mapped = Array.isArray(records)
-        ? records
-          .map((record) => ({
-            name: normalizeOwner(record?.name),
-            color: String(record?.color || "").trim(),
-          }))
-          .filter((record) => record.name)
-        : [];
-
-      return mapped.length ? mapped : getDefaultMembers();
-    }
-
-    function getMemberChoices() {
-      return familyMembers.length ? familyMembers : getDefaultMembers();
-    }
-
     function escapeHtml(value) {
       return String(value)
         .replaceAll("&", "&amp;")
@@ -1094,12 +1019,11 @@ set color = excluded.color;</textarea>
       try {
         const client = ensureSupabaseClient();
         const checks = await Promise.all([
-          client.from(MEMBERS_TABLE).select("name", { head: true, count: "exact" }),
           client.from(TASKS_TABLE).select("id", { head: true, count: "exact" }),
-          client.from("family_task_completions").select("id", { head: true, count: "exact" }),
+          client.from(TASK_COMPLETIONS_TABLE).select("id", { head: true, count: "exact" }),
         ]);
 
-        const tableNames = [MEMBERS_TABLE, TASKS_TABLE, "family_task_completions"];
+        const tableNames = [TASKS_TABLE, TASK_COMPLETIONS_TABLE];
         const failures = checks
           .map((result, index) => (result.error ? `${tableNames[index]}: ${result.error.message}` : ""))
           .filter(Boolean);
@@ -1115,7 +1039,7 @@ set color = excluded.color;</textarea>
         }
 
         setSupabaseStatus("Connected");
-        setSupabaseNote("Connection works and all three family tables are available.");
+        setSupabaseNote("Connection works and both family task tables are available.");
         document.getElementById("schemaDetails").open = false;
         if (reloadTasks) {
           await loadRecurringTasks();
@@ -1183,21 +1107,6 @@ set color = excluded.color;</textarea>
       }
     }
 
-    function renderOwnerOptions() {
-      const select = document.getElementById("taskOwnerSelect");
-      const currentValue = select.value;
-      const options = [`<option value="">Unassigned</option>`]
-        .concat(
-          getMemberChoices().map((member) => (
-            `<option value="${escapeHtml(member.name)}">${escapeHtml(member.name)}</option>`
-          ))
-        )
-        .join("");
-
-      select.innerHTML = options;
-      select.value = getMemberChoices().some((member) => member.name === currentValue) ? currentValue : "";
-    }
-
     function renderRecurringTasks() {
       const listEl = document.getElementById("taskList");
       const emptyEl = document.getElementById("taskEmpty");
@@ -1212,8 +1121,6 @@ set color = excluded.color;</textarea>
           <div class="task-info">
             <div class="task-title">${escapeHtml(task.title)}</div>
             <div class="task-meta-row">
-              <span class="task-pill owner">${escapeHtml(task.owner || "Unassigned")}</span>
-              <span class="task-pill">${escapeHtml(formatPoints(task.points))}</span>
               <span class="task-pill">Order ${task.sortOrder}</span>
             </div>
           </div>
@@ -1224,8 +1131,6 @@ set color = excluded.color;</textarea>
     }
 
     async function loadRecurringTasks() {
-      renderOwnerOptions();
-
       if (!hasSupabaseConfig()) {
         recurringTasks = [];
         renderRecurringTasks();
@@ -1239,46 +1144,30 @@ set color = excluded.color;</textarea>
 
       try {
         const client = ensureSupabaseClient();
-        const [memberResult, taskResult] = await Promise.allSettled([
-          client
-            .from(MEMBERS_TABLE)
-            .select("name,color")
-            .order("name", { ascending: true }),
-          client
-            .from(TASKS_TABLE)
-            .select("id,title,owner_name,points,sort_order,created_at")
-            .eq("active", true)
-            .not("sort_order", "is", null)
-            .order("sort_order", { ascending: true })
-            .order("created_at", { ascending: true }),
-        ]);
+        const taskResult = await client
+          .from(TASKS_TABLE)
+          .select("id,title,sort_order,created_at")
+          .eq("active", true)
+          .not("sort_order", "is", null)
+          .gt("sort_order", 0)
+          .order("sort_order", { ascending: true })
+          .order("created_at", { ascending: true });
 
-        familyMembers = memberResult.status === "fulfilled" && !memberResult.value.error
-          ? buildMembers(memberResult.value.data)
-          : buildMembers([]);
-
-        renderOwnerOptions();
-
-        if (taskResult.status !== "fulfilled") {
-          throw taskResult.reason;
-        }
-        if (taskResult.value.error) {
-          throw taskResult.value.error;
+        if (taskResult.error) {
+          throw taskResult.error;
         }
 
-        recurringTasks = (taskResult.value.data || [])
+        recurringTasks = (taskResult.data || [])
           .map((task) => ({
             id: task.id,
             title: String(task.title || "").trim(),
-            owner: normalizeOwner(task.owner_name),
-            points: normalizePoints(task.points),
             sortOrder: Number.isFinite(Number(task.sort_order)) ? Number(task.sort_order) : 0,
           }))
           .filter((task) => task.title);
 
         renderRecurringTasks();
         setTaskStatus("Connected");
-        setTaskNote("Recurring family tasks are using the built-in Supabase project.");
+        setTaskNote("Recurring tasks are using the built-in Supabase project.");
       } catch (error) {
         console.error(error);
         recurringTasks = [];
@@ -1290,21 +1179,11 @@ set color = excluded.color;</textarea>
 
     async function addRecurringTask() {
       const titleInput = document.getElementById("taskTitleInput");
-      const ownerSelect = document.getElementById("taskOwnerSelect");
-      const pointsInput = document.getElementById("taskPointsInput");
       const title = String(titleInput.value || "").trim();
-      const owner = normalizeOwner(ownerSelect.value);
-      const points = normalizePoints(pointsInput.value);
 
       if (!title) {
         setTaskNote("Enter a recurring task name first.");
         titleInput.focus();
-        return;
-      }
-
-      if (points <= 0) {
-        setTaskNote("Recurring tasks need at least 1 point.");
-        pointsInput.focus();
         return;
       }
 
@@ -1320,8 +1199,6 @@ set color = excluded.color;</textarea>
           .from(TASKS_TABLE)
           .insert({
             title,
-            owner_name: owner || null,
-            points,
             active: true,
             sort_order: nextSortOrder,
           });
@@ -1331,8 +1208,6 @@ set color = excluded.color;</textarea>
         }
 
         titleInput.value = "";
-        ownerSelect.value = "";
-        pointsInput.value = "1";
         await loadRecurringTasks();
         setTaskNote(`Added "${title}" as a recurring task.`);
         titleInput.focus();
