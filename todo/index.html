@@ -987,6 +987,7 @@
     const TASKS_TABLE = "family_tasks";
     const COMPLETIONS_TABLE = "family_task_completions";
     const PEOPLE_TABLE = "family_people";
+    const LEGACY_PEOPLE_TABLE = "family_members";
     const TASK_CLAIMS_TABLE = "family_task_claims";
     const TASK_COLORS_TABLE = "family_task_type_colors";
     const RECURRENCE_OPTIONS = [
@@ -1025,6 +1026,7 @@
       "December",
     ];
     const MS_PER_DAY = 24 * 60 * 60 * 1000;
+    const TODO_SYNC_INTERVAL_MS = 15000;
 
     let taskRows = [];
     let people = [];
@@ -1554,6 +1556,35 @@
       return result;
     }
 
+    async function selectPeopleRows(client) {
+      let result = await client
+        .from(PEOPLE_TABLE)
+        .select("id,name,color,active,sort_order,created_at")
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: true });
+
+      if (!result.error) return result;
+
+      if (isMissingColumnError(result.error, "active") || isMissingColumnError(result.error, "sort_order")) {
+        return client
+          .from(PEOPLE_TABLE)
+          .select("id,name,color,created_at")
+          .order("created_at", { ascending: true });
+      }
+
+      if (
+        !isMissingColumnError(result.error, PEOPLE_TABLE) &&
+        result.error?.code !== "PGRST205"
+      ) {
+        return result;
+      }
+
+      return client
+        .from(LEGACY_PEOPLE_TABLE)
+        .select("id,name,color,created_at")
+        .order("created_at", { ascending: true });
+    }
+
     async function insertCompletion(client, taskId, dayKey, weekKey) {
       const completionPayload = {
         task_id: taskId,
@@ -1592,9 +1623,13 @@
       return result;
     }
 
-    async function loadTodos() {
-      setBusy(true);
-      showMessage("", "");
+    async function loadTodos({ silent = false } = {}) {
+      if (silent && isBusy) return;
+
+      if (!silent) {
+        setBusy(true);
+        showMessage("", "");
+      }
 
       try {
         const client = ensureSupabaseClient();
@@ -1604,11 +1639,7 @@
             .from(COMPLETIONS_TABLE)
             .select("id,task_id,completed_at,day_key,week_start")
             .order("completed_at", { ascending: false }),
-          client
-            .from(PEOPLE_TABLE)
-            .select("id,name,color,active,sort_order,created_at")
-            .order("sort_order", { ascending: true })
-            .order("created_at", { ascending: true }),
+          selectPeopleRows(client),
           client
             .from(TASK_COLORS_TABLE)
             .select("task_type,color"),
@@ -1628,6 +1659,7 @@
         if (colorResult.value.error && !isMissingTaskSchemaError(colorResult.value.error)) throw colorResult.value.error;
         if (claimResult.status !== "fulfilled") throw claimResult.reason;
         if (claimResult.value.error && !isMissingTaskSchemaError(claimResult.value.error)) throw claimResult.value.error;
+        if (silent && isBusy) return;
 
         people = (peopleResult.value.error ? [] : (peopleResult.value.data || []))
           .map((person) => ({
@@ -1708,12 +1740,19 @@
         setStatus("Connected", true);
       } catch (error) {
         console.error(error);
+        if (silent) {
+          setStatus("Sync delayed", false);
+          return;
+        }
+
         taskRows = [];
         renderTodos();
         setStatus("Load failed", false);
         showMessage(getReadableError(error), "error");
       } finally {
-        setBusy(false);
+        if (!silent) {
+          setBusy(false);
+        }
       }
     }
 
@@ -2035,6 +2074,19 @@
         addItem();
       }
     });
+
+    function syncTodosInBackground() {
+      if (document.visibilityState === "hidden") return;
+      loadTodos({ silent: true });
+    }
+
+    window.addEventListener("focus", syncTodosInBackground);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        syncTodosInBackground();
+      }
+    });
+    setInterval(syncTodosInBackground, TODO_SYNC_INTERVAL_MS);
 
     setStatus("Loading...", false);
     loadTodos();
