@@ -242,19 +242,23 @@
       align-items:center;
     }
 
-    .task-add-row{
+    .task-builder{
       display:grid;
-      grid-template-columns:minmax(0, 1fr) auto;
+      grid-template-columns:minmax(220px, 1.35fr) minmax(170px, .65fr) minmax(0, 1fr) auto;
       gap:10px;
       align-items:center;
+      padding:12px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);
+      border-radius:20px;
     }
 
-    .task-add-row.has-schedule{
-      grid-template-columns:minmax(0, 1fr) minmax(150px, .55fr) auto;
+    .task-builder-schedule{
+      min-width:0;
     }
 
-    .task-add-row.has-date-schedule{
-      grid-template-columns:minmax(0, 1fr) minmax(230px, .75fr) auto;
+    .task-builder-schedule:empty{
+      display:none;
     }
 
     .task-schedule-controls{
@@ -267,7 +271,7 @@
       grid-template-columns:1fr;
     }
 
-    .task-add-row .action-btn{
+    .task-builder .action-btn{
       min-width:68px;
       min-height:44px;
       padding:10px 14px;
@@ -313,7 +317,7 @@
 
     .task-group{
       display:grid;
-      grid-template-rows:auto auto minmax(0, 1fr);
+      grid-template-rows:auto minmax(0, 1fr);
       gap:12px;
       padding:14px;
       height:380px;
@@ -492,9 +496,7 @@
       }
 
       .connection-form,
-      .task-add-row,
-      .task-add-row.has-schedule,
-      .task-add-row.has-date-schedule{
+      .task-builder{
         grid-template-columns:1fr;
       }
 
@@ -839,6 +841,29 @@
         <div class="status-label">Supabase Tasks</div>
         <div class="status-text" id="taskStatusText">Loading…</div>
       </div>
+
+      <form class="task-builder" id="recurringTaskForm">
+        <input
+          id="taskTitleInput"
+          class="field"
+          type="text"
+          placeholder="Task"
+          autocomplete="off"
+          autocapitalize="words"
+          spellcheck="false"
+        />
+        <select id="taskRecurrenceSelect" class="field" aria-label="Recurrence">
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="bi_weekly">Bi Weekly</option>
+          <option value="monthly">Monthly</option>
+          <option value="every_other_month">Every Other Month</option>
+          <option value="twice_a_year">Twice A Year</option>
+          <option value="yearly">Once A Year</option>
+        </select>
+        <div class="task-builder-schedule" id="taskBuilderSchedule"></div>
+        <button class="action-btn accent" id="addRecurringTaskBtn" type="submit">Add</button>
+      </form>
 
       <div class="task-list" id="taskList"></div>
       <div class="task-empty" id="taskEmpty">No recurring tasks yet.</div>
@@ -1355,6 +1380,15 @@
       return "";
     }
 
+    function renderTaskBuilderSchedule() {
+      const form = document.getElementById("recurringTaskForm");
+      const recurrence = normalizeRecurrence(document.getElementById("taskRecurrenceSelect").value);
+      const scheduleEl = document.getElementById("taskBuilderSchedule");
+      scheduleEl.innerHTML = renderScheduleControls(recurrence);
+      form.classList.toggle("has-schedule", recurrence !== "daily");
+      form.classList.toggle("has-date-schedule", usesDateSchedule(recurrence));
+    }
+
     function renderRecurringTasks() {
       const listEl = document.getElementById("taskList");
       const emptyEl = document.getElementById("taskEmpty");
@@ -1372,19 +1406,6 @@
             <div class="task-group-count">${groupTasks.length} task${groupTasks.length === 1 ? "" : "s"}</div>
             <div class="task-group-rule">${escapeHtml(option.timing)}</div>
           </div>
-          <form class="task-add-row${option.value !== "daily" ? " has-schedule" : ""}${usesDateSchedule(option.value) ? " has-date-schedule" : ""}" data-recurrence-form="${option.value}">
-            <input
-              class="field"
-              type="text"
-              placeholder="Add ${option.label.toLowerCase()} task"
-              autocomplete="off"
-              autocapitalize="words"
-              spellcheck="false"
-              data-task-title-input
-            />
-            ${renderScheduleControls(option.value)}
-            <button class="action-btn accent" type="submit">Add</button>
-          </form>
           <div class="task-group-list">
             ${groupTasks.length
               ? groupTasks.map((task) => `
@@ -1411,12 +1432,6 @@
         `;
         listEl.appendChild(group);
       });
-    }
-
-    function getRecurrenceForm(recurrenceValue) {
-      const recurrence = normalizeRecurrence(recurrenceValue);
-      return Array.from(document.querySelectorAll("[data-recurrence-form]"))
-        .find((form) => form.dataset.recurrenceForm === recurrence);
     }
 
     async function loadRecurringTasks() {
@@ -1479,10 +1494,10 @@
       }
     }
 
-    async function addRecurringTask(recurrenceValue) {
-      const recurrence = normalizeRecurrence(recurrenceValue);
-      const form = getRecurrenceForm(recurrence);
-      const titleInput = form?.querySelector("[data-task-title-input]");
+    async function addRecurringTask() {
+      const form = document.getElementById("recurringTaskForm");
+      const recurrence = normalizeRecurrence(document.getElementById("taskRecurrenceSelect").value);
+      const titleInput = document.getElementById("taskTitleInput");
       const title = String(titleInput?.value || "").trim();
       const schedule = getFormSchedule(form, recurrence);
 
@@ -1533,7 +1548,7 @@
         await loadRecurringTasks();
         const startLabel = getScheduleStartLabel(recurrence, schedule);
         setTaskNote(`Added "${title}" as a ${getRecurrenceLabel(recurrence).toLowerCase()} task for ${getScheduleLabel(recurrence, schedule).toLowerCase()}${startLabel ? `, ${startLabel.toLowerCase()}` : ""}.`);
-        getRecurrenceForm(recurrence)?.querySelector("[data-task-title-input]")?.focus();
+        titleInput?.focus();
       } catch (error) {
         console.error(error);
         setTaskStatus("Save failed");
@@ -1747,11 +1762,16 @@
       testSupabaseTables({ reloadTasks: true });
     });
     document.getElementById("resetSupabaseBtn").addEventListener("click", resetSupabaseConnection);
-    document.getElementById("taskList").addEventListener("submit", (event) => {
-      const form = event.target.closest("[data-recurrence-form]");
-      if (!form) return;
+    document.getElementById("recurringTaskForm").addEventListener("submit", (event) => {
       event.preventDefault();
-      addRecurringTask(form.dataset.recurrenceForm);
+      addRecurringTask();
+    });
+    document.getElementById("taskRecurrenceSelect").addEventListener("change", renderTaskBuilderSchedule);
+    document.getElementById("recurringTaskForm").addEventListener("change", (event) => {
+      const monthSelect = event.target.closest("[data-schedule-month]");
+      if (!monthSelect) return;
+      const container = monthSelect.closest("#recurringTaskForm");
+      updateDayOptions(container?.querySelector("[data-schedule-day]"), monthSelect.value);
     });
     document.getElementById("taskList").addEventListener("click", (event) => {
       const button = event.target.closest("[data-task-id]");
@@ -1777,6 +1797,7 @@
     document.getElementById("authBtn").disabled = true;
 
     window.addEventListener("load", async () => {
+      renderTaskBuilderSchedule();
       renderRecurringTasks();
       renderSupabaseConnection();
       testSupabaseTables({ reloadTasks: true });
