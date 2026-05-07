@@ -297,6 +297,17 @@
       padding:10px 14px;
     }
 
+    .person-builder{
+      display:grid;
+      grid-template-columns:minmax(220px, 1fr) minmax(120px, 180px) auto;
+      gap:10px;
+      align-items:end;
+      padding:12px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);
+      border-radius:20px;
+    }
+
     .field,
     .task-list-item{
       border:1px solid rgba(255,255,255,.08);
@@ -320,6 +331,20 @@
       cursor:pointer;
     }
 
+    .color-field{
+      padding:6px;
+      cursor:pointer;
+    }
+
+    .color-field::-webkit-color-swatch-wrapper{
+      padding:0;
+    }
+
+    .color-field::-webkit-color-swatch{
+      border:0;
+      border-radius:12px;
+    }
+
     .field::placeholder{
       color:rgba(255,255,255,.46);
     }
@@ -334,6 +359,62 @@
       grid-template-columns:repeat(3, minmax(0, 1fr));
       gap:14px;
       align-items:start;
+    }
+
+    .color-list,
+    .people-list{
+      display:grid;
+      gap:10px;
+    }
+
+    .color-row,
+    .person-row{
+      display:grid;
+      grid-template-columns:minmax(160px, 1fr) minmax(120px, 180px) auto;
+      gap:10px;
+      align-items:center;
+      padding:12px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);
+      border-radius:18px;
+    }
+
+    .color-name,
+    .person-name{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+      font-size:14px;
+      font-weight:900;
+    }
+
+    .color-dot{
+      width:14px;
+      height:14px;
+      border-radius:999px;
+      flex:0 0 auto;
+      box-shadow:0 0 0 3px rgba(255,255,255,.08);
+    }
+
+    .person-row .field{
+      min-height:46px;
+    }
+
+    .mini-btn{
+      min-height:40px;
+      border:0;
+      border-radius:14px;
+      padding:8px 12px;
+      background:rgba(255,255,255,.1);
+      color:var(--text);
+      cursor:pointer;
+      font-size:13px;
+      font-weight:900;
+    }
+
+    .mini-btn:hover{
+      background:rgba(255,255,255,.14);
     }
 
     .task-group{
@@ -517,7 +598,10 @@
       }
 
       .connection-form,
-      .task-builder{
+      .task-builder,
+      .person-builder,
+      .color-row,
+      .person-row{
         grid-template-columns:1fr;
       }
 
@@ -900,6 +984,47 @@
       <div class="task-empty" id="taskEmpty">No recurring tasks yet.</div>
       <div class="note" id="taskNote">Scheduled tasks use the built-in Supabase project.</div>
     </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Task Colors</div>
+        <div class="panel-meta">Set the color for each task type. People colors are managed separately below.</div>
+      </div>
+
+      <div class="color-list" id="taskColorList"></div>
+      <div class="note" id="colorNote">Task type colors load from Supabase.</div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <div class="panel-title">People</div>
+        <div class="panel-meta">Add the names that ad hoc tasks can be assigned to and recurring tasks can be claimed by.</div>
+      </div>
+
+      <form class="person-builder" id="personForm">
+        <div class="task-field">
+          <label class="task-field-label" for="personNameInput">Name</label>
+          <input
+            id="personNameInput"
+            class="field"
+            type="text"
+            placeholder="Person name"
+            autocomplete="off"
+            autocapitalize="words"
+            spellcheck="false"
+          />
+        </div>
+        <div class="task-field">
+          <label class="task-field-label" for="personColorInput">Color</label>
+          <input id="personColorInput" class="field color-field" type="color" value="#ec4899" />
+        </div>
+        <button class="action-btn accent" id="addPersonBtn" type="submit">Add Person</button>
+      </form>
+
+      <div class="people-list" id="peopleList"></div>
+      <div class="task-empty" id="peopleEmpty">No people added yet.</div>
+      <div class="note" id="peopleNote">People load from Supabase.</div>
+    </section>
   </div>
 
   <script>
@@ -914,6 +1039,9 @@
     const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000;
     const TASKS_TABLE = "family_tasks";
     const TASK_COMPLETIONS_TABLE = "family_task_completions";
+    const PEOPLE_TABLE = "family_people";
+    const TASK_CLAIMS_TABLE = "family_task_claims";
+    const TASK_COLORS_TABLE = "family_task_type_colors";
     const SUPABASE_SETUP_NOTE = "Database setup needs a private schema update. Ask Andrew or Codex to apply it, then test again.";
     const RECURRENCE_OPTIONS = [
       { value: "daily", label: "Daily", timing: "Resets at local midnight." },
@@ -925,6 +1053,21 @@
       { value: "yearly", label: "Once A Year", timing: "Choose the yearly date." },
     ];
     const RECURRENCE_VALUES = new Set(RECURRENCE_OPTIONS.map((option) => option.value));
+    const TASK_TYPE_OPTIONS = [
+      { value: "adhoc", label: "Ad Hoc", timing: "Unscheduled family task." },
+      ...RECURRENCE_OPTIONS,
+    ];
+    const DEFAULT_TASK_TYPE_COLORS = {
+      adhoc: "#22c55e",
+      daily: "#2563eb",
+      weekly: "#0f766e",
+      bi_weekly: "#0284c7",
+      monthly: "#14b8a6",
+      every_other_month: "#65a30d",
+      twice_a_year: "#eab308",
+      yearly: "#dc2626",
+    };
+    const PERSON_COLOR_DEFAULTS = ["#ec4899", "#f97316", "#8b5cf6"];
     const WEEKDAY_OPTIONS = [
       { value: 0, label: "Sunday" },
       { value: 1, label: "Monday" },
@@ -955,6 +1098,8 @@
     let googleTokenRefreshTimer = null;
     let pendingGoogleTokenRequest = null;
     let recurringTasks = [];
+    let taskTypeColors = { ...DEFAULT_TASK_TYPE_COLORS };
+    let people = [];
     let supabaseClient = null;
     let supabaseConfigSignature = "";
 
@@ -1043,6 +1188,14 @@
       document.getElementById("taskNote").textContent = text;
     }
 
+    function setColorNote(text) {
+      document.getElementById("colorNote").textContent = text;
+    }
+
+    function setPeopleNote(text) {
+      document.getElementById("peopleNote").textContent = text;
+    }
+
     function setSupabaseStatus(text) {
       document.getElementById("supabaseStatusText").textContent = text;
     }
@@ -1117,6 +1270,25 @@
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
+    }
+
+    function normalizeColor(value, fallback = "#64748b") {
+      const color = String(value || "").trim();
+      return /^#[0-9a-f]{6}$/i.test(color) ? color.toLowerCase() : fallback;
+    }
+
+    function getTaskTypeColor(taskType) {
+      const key = String(taskType || "").trim();
+      return normalizeColor(taskTypeColors[key], DEFAULT_TASK_TYPE_COLORS[key] || "#64748b");
+    }
+
+    function getTaskTypeLabel(taskType) {
+      const key = String(taskType || "").trim();
+      return TASK_TYPE_OPTIONS.find((option) => option.value === key)?.label || "Task";
+    }
+
+    function getNextPersonColor() {
+      return PERSON_COLOR_DEFAULTS[people.filter((person) => person.active !== false).length % PERSON_COLOR_DEFAULTS.length];
     }
 
     function normalizeRecurrence(value) {
@@ -1242,7 +1414,13 @@
         isMissingColumnError(error, "recurrence_month") ||
         isMissingColumnError(error, "recurrence_day_of_month") ||
         isMissingColumnError(error, "recurrence_start_date") ||
-        error?.code === "PGRST204"
+        isMissingColumnError(error, "assigned_person_id") ||
+        isMissingColumnError(error, PEOPLE_TABLE) ||
+        isMissingColumnError(error, TASK_CLAIMS_TABLE) ||
+        isMissingColumnError(error, TASK_COLORS_TABLE) ||
+        error?.code === "PGRST204" ||
+        error?.code === "PGRST205" ||
+        error?.code === "42P01"
       );
     }
 
@@ -1291,7 +1469,7 @@
         setSupabaseNote("The app is currently pointed at the built-in PocketSteak Supabase project. Replace these values if you want to use your own project instead.");
       } else {
         setSupabaseStatus("Custom project saved");
-        setSupabaseNote("This browser is pointed at your custom Supabase project. Run the SQL below once if the family tables do not exist there yet.");
+        setSupabaseNote("This browser is pointed at your custom Supabase project. Keep schema updates private and test the tables here.");
       }
     }
 
@@ -1302,11 +1480,14 @@
       try {
         const client = ensureSupabaseClient();
         const checks = await Promise.all([
-          client.from(TASKS_TABLE).select("id,recurrence_interval,recurrence_day_of_week,recurrence_month,recurrence_day_of_month,recurrence_start_date", { head: true, count: "exact" }),
+          client.from(TASKS_TABLE).select("id,assigned_person_id,recurrence_interval,recurrence_day_of_week,recurrence_month,recurrence_day_of_month,recurrence_start_date", { head: true, count: "exact" }),
           client.from(TASK_COMPLETIONS_TABLE).select("id", { head: true, count: "exact" }),
+          client.from(PEOPLE_TABLE).select("id,name,color,active,sort_order", { head: true, count: "exact" }),
+          client.from(TASK_CLAIMS_TABLE).select("id,task_id,day_key,person_id", { head: true, count: "exact" }),
+          client.from(TASK_COLORS_TABLE).select("task_type,color", { head: true, count: "exact" }),
         ]);
 
-        const tableNames = [TASKS_TABLE, TASK_COMPLETIONS_TABLE];
+        const tableNames = [TASKS_TABLE, TASK_COMPLETIONS_TABLE, PEOPLE_TABLE, TASK_CLAIMS_TABLE, TASK_COLORS_TABLE];
         const failures = checks
           .map((result, index) => (result.error ? `${tableNames[index]}: ${getSupabaseErrorMessage(result.error)}` : ""))
           .filter(Boolean);
@@ -1315,15 +1496,15 @@
           setSupabaseStatus("Schema missing");
           setSupabaseNote(`${SUPABASE_SETUP_NOTE} ${failures.join(" | ")}`);
           if (reloadTasks) {
-            await loadRecurringTasks();
+            await loadTaskSettingsData();
           }
           return false;
         }
 
         setSupabaseStatus("Connected");
-        setSupabaseNote("Connection works and both family task tables are available.");
+        setSupabaseNote("Connection works and family task tables are available.");
         if (reloadTasks) {
-          await loadRecurringTasks();
+          await loadTaskSettingsData();
         }
         return true;
       } catch (error) {
@@ -1331,7 +1512,7 @@
         setSupabaseStatus("Connection failed");
         setSupabaseNote(error?.message || "Could not reach Supabase.");
         if (reloadTasks) {
-          await loadRecurringTasks();
+          await loadTaskSettingsData();
         }
         return false;
       }
@@ -1475,6 +1656,254 @@
         `;
         listEl.appendChild(group);
       });
+    }
+
+    function renderTaskColors() {
+      const listEl = document.getElementById("taskColorList");
+      listEl.innerHTML = TASK_TYPE_OPTIONS.map((option) => {
+        const color = getTaskTypeColor(option.value);
+        return `
+          <div class="color-row" data-task-color-type="${escapeHtml(option.value)}">
+            <div class="color-name">
+              <span class="color-dot" style="background:${escapeHtml(color)}"></span>
+              <span>${escapeHtml(option.label)}</span>
+            </div>
+            <input class="field color-field" type="color" value="${escapeHtml(color)}" aria-label="${escapeHtml(option.label)} color" data-task-color-input />
+            <button class="mini-btn" type="button" data-task-color-save>Save</button>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderPeople() {
+      const listEl = document.getElementById("peopleList");
+      const emptyEl = document.getElementById("peopleEmpty");
+      const activePeople = people
+        .filter((person) => person.active !== false)
+        .sort((a, b) => {
+          const aSort = Number.isFinite(Number(a.sortOrder)) ? Number(a.sortOrder) : 999999;
+          const bSort = Number.isFinite(Number(b.sortOrder)) ? Number(b.sortOrder) : 999999;
+          if (aSort !== bSort) return aSort - bSort;
+          return a.name.localeCompare(b.name);
+        });
+
+      emptyEl.style.display = activePeople.length ? "none" : "block";
+      listEl.innerHTML = activePeople.map((person) => {
+        const color = normalizeColor(person.color, "#ec4899");
+        return `
+          <div class="person-row" data-person-id="${escapeHtml(person.id)}">
+            <div class="task-field">
+              <label class="task-field-label">Name</label>
+              <input class="field" type="text" value="${escapeHtml(person.name)}" autocomplete="off" autocapitalize="words" spellcheck="false" data-person-name />
+            </div>
+            <div class="task-field">
+              <label class="task-field-label">Color</label>
+              <input class="field color-field" type="color" value="${escapeHtml(color)}" data-person-color />
+            </div>
+            <div class="action-row">
+              <button class="mini-btn" type="button" data-person-save>Save</button>
+              <button class="mini-btn" type="button" data-person-archive>Archive</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    async function loadTaskColorSettings() {
+      taskTypeColors = { ...DEFAULT_TASK_TYPE_COLORS };
+      renderTaskColors();
+
+      if (!hasSupabaseConfig()) {
+        setColorNote("Supabase Tasks is still starting up.");
+        return;
+      }
+
+      try {
+        const client = ensureSupabaseClient();
+        const result = await client
+          .from(TASK_COLORS_TABLE)
+          .select("task_type,color")
+          .order("task_type", { ascending: true });
+
+        if (result.error) throw result.error;
+
+        (result.data || []).forEach((row) => {
+          const key = String(row.task_type || "").trim();
+          if (Object.prototype.hasOwnProperty.call(DEFAULT_TASK_TYPE_COLORS, key)) {
+            taskTypeColors[key] = normalizeColor(row.color, DEFAULT_TASK_TYPE_COLORS[key]);
+          }
+        });
+
+        renderTaskColors();
+        setColorNote("Task type colors are saved in Supabase.");
+      } catch (error) {
+        console.error(error);
+        renderTaskColors();
+        setColorNote(isScheduleSchemaError(error) ? SUPABASE_SETUP_NOTE : (error?.message || "Could not load task colors."));
+      }
+    }
+
+    async function saveTaskTypeColor(taskType, colorValue) {
+      const taskColor = normalizeColor(colorValue, DEFAULT_TASK_TYPE_COLORS[taskType] || "#64748b");
+      taskTypeColors[taskType] = taskColor;
+      renderTaskColors();
+
+      try {
+        const client = ensureSupabaseClient();
+        const result = await client
+          .from(TASK_COLORS_TABLE)
+          .upsert({
+            task_type: taskType,
+            color: taskColor,
+            updated_at: new Date().toISOString(),
+          }, {
+            onConflict: "task_type",
+          });
+
+        if (result.error) throw result.error;
+        setColorNote(`${getTaskTypeLabel(taskType)} color saved.`);
+      } catch (error) {
+        console.error(error);
+        setColorNote(isScheduleSchemaError(error) ? SUPABASE_SETUP_NOTE : (error?.message || "Could not save task color."));
+      }
+    }
+
+    async function loadPeopleSettings() {
+      people = [];
+      renderPeople();
+
+      if (!hasSupabaseConfig()) {
+        setPeopleNote("Supabase Tasks is still starting up.");
+        return;
+      }
+
+      try {
+        const client = ensureSupabaseClient();
+        const result = await client
+          .from(PEOPLE_TABLE)
+          .select("id,name,color,active,sort_order,created_at")
+          .order("sort_order", { ascending: true })
+          .order("created_at", { ascending: true });
+
+        if (result.error) throw result.error;
+
+        people = (result.data || [])
+          .map((person) => ({
+            id: String(person.id || "").trim(),
+            name: String(person.name || "").trim(),
+            color: normalizeColor(person.color, "#ec4899"),
+            active: person.active !== false,
+            sortOrder: Number.isFinite(Number(person.sort_order)) ? Number(person.sort_order) : null,
+            createdAt: String(person.created_at || "").trim(),
+          }))
+          .filter((person) => person.id && person.name);
+
+        renderPeople();
+        document.getElementById("personColorInput").value = getNextPersonColor();
+        setPeopleNote(`${people.filter((person) => person.active !== false).length} people available for assignment.`);
+      } catch (error) {
+        console.error(error);
+        renderPeople();
+        setPeopleNote(isScheduleSchemaError(error) ? SUPABASE_SETUP_NOTE : (error?.message || "Could not load people."));
+      }
+    }
+
+    async function addPerson() {
+      const nameInput = document.getElementById("personNameInput");
+      const colorInput = document.getElementById("personColorInput");
+      const name = String(nameInput.value || "").trim();
+      const color = normalizeColor(colorInput.value, getNextPersonColor());
+
+      if (!name) {
+        setPeopleNote("Enter a person name first.");
+        nameInput.focus();
+        return;
+      }
+
+      try {
+        const client = ensureSupabaseClient();
+        const activePeople = people.filter((person) => person.active !== false);
+        const nextSortOrder = activePeople.length
+          ? Math.max(...activePeople.map((person) => Number(person.sortOrder) || 0)) + 10
+          : 10;
+        const result = await client
+          .from(PEOPLE_TABLE)
+          .insert({
+            name,
+            color,
+            active: true,
+            sort_order: nextSortOrder,
+          });
+
+        if (result.error) throw result.error;
+
+        nameInput.value = "";
+        await loadPeopleSettings();
+        setPeopleNote(`${name} added.`);
+        nameInput.focus();
+      } catch (error) {
+        console.error(error);
+        setPeopleNote(isScheduleSchemaError(error) ? SUPABASE_SETUP_NOTE : (error?.message || "Could not add person."));
+      }
+    }
+
+    async function savePerson(personId) {
+      const row = document.querySelector(`[data-person-id="${CSS.escape(personId)}"]`);
+      if (!row) return;
+
+      const name = String(row.querySelector("[data-person-name]")?.value || "").trim();
+      const color = normalizeColor(row.querySelector("[data-person-color]")?.value, "#ec4899");
+      if (!name) {
+        setPeopleNote("Person name cannot be blank.");
+        return;
+      }
+
+      try {
+        const client = ensureSupabaseClient();
+        const result = await client
+          .from(PEOPLE_TABLE)
+          .update({ name, color })
+          .eq("id", personId);
+
+        if (result.error) throw result.error;
+
+        await loadPeopleSettings();
+        setPeopleNote(`${name} saved.`);
+      } catch (error) {
+        console.error(error);
+        setPeopleNote(error?.message || "Could not save person.");
+      }
+    }
+
+    async function archivePerson(personId) {
+      const person = people.find((entry) => entry.id === personId);
+      if (!person) return;
+      const confirmed = window.confirm(`Archive ${person.name}? Existing assigned tasks will keep their name, but they will no longer appear as an option.`);
+      if (!confirmed) return;
+
+      try {
+        const client = ensureSupabaseClient();
+        const result = await client
+          .from(PEOPLE_TABLE)
+          .update({ active: false })
+          .eq("id", personId);
+
+        if (result.error) throw result.error;
+
+        await loadPeopleSettings();
+        setPeopleNote(`${person.name} archived.`);
+      } catch (error) {
+        console.error(error);
+        setPeopleNote(error?.message || "Could not archive person.");
+      }
+    }
+
+    async function loadTaskSettingsData() {
+      await Promise.all([
+        loadRecurringTasks(),
+        loadTaskColorSettings(),
+        loadPeopleSettings(),
+      ]);
     }
 
     async function loadRecurringTasks() {
@@ -1809,6 +2238,10 @@
       event.preventDefault();
       addRecurringTask();
     });
+    document.getElementById("personForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      addPerson();
+    });
     document.getElementById("taskRecurrenceSelect").addEventListener("change", renderTaskBuilderSchedule);
     document.getElementById("recurringTaskForm").addEventListener("change", (event) => {
       const monthSelect = event.target.closest("[data-schedule-month]");
@@ -1836,12 +2269,42 @@
         scheduleContainer
       );
     });
+    document.getElementById("taskColorList").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-task-color-save]");
+      if (!button) return;
+      const row = button.closest("[data-task-color-type]");
+      const taskType = row?.dataset.taskColorType;
+      const color = row?.querySelector("[data-task-color-input]")?.value;
+      if (taskType) {
+        saveTaskTypeColor(taskType, color);
+      }
+    });
+    document.getElementById("taskColorList").addEventListener("input", (event) => {
+      const input = event.target.closest("[data-task-color-input]");
+      if (!input) return;
+      const row = input.closest("[data-task-color-type]");
+      const dot = row?.querySelector(".color-dot");
+      if (dot) dot.style.background = normalizeColor(input.value);
+    });
+    document.getElementById("peopleList").addEventListener("click", (event) => {
+      const row = event.target.closest("[data-person-id]");
+      if (!row) return;
+      const personId = row.dataset.personId;
+      if (event.target.closest("[data-person-save]")) {
+        savePerson(personId);
+      } else if (event.target.closest("[data-person-archive]")) {
+        archivePerson(personId);
+      }
+    });
 
     document.getElementById("authBtn").disabled = true;
 
     window.addEventListener("load", async () => {
       renderTaskBuilderSchedule();
       renderRecurringTasks();
+      renderTaskColors();
+      renderPeople();
+      document.getElementById("personColorInput").value = getNextPersonColor();
       renderSupabaseConnection();
       testSupabaseTables({ reloadTasks: true });
       try {

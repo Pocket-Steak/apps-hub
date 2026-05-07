@@ -2111,6 +2111,9 @@
     const GROCERY_TABLE = "family_grocery_items";
     const TASKS_TABLE = "family_tasks";
     const TASK_COMPLETIONS_TABLE = "family_task_completions";
+    const PEOPLE_TABLE = "family_people";
+    const TASK_CLAIMS_TABLE = "family_task_claims";
+    const TASK_COLORS_TABLE = "family_task_type_colors";
     const BUILT_IN_SUPABASE_URL = "https://vmmdskviwqddgalccoyc.supabase.co";
     const BUILT_IN_SUPABASE_ANON_KEY = "sb_publishable_Y95c2qYSmD8YKdaIeOZYWA_6GmC2OHM";
     const SCOPES = "https://www.googleapis.com/auth/calendar";
@@ -2124,6 +2127,16 @@
       { value: "yearly", label: "Once A Year" },
     ];
     const RECURRENCE_VALUES = new Set(RECURRENCE_OPTIONS.map((option) => option.value));
+    const DEFAULT_TASK_TYPE_COLORS = {
+      adhoc: "#22c55e",
+      daily: "#2563eb",
+      weekly: "#0f766e",
+      bi_weekly: "#0284c7",
+      monthly: "#14b8a6",
+      every_other_month: "#65a30d",
+      twice_a_year: "#eab308",
+      yearly: "#dc2626",
+    };
     const WEEKDAY_LABELS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     const MONTH_LABELS = [
       "January",
@@ -2164,6 +2177,8 @@
     let weekEvents = [];
     let groceryPreviewRows = [];
     let taskPreviewRows = [];
+    let taskPreviewPeople = [];
+    let taskPreviewTypeColors = { ...DEFAULT_TASK_TYPE_COLORS };
     let notesPreviewRows = [];
     let groceryPreviewError = "";
     let taskPreviewError = "";
@@ -2721,6 +2736,9 @@
     }
 
     function getReadableTaskError(error, fallback = "Something went wrong.") {
+      if (isMissingTaskSchemaError(error)) {
+        return "Task assignment needs a private Supabase schema update. Ask Andrew or Codex to apply it, then reload Tasks.";
+      }
       const message = String(error?.message || "").trim();
       if (!message) return fallback;
       if (/failed to fetch/i.test(message)) {
@@ -2734,8 +2752,31 @@
       return text.toLowerCase().includes(columnName.toLowerCase());
     }
 
+    function isMissingTaskSchemaError(error) {
+      const text = `${error?.message || ""} ${error?.details || ""} ${error?.hint || ""}`.toLowerCase();
+      return (
+        text.includes("assigned_person_id") ||
+        text.includes(PEOPLE_TABLE) ||
+        text.includes(TASK_CLAIMS_TABLE) ||
+        text.includes(TASK_COLORS_TABLE) ||
+        error?.code === "PGRST204" ||
+        error?.code === "PGRST205" ||
+        error?.code === "42P01"
+      );
+    }
+
+    function normalizeColor(value, fallback = "#64748b") {
+      const color = String(value || "").trim();
+      return /^#[0-9a-f]{6}$/i.test(color) ? color.toLowerCase() : fallback;
+    }
+
+    function getTaskTypeColor(typeValue) {
+      const key = String(typeValue || "").trim();
+      return normalizeColor(taskPreviewTypeColors[key], DEFAULT_TASK_TYPE_COLORS[key] || "#64748b");
+    }
+
     function getTaskAccentColor(row) {
-      return row?.isRecurring ? "#ff8a1f" : "#ec4899";
+      return row?.taskColor || getTaskTypeColor(row?.isRecurring ? row.recurrence : "adhoc");
     }
 
     function getTaskKindLabel(row) {
@@ -2745,6 +2786,17 @@
         getScheduleLabel(row.recurrence, row.schedule),
         getScheduleStartLabel(row.recurrence, row.schedule),
       ].filter(Boolean).join(" • ");
+    }
+
+    function getTaskAssignmentLabel(row) {
+      if (!row?.assignedPerson) return "";
+      return `${row.isRecurring ? "Claimed by" : "Assigned to"} ${row.assignedPerson.name}`;
+    }
+
+    function getTaskSortBucket(row) {
+      if (!row.isRecurring && !row.assignedPerson) return 0;
+      if (row.assignedPerson) return 1;
+      return 2;
     }
 
     function formatTaskCompletionTime(value) {
@@ -3003,7 +3055,7 @@
             <button class="preview-item" type="button" data-task-id="${escapeHtml(row.id)}" style="border-left-color:${getTaskAccentColor(row)}">
               <div class="preview-item-title">${escapeHtml(row.title)}</div>
               <div class="preview-item-meta">
-                ${escapeHtml(getTaskKindLabel(row))} • Ready
+                ${escapeHtml([getTaskKindLabel(row), getTaskAssignmentLabel(row), "Ready"].filter(Boolean).join(" • "))}
               </div>
             </button>
           `).join("")
@@ -3096,15 +3148,27 @@
       }
 
       const currentDayKey = window.PocketSteakSupabase.getCurrentDayKey();
-      const [initialTaskResult, completionResult] = await Promise.all([
+      const [initialTaskResult, completionResult, peopleResult, colorResult, claimResult] = await Promise.all([
         client
           .from(TASKS_TABLE)
-          .select("id,title,active,sort_order,recurrence_interval,recurrence_day_of_week,recurrence_month,recurrence_day_of_month,recurrence_start_date,created_at")
+          .select("id,title,active,assigned_person_id,sort_order,recurrence_interval,recurrence_day_of_week,recurrence_month,recurrence_day_of_month,recurrence_start_date,created_at")
           .order("created_at", { ascending: false }),
         client
           .from(TASK_COMPLETIONS_TABLE)
           .select("id,task_id,completed_at,day_key,week_start")
           .order("completed_at", { ascending: false }),
+        client
+          .from(PEOPLE_TABLE)
+          .select("id,name,color,active,sort_order,created_at")
+          .order("sort_order", { ascending: true })
+          .order("created_at", { ascending: true }),
+        client
+          .from(TASK_COLORS_TABLE)
+          .select("task_type,color"),
+        client
+          .from(TASK_CLAIMS_TABLE)
+          .select("id,task_id,day_key,person_id,claimed_at")
+          .order("claimed_at", { ascending: false }),
       ]);
       let taskResult = initialTaskResult;
 
@@ -3130,9 +3194,36 @@
       if (completionResult.error) {
         throw completionResult.error;
       }
+      if (peopleResult.error) {
+        throw peopleResult.error;
+      }
+      if (colorResult.error) {
+        throw colorResult.error;
+      }
+      if (claimResult.error) {
+        throw claimResult.error;
+      }
+
+      taskPreviewPeople = (peopleResult.data || [])
+        .map((person) => ({
+          id: String(person.id || "").trim(),
+          name: String(person.name || "").trim(),
+          color: normalizeColor(person.color, "#ec4899"),
+          active: person.active !== false,
+        }))
+        .filter((person) => person.id && person.name);
+
+      taskPreviewTypeColors = { ...DEFAULT_TASK_TYPE_COLORS };
+      (colorResult.data || []).forEach((row) => {
+        const key = String(row.task_type || "").trim();
+        if (Object.prototype.hasOwnProperty.call(DEFAULT_TASK_TYPE_COLORS, key)) {
+          taskPreviewTypeColors[key] = normalizeColor(row.color, DEFAULT_TASK_TYPE_COLORS[key]);
+        }
+      });
 
       const latestCompletions = new Map();
       const completionByTaskAndPeriod = new Map();
+      const claimByTaskAndPeriod = new Map();
       (completionResult.data || []).forEach((entry) => {
         if (!latestCompletions.has(entry.task_id)) {
           latestCompletions.set(entry.task_id, entry);
@@ -3140,6 +3231,12 @@
         const periodMapKey = `${entry.task_id}::${entry.day_key}`;
         if (!completionByTaskAndPeriod.has(periodMapKey)) {
           completionByTaskAndPeriod.set(periodMapKey, entry);
+        }
+      });
+      (claimResult.data || []).forEach((entry) => {
+        const periodMapKey = `${entry.task_id}::${entry.day_key}`;
+        if (!claimByTaskAndPeriod.has(periodMapKey)) {
+          claimByTaskAndPeriod.set(periodMapKey, entry);
         }
       });
 
@@ -3154,6 +3251,12 @@
           const completion = isRecurring
             ? (completionPeriodKey ? completionByTaskAndPeriod.get(`${task.id}::${completionPeriodKey}`) : null)
             : latestCompletions.get(task.id);
+          const claim = isRecurring && completionPeriodKey
+            ? claimByTaskAndPeriod.get(`${task.id}::${completionPeriodKey}`)
+            : null;
+          const personId = String(isRecurring ? claim?.person_id : task.assigned_person_id || "").trim();
+          const assignedPerson = taskPreviewPeople.find((person) => person.id === personId) || null;
+          const taskType = isRecurring ? recurrence : "adhoc";
           return {
             id: String(task.id || "").trim(),
             title: String(task.title || "").trim(),
@@ -3166,12 +3269,22 @@
             active: task.active !== false,
             sortOrder,
             createdAt: String(task.created_at || "").trim(),
+            periodKey: isRecurring ? completionPeriodKey : "",
+            taskType,
+            taskColor: getTaskTypeColor(taskType),
+            assignedPerson,
           };
         })
         .filter((row) => row.id && row.title && (!row.isRecurring || (row.active && row.due)))
         .sort((a, b) => {
           if (a.done !== b.done) return a.done ? 1 : -1;
-          if (a.isRecurring !== b.isRecurring) return a.isRecurring ? -1 : 1;
+          const aBucket = getTaskSortBucket(a);
+          const bBucket = getTaskSortBucket(b);
+          if (aBucket !== bBucket) return aBucket - bBucket;
+          if (a.assignedPerson && b.assignedPerson && a.assignedPerson.name !== b.assignedPerson.name) {
+            return a.assignedPerson.name.localeCompare(b.assignedPerson.name);
+          }
+          if (a.isRecurring !== b.isRecurring) return a.isRecurring ? 1 : -1;
           if (a.isRecurring && a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
           return String(b.createdAt).localeCompare(String(a.createdAt));
         });

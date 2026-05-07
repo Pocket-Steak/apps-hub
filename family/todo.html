@@ -24,7 +24,7 @@
       --accent-2: #ffb26f;
       --accent-hover: #e97812;
       --success: #16a34a;
-      --ad-hoc: #ec4899;
+      --ad-hoc: #22c55e;
       --shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
       --shadow-soft: 0 8px 20px rgba(0, 0, 0, 0.22);
       --radius-xl: 22px;
@@ -200,7 +200,7 @@
 
     .input-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-columns: minmax(0, 1fr) minmax(170px, 220px) auto;
       gap: 16px;
       align-items: center;
     }
@@ -226,6 +226,11 @@
     .item-input:focus {
       border-color: rgba(255, 138, 31, 0.6);
       box-shadow: 0 0 0 4px rgba(255, 138, 31, 0.14);
+    }
+
+    select.item-input {
+      color-scheme: dark;
+      cursor: default;
     }
 
     .helper {
@@ -275,7 +280,7 @@
       text-align: left;
       font-size: 15px;
       font-weight: 850;
-      cursor: pointer;
+      cursor: default;
       transition: transform 0.18s ease, background 0.18s ease, opacity 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
       -webkit-tap-highlight-color: transparent;
       word-break: break-word;
@@ -283,6 +288,38 @@
       gap: 10px;
       align-content: start;
       box-shadow: var(--shadow-soft);
+    }
+
+    .tile-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .tile-action {
+      min-height: 38px;
+      border: 0;
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .tile-action.primary {
+      background: rgba(255, 138, 31, 0.18);
+      color: var(--accent-2);
+    }
+
+    .tile-action:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .tile-action.primary:hover {
+      background: rgba(255, 138, 31, 0.24);
     }
 
     .tile-title {
@@ -320,6 +357,12 @@
       background: rgba(22, 163, 74, 0.14);
     }
 
+    .tile-status.person {
+      color: var(--person-color, var(--text));
+      background: color-mix(in srgb, var(--person-color, #ec4899) 18%, transparent);
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--person-color, #ec4899) 38%, transparent);
+    }
+
     .tile:active {
       transform: scale(0.985);
     }
@@ -331,6 +374,9 @@
 
     .tile.done {
       opacity: 0.7;
+    }
+
+    .tile.done .tile-title {
       text-decoration: line-through;
     }
 
@@ -351,6 +397,74 @@
     .loading {
       opacity: 0.7;
       pointer-events: none;
+    }
+
+    .claim-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background: rgba(0, 0, 0, 0.62);
+      backdrop-filter: blur(10px);
+    }
+
+    .claim-backdrop.open {
+      display: flex;
+    }
+
+    .claim-panel {
+      width: min(520px, 100%);
+      border: 1px solid var(--border-strong);
+      border-radius: 22px;
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.08), transparent 34%),
+        linear-gradient(180deg, var(--panel), var(--panel-2));
+      box-shadow: var(--shadow);
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .claim-title {
+      font-size: 20px;
+      font-weight: 900;
+      line-height: 1.15;
+    }
+
+    .claim-subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .claim-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .claim-person {
+      width: 100%;
+      min-height: 48px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-left: 6px solid var(--person-color, #ec4899);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      padding: 10px 12px;
+      font-size: 15px;
+      font-weight: 900;
+    }
+
+    .claim-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
     @media (max-width: 1180px) {
@@ -439,7 +553,7 @@
       }
 
       .input-row {
-        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-columns: minmax(0, 1fr) minmax(160px, 210px) auto;
         gap: 12px;
       }
 
@@ -705,6 +819,9 @@
           spellcheck="false"
           placeholder="Add ad hoc task"
         />
+        <select id="assigneeSelect" class="item-input" aria-label="Assign ad hoc task">
+          <option value="">Unassigned</option>
+        </select>
         <button id="addBtn" class="btn btn-accent" type="button">Add Task</button>
       </div>
 
@@ -726,9 +843,26 @@
     </section>
   </main>
 
+  <div class="claim-backdrop" id="claimDialog" aria-hidden="true">
+    <section class="claim-panel" role="dialog" aria-modal="true" aria-labelledby="claimTitle">
+      <div>
+        <div class="claim-title" id="claimTitle">Claim Task</div>
+        <div class="claim-subtitle" id="claimSubtitle">Choose who is taking this occurrence.</div>
+      </div>
+      <div class="claim-list" id="claimPeopleList"></div>
+      <div class="claim-actions">
+        <button class="tile-action" id="unclaimBtn" type="button">Unclaim</button>
+        <button class="tile-action primary" id="claimCancelBtn" type="button">Cancel</button>
+      </div>
+    </section>
+  </div>
+
   <script>
     const TASKS_TABLE = "family_tasks";
     const COMPLETIONS_TABLE = "family_task_completions";
+    const PEOPLE_TABLE = "family_people";
+    const TASK_CLAIMS_TABLE = "family_task_claims";
+    const TASK_COLORS_TABLE = "family_task_type_colors";
     const RECURRENCE_OPTIONS = [
       { value: "daily", label: "Daily" },
       { value: "weekly", label: "Weekly" },
@@ -739,6 +873,16 @@
       { value: "yearly", label: "Once A Year" },
     ];
     const RECURRENCE_VALUES = new Set(RECURRENCE_OPTIONS.map((option) => option.value));
+    const DEFAULT_TASK_TYPE_COLORS = {
+      adhoc: "#22c55e",
+      daily: "#2563eb",
+      weekly: "#0f766e",
+      bi_weekly: "#0284c7",
+      monthly: "#14b8a6",
+      every_other_month: "#65a30d",
+      twice_a_year: "#eab308",
+      yearly: "#dc2626",
+    };
     const WEEKDAY_LABELS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     const MONTH_LABELS = [
       "January",
@@ -757,9 +901,12 @@
     const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
     let taskRows = [];
+    let people = [];
+    let taskTypeColors = { ...DEFAULT_TASK_TYPE_COLORS };
     let isBusy = false;
     let supabaseClient = null;
     let supabaseConfigSignature = "";
+    let activeClaimTaskId = "";
 
     const statusPill = document.getElementById("statusPill");
     const statusText = document.getElementById("statusText");
@@ -767,12 +914,18 @@
     const clearAllBtn = document.getElementById("clearAllBtn");
     const addBtn = document.getElementById("addBtn");
     const itemInput = document.getElementById("itemInput");
+    const assigneeSelect = document.getElementById("assigneeSelect");
     const messageEl = document.getElementById("message");
     const activeListEl = document.getElementById("activeList");
     const activeEmptyEl = document.getElementById("activeEmpty");
     const boughtListEl = document.getElementById("boughtList");
     const boughtEmptyEl = document.getElementById("boughtEmpty");
     const inputCard = document.getElementById("inputCard");
+    const claimDialog = document.getElementById("claimDialog");
+    const claimTitle = document.getElementById("claimTitle");
+    const claimPeopleList = document.getElementById("claimPeopleList");
+    const claimSubtitle = document.getElementById("claimSubtitle");
+    const unclaimBtn = document.getElementById("unclaimBtn");
 
     function setBusy(value) {
       isBusy = value;
@@ -780,6 +933,7 @@
       clearAllBtn.disabled = value || !taskRows.some((row) => row.bought && !row.isRecurring);
       connectBtn.disabled = value;
       itemInput.disabled = value;
+      assigneeSelect.disabled = value;
       inputCard.classList.toggle("loading", value);
     }
 
@@ -806,13 +960,62 @@
         .replaceAll("'", "&#039;");
     }
 
+    function normalizeColor(value, fallback = "#64748b") {
+      const color = String(value || "").trim();
+      return /^#[0-9a-f]{6}$/i.test(color) ? color.toLowerCase() : fallback;
+    }
+
+    function getTaskTypeKey(row) {
+      return row?.isRecurring ? normalizeRecurrence(row.recurrence) : "adhoc";
+    }
+
+    function getTaskTypeColor(typeValue) {
+      const key = String(typeValue || "").trim();
+      return normalizeColor(taskTypeColors[key], DEFAULT_TASK_TYPE_COLORS[key] || "#64748b");
+    }
+
+    function getPersonById(personId) {
+      const id = String(personId || "").trim();
+      return people.find((person) => person.id === id) || null;
+    }
+
+    function renderAssigneeOptions() {
+      const activePeople = people
+        .filter((person) => person.active !== false)
+        .sort((a, b) => a.name.localeCompare(b.name));
+      const previousValue = assigneeSelect.value;
+      assigneeSelect.innerHTML = [
+        `<option value="">Unassigned</option>`,
+        ...activePeople.map((person) => `<option value="${escapeHtml(person.id)}">${escapeHtml(person.name)}</option>`),
+      ].join("");
+      if (activePeople.some((person) => person.id === previousValue)) {
+        assigneeSelect.value = previousValue;
+      }
+    }
+
     function getReadableError(error) {
+      if (isMissingTaskSchemaError(error)) {
+        return "Task assignment needs a private Supabase schema update. Ask Andrew or Codex to apply it, then reload Tasks.";
+      }
       return (
         error?.result?.error?.message ||
         error?.details ||
         error?.message ||
         error?.error ||
         "Something went wrong with Supabase Tasks."
+      );
+    }
+
+    function isMissingTaskSchemaError(error) {
+      const text = `${error?.message || ""} ${error?.details || ""} ${error?.hint || ""}`.toLowerCase();
+      return (
+        text.includes("assigned_person_id") ||
+        text.includes(PEOPLE_TABLE) ||
+        text.includes(TASK_CLAIMS_TABLE) ||
+        text.includes(TASK_COLORS_TABLE) ||
+        error?.code === "PGRST204" ||
+        error?.code === "PGRST205" ||
+        error?.code === "42P01"
       );
     }
 
@@ -1149,6 +1352,17 @@
       ].filter(Boolean).join(" • ");
     }
 
+    function getAssignmentLabel(row) {
+      if (!row?.assignedPerson) return "";
+      return `${row.isRecurring ? "Claimed by" : "Assigned to"} ${row.assignedPerson.name}`;
+    }
+
+    function getActiveSortBucket(row) {
+      if (!row.isRecurring && !row.assignedPerson) return 0;
+      if (row.assignedPerson) return 1;
+      return 2;
+    }
+
     function isMissingColumnError(error, columnName) {
       const text = `${error?.message || ""} ${error?.details || ""} ${error?.hint || ""}`;
       return text.toLowerCase().includes(columnName.toLowerCase());
@@ -1156,7 +1370,13 @@
 
     function sortActiveRows(rows) {
       return [...rows].sort((a, b) => {
-        if (a.isRecurring !== b.isRecurring) return a.isRecurring ? -1 : 1;
+        const aBucket = getActiveSortBucket(a);
+        const bBucket = getActiveSortBucket(b);
+        if (aBucket !== bBucket) return aBucket - bBucket;
+        if (a.assignedPerson && b.assignedPerson && a.assignedPerson.name !== b.assignedPerson.name) {
+          return a.assignedPerson.name.localeCompare(b.assignedPerson.name);
+        }
+        if (a.isRecurring !== b.isRecurring) return a.isRecurring ? 1 : -1;
         if (a.isRecurring && a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
         if (!a.isRecurring && a.createdAt !== b.createdAt) return b.createdAt.localeCompare(a.createdAt);
         return a.item.localeCompare(b.item);
@@ -1176,7 +1396,7 @@
     async function selectTaskRows(client) {
       let result = await client
         .from(TASKS_TABLE)
-        .select("id,title,active,sort_order,recurrence_interval,recurrence_day_of_week,recurrence_month,recurrence_day_of_month,recurrence_start_date,created_at")
+        .select("id,title,active,assigned_person_id,sort_order,recurrence_interval,recurrence_day_of_week,recurrence_month,recurrence_day_of_month,recurrence_start_date,created_at")
         .order("created_at", { ascending: false });
 
       if (
@@ -1242,21 +1462,59 @@
 
       try {
         const client = ensureSupabaseClient();
-        const [taskResult, completionResult] = await Promise.allSettled([
+        const [taskResult, completionResult, peopleResult, colorResult, claimResult] = await Promise.allSettled([
           selectTaskRows(client),
           client
             .from(COMPLETIONS_TABLE)
             .select("id,task_id,completed_at,day_key,week_start")
             .order("completed_at", { ascending: false }),
+          client
+            .from(PEOPLE_TABLE)
+            .select("id,name,color,active,sort_order,created_at")
+            .order("sort_order", { ascending: true })
+            .order("created_at", { ascending: true }),
+          client
+            .from(TASK_COLORS_TABLE)
+            .select("task_type,color"),
+          client
+            .from(TASK_CLAIMS_TABLE)
+            .select("id,task_id,day_key,person_id,claimed_at")
+            .order("claimed_at", { ascending: false }),
         ]);
 
         if (taskResult.status !== "fulfilled") throw taskResult.reason;
         if (taskResult.value.error) throw taskResult.value.error;
         if (completionResult.status !== "fulfilled") throw completionResult.reason;
         if (completionResult.value.error) throw completionResult.value.error;
+        if (peopleResult.status !== "fulfilled") throw peopleResult.reason;
+        if (peopleResult.value.error) throw peopleResult.value.error;
+        if (colorResult.status !== "fulfilled") throw colorResult.reason;
+        if (colorResult.value.error) throw colorResult.value.error;
+        if (claimResult.status !== "fulfilled") throw claimResult.reason;
+        if (claimResult.value.error) throw claimResult.value.error;
+
+        people = (peopleResult.value.data || [])
+          .map((person) => ({
+            id: String(person.id || "").trim(),
+            name: String(person.name || "").trim(),
+            color: normalizeColor(person.color, "#ec4899"),
+            active: person.active !== false,
+            sortOrder: Number.isFinite(Number(person.sort_order)) ? Number(person.sort_order) : null,
+          }))
+          .filter((person) => person.id && person.name);
+
+        taskTypeColors = { ...DEFAULT_TASK_TYPE_COLORS };
+        (colorResult.value.data || []).forEach((row) => {
+          const key = String(row.task_type || "").trim();
+          if (Object.prototype.hasOwnProperty.call(DEFAULT_TASK_TYPE_COLORS, key)) {
+            taskTypeColors[key] = normalizeColor(row.color, DEFAULT_TASK_TYPE_COLORS[key]);
+          }
+        });
+        renderAssigneeOptions();
 
         const latestCompletionByTask = new Map();
         const completionByTaskAndPeriod = new Map();
+        const claimByTaskAndPeriod = new Map();
         (completionResult.value.data || []).forEach((entry) => {
           if (!latestCompletionByTask.has(entry.task_id)) {
             latestCompletionByTask.set(entry.task_id, entry);
@@ -1264,6 +1522,12 @@
           const periodMapKey = `${entry.task_id}::${entry.day_key}`;
           if (!completionByTaskAndPeriod.has(periodMapKey)) {
             completionByTaskAndPeriod.set(periodMapKey, entry);
+          }
+        });
+        (claimResult.value.data || []).forEach((entry) => {
+          const periodMapKey = `${entry.task_id}::${entry.day_key}`;
+          if (!claimByTaskAndPeriod.has(periodMapKey)) {
+            claimByTaskAndPeriod.set(periodMapKey, entry);
           }
         });
 
@@ -1278,6 +1542,11 @@
             const completion = isRecurring
               ? (completionPeriodKey ? completionByTaskAndPeriod.get(`${task.id}::${completionPeriodKey}`) : null)
               : latestCompletionByTask.get(task.id);
+            const claim = isRecurring && completionPeriodKey
+              ? claimByTaskAndPeriod.get(`${task.id}::${completionPeriodKey}`)
+              : null;
+            const assignedPerson = getPersonById(isRecurring ? claim?.person_id : task.assigned_person_id);
+            const taskType = isRecurring ? recurrence : "adhoc";
             return {
               id: task.id,
               item: String(task.title || "").trim(),
@@ -1290,6 +1559,11 @@
               sortOrder,
               createdAt: String(task.created_at || "").trim(),
               completedAt: String(completion?.completed_at || "").trim(),
+              periodKey: isRecurring ? completionPeriodKey : "",
+              taskType,
+              taskColor: getTaskTypeColor(taskType),
+              assignedPerson,
+              assignedPersonId: assignedPerson?.id || "",
             };
           })
           .filter((row) => row.item && (!row.isRecurring || (row.active && row.due)));
@@ -1309,6 +1583,7 @@
 
     async function addItem() {
       const item = itemInput.value.trim();
+      const assignedPersonId = String(assigneeSelect.value || "").trim() || null;
 
       if (!item) {
         showMessage("Enter an item first.", "error");
@@ -1326,12 +1601,14 @@
           .insert({
             title: item,
             active: true,
+            assigned_person_id: assignedPersonId,
             sort_order: null,
           });
 
         if (result.error) throw result.error;
 
         itemInput.value = "";
+        assigneeSelect.value = "";
         await loadTodos();
         showMessage("Task added.", "success");
         itemInput.focus();
@@ -1392,6 +1669,111 @@
       }
     }
 
+    function closeClaimDialog() {
+      activeClaimTaskId = "";
+      claimDialog.classList.remove("open");
+      claimDialog.setAttribute("aria-hidden", "true");
+      claimPeopleList.innerHTML = "";
+    }
+
+    function openClaimDialog(taskId) {
+      const row = taskRows.find((entry) => entry.id === taskId && !entry.bought);
+      if (!row) return;
+
+      const activePeople = people
+        .filter((person) => person.active !== false)
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      if (!activePeople.length) {
+        showMessage("Add people in Settings before claiming recurring tasks.", "error");
+        return;
+      }
+
+      activeClaimTaskId = taskId;
+      claimTitle.textContent = row.isRecurring ? "Claim Task" : "Assign Task";
+      claimSubtitle.textContent = row.assignedPerson
+        ? `${row.item} is currently ${row.isRecurring ? "claimed by" : "assigned to"} ${row.assignedPerson.name}.`
+        : `Choose who is taking "${row.item}"${row.isRecurring ? " this time" : ""}.`;
+      unclaimBtn.textContent = row.isRecurring ? "Unclaim" : "Unassign";
+      unclaimBtn.style.display = row.assignedPerson ? "inline-flex" : "none";
+      claimPeopleList.innerHTML = activePeople.map((person) => `
+        <button class="claim-person" type="button" data-claim-person-id="${escapeHtml(person.id)}" style="--person-color:${escapeHtml(person.color)}">
+          ${escapeHtml(person.name)}
+        </button>
+      `).join("");
+      claimDialog.classList.add("open");
+      claimDialog.setAttribute("aria-hidden", "false");
+    }
+
+    async function saveClaim(personId) {
+      const row = taskRows.find((entry) => entry.id === activeClaimTaskId);
+      if (!row || (row.isRecurring && !row.periodKey)) return;
+
+      setBusy(true);
+      showMessage("", "");
+
+      try {
+        const client = ensureSupabaseClient();
+        const result = row.isRecurring
+          ? await client
+              .from(TASK_CLAIMS_TABLE)
+              .upsert({
+                task_id: row.id,
+                day_key: row.periodKey,
+                person_id: personId,
+                claimed_at: new Date().toISOString(),
+              }, {
+                onConflict: "task_id,day_key",
+              })
+          : await client
+              .from(TASKS_TABLE)
+              .update({ assigned_person_id: personId })
+              .eq("id", row.id);
+
+        if (result.error) throw result.error;
+
+        closeClaimDialog();
+        await loadTodos();
+        showMessage(row.isRecurring ? "Task claimed." : "Task assigned.", "success");
+      } catch (error) {
+        console.error(error);
+        showMessage(getReadableError(error), "error");
+        setBusy(false);
+      }
+    }
+
+    async function clearClaim() {
+      const row = taskRows.find((entry) => entry.id === activeClaimTaskId);
+      if (!row || (row.isRecurring && !row.periodKey)) return;
+
+      setBusy(true);
+      showMessage("", "");
+
+      try {
+        const client = ensureSupabaseClient();
+        const result = row.isRecurring
+          ? await client
+              .from(TASK_CLAIMS_TABLE)
+              .delete()
+              .eq("task_id", row.id)
+              .eq("day_key", row.periodKey)
+          : await client
+              .from(TASKS_TABLE)
+              .update({ assigned_person_id: null })
+              .eq("id", row.id);
+
+        if (result.error) throw result.error;
+
+        closeClaimDialog();
+        await loadTodos();
+        showMessage(row.isRecurring ? "Claim removed." : "Assignment removed.", "success");
+      } catch (error) {
+        console.error(error);
+        showMessage(getReadableError(error), "error");
+        setBusy(false);
+      }
+    }
+
     async function clearAllItems() {
       const doneItems = taskRows.filter((row) => row.bought && !row.isRecurring);
 
@@ -1438,35 +1820,45 @@
       clearAllBtn.disabled = isBusy || !boughtItems.some((row) => !row.isRecurring);
 
       activeItems.forEach((row) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "tile";
-        button.style.borderLeftColor = row.isRecurring ? "var(--accent)" : "var(--ad-hoc)";
-        button.innerHTML = `
+        const tile = document.createElement("article");
+        tile.className = "tile";
+        tile.style.borderLeftColor = row.taskColor || getTaskTypeColor(getTaskTypeKey(row));
+        const assignmentLabel = getAssignmentLabel(row);
+        tile.innerHTML = `
           <div class="tile-title">${escapeHtml(row.item)}</div>
           <div class="tile-meta">
             <div class="tile-status">${escapeHtml(getTaskKind(row))}</div>
+            ${assignmentLabel ? `<div class="tile-status person" style="--person-color:${escapeHtml(row.assignedPerson.color)}">${escapeHtml(assignmentLabel)}</div>` : ""}
             <div class="tile-status">Ready</div>
           </div>
+          <div class="tile-actions">
+            <button class="tile-action" type="button" data-claim-task-id="${escapeHtml(row.id)}">${row.isRecurring ? (row.assignedPerson ? "Change Claim" : "Claim") : (row.assignedPerson ? "Change Assignment" : "Assign")}</button>
+            <button class="tile-action primary" type="button" data-toggle-task-id="${escapeHtml(row.id)}">Done</button>
+          </div>
         `;
-        button.addEventListener("click", () => toggleBought(row));
-        activeListEl.appendChild(button);
+        tile.querySelector("[data-toggle-task-id]")?.addEventListener("click", () => toggleBought(row));
+        tile.querySelector("[data-claim-task-id]")?.addEventListener("click", () => openClaimDialog(row.id));
+        activeListEl.appendChild(tile);
       });
 
       boughtItems.forEach((row) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "tile done";
-        button.style.borderLeftColor = row.isRecurring ? "var(--accent)" : "var(--ad-hoc)";
-        button.innerHTML = `
+        const tile = document.createElement("article");
+        tile.className = "tile done";
+        tile.style.borderLeftColor = row.taskColor || getTaskTypeColor(getTaskTypeKey(row));
+        const assignmentLabel = getAssignmentLabel(row);
+        tile.innerHTML = `
           <div class="tile-title">${escapeHtml(row.item)}</div>
           <div class="tile-meta">
             <div class="tile-status">${escapeHtml(getTaskKind(row))}</div>
+            ${assignmentLabel ? `<div class="tile-status person" style="--person-color:${escapeHtml(row.assignedPerson.color)}">${escapeHtml(assignmentLabel)}</div>` : ""}
             <div class="tile-status done">${escapeHtml(formatCompletedAt(row.completedAt))}</div>
           </div>
+          <div class="tile-actions">
+            <button class="tile-action" type="button" data-toggle-task-id="${escapeHtml(row.id)}">Move Back</button>
+          </div>
         `;
-        button.addEventListener("click", () => toggleBought(row));
-        boughtListEl.appendChild(button);
+        tile.querySelector("[data-toggle-task-id]")?.addEventListener("click", () => toggleBought(row));
+        boughtListEl.appendChild(tile);
       });
     }
 
@@ -1475,6 +1867,18 @@
     });
     addBtn.addEventListener("click", addItem);
     clearAllBtn.addEventListener("click", clearAllItems);
+    document.getElementById("claimCancelBtn").addEventListener("click", closeClaimDialog);
+    unclaimBtn.addEventListener("click", clearClaim);
+    claimPeopleList.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-claim-person-id]");
+      if (!button) return;
+      saveClaim(button.dataset.claimPersonId);
+    });
+    claimDialog.addEventListener("click", (event) => {
+      if (event.target === claimDialog) {
+        closeClaimDialog();
+      }
+    });
 
     if (new URLSearchParams(window.location.search).has("overlay")) {
       const backBtn = document.getElementById("backHomeBtn");
