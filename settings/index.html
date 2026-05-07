@@ -161,10 +161,23 @@
       gap:16px;
     }
 
+    .reference-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(280px, 1fr));
+      gap:16px;
+      align-items:start;
+    }
+
     .panel{
       padding:18px;
       display:grid;
       gap:16px;
+    }
+
+    .reference-panel{
+      padding:14px;
+      gap:10px;
+      align-self:start;
     }
 
     .panel-head{
@@ -183,6 +196,46 @@
       color:var(--muted);
       font-weight:700;
       line-height:1.5;
+    }
+
+    .reference-panel .panel-title{
+      font-size:18px;
+    }
+
+    .reference-panel .panel-meta,
+    .reference-panel .note{
+      font-size:12px;
+      line-height:1.4;
+    }
+
+    .reference-panel .status-pill{
+      min-height:46px;
+      padding:8px 12px;
+    }
+
+    .reference-panel .status-text{
+      font-size:14px;
+    }
+
+    .reference-panel .action-row{
+      gap:8px;
+    }
+
+    .reference-panel .action-btn{
+      min-height:38px;
+      padding:8px 12px;
+      font-size:13px;
+    }
+
+    .reference-panel .connection-form{
+      grid-template-columns:1fr;
+      gap:8px;
+    }
+
+    .reference-panel .field{
+      min-height:42px;
+      padding:0 12px;
+      font-size:12px;
     }
 
     .nav-grid{
@@ -589,6 +642,10 @@
         grid-template-columns:1fr;
       }
 
+      .reference-grid{
+        grid-template-columns:1fr;
+      }
+
       .action-row{
         flex-direction:column;
       }
@@ -877,53 +934,6 @@
       <div class="meta">This is the shared place for your family Google Calendar connection. Home, month view, and day view all use this connection.</div>
     </section>
 
-    <section class="settings-grid">
-      <section class="panel">
-        <div class="panel-head">
-          <div class="panel-title">Google Calendar</div>
-          <div class="panel-meta">Used by the family home page, month calendar, day view, and the preview cards on the dashboard.</div>
-        </div>
-
-        <div class="status-pill">
-          <div class="status-label">Google</div>
-          <div class="status-text" id="statusText">Loading…</div>
-        </div>
-
-        <div class="action-row">
-          <button class="action-btn accent" id="authBtn" type="button">Connect</button>
-          <button class="action-btn" id="signOutBtn" type="button" style="display:none;">Sign Out</button>
-        </div>
-
-        <div class="note" id="settingsNote">Open this page any time you want to reconnect Google or jump back home.</div>
-      </section>
-    </section>
-
-    <section class="panel">
-      <div class="panel-head">
-        <div class="panel-title">Supabase Connection</div>
-        <div class="panel-meta">Point the family task screens at your own Supabase project and keep the database setup private.</div>
-      </div>
-
-      <div class="status-pill">
-        <div class="status-label">Supabase</div>
-        <div class="status-text" id="supabaseStatusText">Loading…</div>
-      </div>
-
-      <div class="connection-form">
-        <input id="supabaseUrlInput" class="field" type="url" placeholder="https://your-project.supabase.co" autocomplete="off" autocapitalize="off" spellcheck="false" />
-        <input id="supabaseAnonKeyInput" class="field" type="text" placeholder="sb_publishable_..." autocomplete="off" autocapitalize="off" spellcheck="false" />
-      </div>
-
-      <div class="action-row">
-        <button class="action-btn accent" id="saveSupabaseBtn" type="button">Save Connection</button>
-        <button class="action-btn" id="testSupabaseBtn" type="button">Test Tables</button>
-        <button class="action-btn" id="resetSupabaseBtn" type="button">Use Built-In</button>
-      </div>
-
-      <div class="note" id="supabaseNote">The family task screens use a Supabase project URL plus a publishable key.</div>
-
-    </section>
-
     <section class="panel">
       <div class="panel-head">
         <div class="panel-title">Task Recurrence</div>
@@ -1008,6 +1018,52 @@
       <div class="people-list" id="peopleList"></div>
       <div class="task-empty" id="peopleEmpty">No people added yet.</div>
       <div class="note" id="peopleNote">People load from Supabase.</div>
+    </section>
+
+    <section class="reference-grid" aria-label="Connection reference">
+      <section class="panel reference-panel">
+        <div class="panel-head">
+          <div class="panel-title">Google Calendar</div>
+          <div class="panel-meta">Used by the family home page, month calendar, day view, and preview cards.</div>
+        </div>
+
+        <div class="status-pill">
+          <div class="status-label">Google</div>
+          <div class="status-text" id="statusText">Loading…</div>
+        </div>
+
+        <div class="action-row">
+          <button class="action-btn accent" id="authBtn" type="button">Connect</button>
+          <button class="action-btn" id="signOutBtn" type="button" style="display:none;">Sign Out</button>
+        </div>
+
+        <div class="note" id="settingsNote">Use this only when Google Calendar needs a manual refresh.</div>
+      </section>
+
+      <section class="panel reference-panel">
+        <div class="panel-head">
+          <div class="panel-title">Supabase Connection</div>
+          <div class="panel-meta">Reference connection for family tasks, people, and colors.</div>
+        </div>
+
+        <div class="status-pill">
+          <div class="status-label">Supabase</div>
+          <div class="status-text" id="supabaseStatusText">Loading…</div>
+        </div>
+
+        <div class="connection-form">
+          <input id="supabaseUrlInput" class="field" type="url" placeholder="https://your-project.supabase.co" autocomplete="off" autocapitalize="off" spellcheck="false" />
+          <input id="supabaseAnonKeyInput" class="field" type="text" placeholder="sb_publishable_..." autocomplete="off" autocapitalize="off" spellcheck="false" />
+        </div>
+
+        <div class="action-row">
+          <button class="action-btn accent" id="saveSupabaseBtn" type="button">Save Connection</button>
+          <button class="action-btn" id="testSupabaseBtn" type="button">Test Tables</button>
+          <button class="action-btn" id="resetSupabaseBtn" type="button">Use Built-In</button>
+        </div>
+
+        <div class="note" id="supabaseNote">The family task screens use a Supabase project URL plus a publishable key.</div>
+      </section>
     </section>
   </div>
 

@@ -599,6 +599,20 @@
       transform:translateY(-1px);
     }
 
+    .calendar-reconnect-btn{
+      min-width:112px;
+    }
+
+    .calendar-reconnect-btn:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+    }
+
+    .calendar-reconnect-btn:disabled:hover{
+      background:rgba(255,255,255,.08);
+      transform:none;
+    }
+
     .time-blocks{
       display:grid;
       grid-template-columns:repeat(2, minmax(0, 1fr));
@@ -2245,6 +2259,7 @@
 
           <div class="today-actions">
             <button class="month-btn" id="monthBtn" type="button">Open Month</button>
+            <button class="month-btn calendar-reconnect-btn" id="calendarReconnectBtn" type="button">Reconnect</button>
             <button class="quick-add-btn" id="quickAddBtn" type="button">Quick Add</button>
           </div>
         </div>
@@ -3769,6 +3784,7 @@
       if (!gapiInited || !gisInited) return;
 
       document.getElementById("authBtn").disabled = false;
+      document.getElementById("calendarReconnectBtn").disabled = false;
 
       const savedToken = getSavedToken();
       if (savedToken) {
@@ -3889,6 +3905,10 @@
     });
 
     document.getElementById("authBtn").addEventListener("click", handleAuthClick);
+    document.getElementById("calendarReconnectBtn").addEventListener("click", (event) => {
+      event.stopPropagation();
+      handleAuthClick();
+    });
     document.getElementById("signOutBtn").addEventListener("click", handleSignoutClick);
     document.getElementById("todayCard").addEventListener("click", () => {
       const todayKey = formatDateKey(new Date());
@@ -3974,6 +3994,7 @@
     setInterval(loadDisneyWaits, 300000);
 
     document.getElementById("authBtn").disabled = true;
+    document.getElementById("calendarReconnectBtn").disabled = true;
     setStatus("Loading Google tools…");
 
     window.addEventListener("load", async () => {
