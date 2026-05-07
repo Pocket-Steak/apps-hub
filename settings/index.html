@@ -242,10 +242,10 @@
       align-items:center;
     }
 
-    .task-form{
+    .task-add-row{
       display:grid;
       grid-template-columns:minmax(0, 1fr) auto;
-      gap:12px;
+      gap:10px;
       align-items:center;
     }
 
@@ -274,14 +274,55 @@
       box-shadow:0 0 0 4px rgba(255,122,24,.12);
     }
 
-    select.field{
-      appearance:none;
-      cursor:pointer;
-    }
-
     .task-list{
       display:grid;
+      gap:14px;
+    }
+
+    .task-group{
+      display:grid;
       gap:12px;
+      padding:14px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);
+      border-radius:20px;
+    }
+
+    .task-group-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .task-group-title{
+      font-size:18px;
+      font-weight:900;
+      letter-spacing:-.01em;
+    }
+
+    .task-group-count{
+      font-size:12px;
+      font-weight:900;
+      color:var(--muted);
+    }
+
+    .task-group-list{
+      display:grid;
+      gap:10px;
+    }
+
+    .task-group-empty{
+      min-height:46px;
+      display:flex;
+      align-items:center;
+      color:var(--muted);
+      font-size:13px;
+      font-weight:800;
+      border:1px dashed rgba(255,255,255,.1);
+      border-radius:16px;
+      padding:0 14px;
     }
 
     .task-list-item{
@@ -450,7 +491,7 @@
       }
 
       .connection-form,
-      .task-form{
+      .task-add-row{
         grid-template-columns:1fr;
       }
     }
@@ -749,7 +790,7 @@
     <section class="panel">
       <div class="panel-head">
         <div class="panel-title">Supabase Connection</div>
-        <div class="panel-meta">Point the family task screens at your own Supabase project, then run the SQL below once to create the tables this app expects.</div>
+        <div class="panel-meta">Point the family task screens at your own Supabase project, then run the SQL below to create or update the tables this app expects.</div>
       </div>
 
       <div class="status-pill">
@@ -773,7 +814,7 @@
       <details class="schema-details" id="schemaDetails">
         <summary>
           <span>SQL To Create The Required Tables</span>
-          <span class="schema-summary-copy">Only needed the first time you set up a new Supabase project.</span>
+          <span class="schema-summary-copy">Run once for a new project, or again to add recurrence scheduling.</span>
         </summary>
 
         <div class="schema-wrap">
@@ -787,9 +828,48 @@ create table if not exists public.family_tasks (
   id uuid primary key default gen_random_uuid(),
   title text not null,
   active boolean not null default true,
+  recurrence_interval text not null default 'daily',
   sort_order integer,
   created_at timestamptz not null default now()
 );
+
+alter table public.family_tasks
+  add column if not exists recurrence_interval text not null default 'daily';
+
+update public.family_tasks
+  set recurrence_interval = 'daily'
+  where recurrence_interval is null;
+
+alter table public.family_tasks
+  alter column recurrence_interval set default 'daily';
+
+alter table public.family_tasks
+  alter column recurrence_interval set not null;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'family_tasks_recurrence_interval_check'
+      and conrelid = 'public.family_tasks'::regclass
+  ) then
+    alter table public.family_tasks
+      add constraint family_tasks_recurrence_interval_check
+      check (recurrence_interval in (
+        'daily',
+        'weekly',
+        'bi_weekly',
+        'monthly',
+        'every_other_month',
+        'twice_a_year',
+        'yearly'
+      ));
+  end if;
+end $$;
+
+alter table public.family_tasks
+  alter column sort_order drop not null;
 
 create table if not exists public.family_task_completions (
   id uuid primary key default gen_random_uuid(),
@@ -797,6 +877,20 @@ create table if not exists public.family_task_completions (
   completed_at timestamptz not null default now(),
   day_key text not null,
   week_start text not null
+);
+
+alter table public.family_task_completions
+  drop column if exists completed_by;
+
+alter table public.family_task_completions
+  drop column if exists points;
+
+create table if not exists public.family_grocery_items (
+  id uuid primary key default gen_random_uuid(),
+  item text not null,
+  active boolean not null default true,
+  created_at timestamptz not null default now(),
+  purchased_at timestamptz
 );
 
 create index if not exists family_tasks_active_sort_idx
@@ -808,12 +902,17 @@ create index if not exists family_task_completions_week_idx
 create unique index if not exists family_task_completions_task_day_idx
   on public.family_task_completions (task_id, day_key);
 
+create index if not exists family_grocery_items_active_created_idx
+  on public.family_grocery_items (active, created_at desc);
+
 grant usage on schema public to anon, authenticated;
 grant select, insert, update, delete on public.family_tasks to anon, authenticated;
 grant select, insert, update, delete on public.family_task_completions to anon, authenticated;
+grant select, insert, update, delete on public.family_grocery_items to anon, authenticated;
 
 alter table public.family_tasks enable row level security;
 alter table public.family_task_completions enable row level security;
+alter table public.family_grocery_items enable row level security;
 
 drop policy if exists "family_tasks_public_all" on public.family_tasks;
 create policy "family_tasks_public_all"
@@ -829,6 +928,14 @@ create policy "family_task_completions_public_all"
   for all
   to anon, authenticated
   using (true)
+  with check (true);
+
+drop policy if exists "family_grocery_items_public_all" on public.family_grocery_items;
+create policy "family_grocery_items_public_all"
+  on public.family_grocery_items
+  for all
+  to anon, authenticated
+  using (true)
   with check (true);</textarea>
           <div class="note">Paste this into the Supabase SQL Editor once for your project. These starter policies are intentionally open because this family app writes directly from the browser without login.</div>
         </div>
@@ -837,8 +944,8 @@ create policy "family_task_completions_public_all"
 
     <section class="panel">
       <div class="panel-head">
-        <div class="panel-title">Recurring Tasks</div>
-        <div class="panel-meta">Add the tasks that should refresh every day. Ad hoc tasks can be added from the Tasks page.</div>
+        <div class="panel-title">Task Recurrence</div>
+        <div class="panel-meta">Add the tasks that should refresh on a schedule. Ad hoc tasks can be added from the Tasks page.</div>
       </div>
 
       <div class="status-pill">
@@ -846,14 +953,9 @@ create policy "family_task_completions_public_all"
         <div class="status-text" id="taskStatusText">Loading…</div>
       </div>
 
-      <div class="task-form">
-        <input id="taskTitleInput" class="field" type="text" placeholder="Add recurring task" autocomplete="off" autocapitalize="words" spellcheck="false" />
-        <button class="action-btn accent" id="addTaskBtn" type="button">Add Task</button>
-      </div>
-
       <div class="task-list" id="taskList"></div>
       <div class="task-empty" id="taskEmpty">No recurring tasks yet.</div>
-      <div class="note" id="taskNote">Recurring tasks use the built-in Supabase project.</div>
+      <div class="note" id="taskNote">Scheduled tasks use the built-in Supabase project.</div>
     </section>
   </div>
 
@@ -869,6 +971,16 @@ create policy "family_task_completions_public_all"
     const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000;
     const TASKS_TABLE = "family_tasks";
     const TASK_COMPLETIONS_TABLE = "family_task_completions";
+    const RECURRENCE_OPTIONS = [
+      { value: "daily", label: "Daily" },
+      { value: "weekly", label: "Weekly" },
+      { value: "bi_weekly", label: "Bi Weekly" },
+      { value: "monthly", label: "Monthly" },
+      { value: "every_other_month", label: "Every Other Month" },
+      { value: "twice_a_year", label: "Twice A Year" },
+      { value: "yearly", label: "Once A Year" },
+    ];
+    const RECURRENCE_VALUES = new Set(RECURRENCE_OPTIONS.map((option) => option.value));
 
     let gapiInited = false;
     let gisInited = false;
@@ -981,6 +1093,21 @@ create policy "family_task_completions_public_all"
         .replaceAll("'", "&#039;");
     }
 
+    function normalizeRecurrence(value) {
+      const normalized = String(value || "").trim();
+      return RECURRENCE_VALUES.has(normalized) ? normalized : "daily";
+    }
+
+    function getRecurrenceLabel(value) {
+      const normalized = normalizeRecurrence(value);
+      return RECURRENCE_OPTIONS.find((option) => option.value === normalized)?.label || "Daily";
+    }
+
+    function isMissingColumnError(error, columnName) {
+      const text = `${error?.message || ""} ${error?.details || ""} ${error?.hint || ""}`;
+      return text.toLowerCase().includes(columnName.toLowerCase());
+    }
+
     function hasSupabaseConfig() {
       return Boolean(window.PocketSteakSupabase?.getConfig().configured);
     }
@@ -1039,7 +1166,7 @@ create policy "family_task_completions_public_all"
       try {
         const client = ensureSupabaseClient();
         const checks = await Promise.all([
-          client.from(TASKS_TABLE).select("id", { head: true, count: "exact" }),
+          client.from(TASKS_TABLE).select("id,recurrence_interval", { head: true, count: "exact" }),
           client.from(TASK_COMPLETIONS_TABLE).select("id", { head: true, count: "exact" }),
         ]);
 
@@ -1132,22 +1259,54 @@ create policy "family_task_completions_public_all"
       const emptyEl = document.getElementById("taskEmpty");
 
       listEl.innerHTML = "";
-      emptyEl.style.display = recurringTasks.length ? "none" : "block";
+      emptyEl.style.display = "none";
 
-      recurringTasks.forEach((task) => {
-        const item = document.createElement("div");
-        item.className = "task-list-item";
-        item.innerHTML = `
-          <div class="task-info">
-            <div class="task-title">${escapeHtml(task.title)}</div>
-            <div class="task-meta-row">
-              <span class="task-pill">Order ${task.sortOrder}</span>
-            </div>
+      RECURRENCE_OPTIONS.forEach((option) => {
+        const groupTasks = recurringTasks.filter((task) => task.recurrence === option.value);
+        const group = document.createElement("section");
+        group.className = "task-group";
+        group.innerHTML = `
+          <div class="task-group-head">
+            <div class="task-group-title">${option.label}</div>
+            <div class="task-group-count">${groupTasks.length} task${groupTasks.length === 1 ? "" : "s"}</div>
           </div>
-          <button class="action-btn" type="button" data-task-id="${task.id}">Archive</button>
+          <form class="task-add-row" data-recurrence-form="${option.value}">
+            <input
+              class="field"
+              type="text"
+              placeholder="Add ${option.label.toLowerCase()} task"
+              autocomplete="off"
+              autocapitalize="words"
+              spellcheck="false"
+              data-task-title-input
+            />
+            <button class="action-btn accent" type="submit">Add</button>
+          </form>
+          <div class="task-group-list">
+            ${groupTasks.length
+              ? groupTasks.map((task) => `
+                  <div class="task-list-item">
+                    <div class="task-info">
+                      <div class="task-title">${escapeHtml(task.title)}</div>
+                      <div class="task-meta-row">
+                        <span class="task-pill">${escapeHtml(getRecurrenceLabel(task.recurrence))}</span>
+                        <span class="task-pill">Order ${task.sortOrder}</span>
+                      </div>
+                    </div>
+                    <button class="action-btn" type="button" data-task-id="${task.id}">Archive</button>
+                  </div>
+                `).join("")
+              : `<div class="task-group-empty">No ${option.label.toLowerCase()} tasks yet.</div>`}
+            </div>
         `;
-        listEl.appendChild(item);
+        listEl.appendChild(group);
       });
+    }
+
+    function getRecurrenceForm(recurrenceValue) {
+      const recurrence = normalizeRecurrence(recurrenceValue);
+      return Array.from(document.querySelectorAll("[data-recurrence-form]"))
+        .find((form) => form.dataset.recurrenceForm === recurrence);
     }
 
     async function loadRecurringTasks() {
@@ -1164,14 +1323,25 @@ create policy "family_task_completions_public_all"
 
       try {
         const client = ensureSupabaseClient();
-        const taskResult = await client
+        let taskResult = await client
           .from(TASKS_TABLE)
-          .select("id,title,sort_order,created_at")
+          .select("id,title,sort_order,recurrence_interval,created_at")
           .eq("active", true)
           .not("sort_order", "is", null)
           .gt("sort_order", 0)
           .order("sort_order", { ascending: true })
           .order("created_at", { ascending: true });
+
+        if (taskResult.error && isMissingColumnError(taskResult.error, "recurrence_interval")) {
+          taskResult = await client
+            .from(TASKS_TABLE)
+            .select("id,title,sort_order,created_at")
+            .eq("active", true)
+            .not("sort_order", "is", null)
+            .gt("sort_order", 0)
+            .order("sort_order", { ascending: true })
+            .order("created_at", { ascending: true });
+        }
 
         if (taskResult.error) {
           throw taskResult.error;
@@ -1182,12 +1352,13 @@ create policy "family_task_completions_public_all"
             id: task.id,
             title: String(task.title || "").trim(),
             sortOrder: Number.isFinite(Number(task.sort_order)) ? Number(task.sort_order) : 0,
+            recurrence: normalizeRecurrence(task.recurrence_interval),
           }))
           .filter((task) => task.title);
 
         renderRecurringTasks();
         setTaskStatus("Connected");
-        setTaskNote("Recurring tasks are using the built-in Supabase project.");
+        setTaskNote("Scheduled tasks are stored in Supabase.");
       } catch (error) {
         console.error(error);
         recurringTasks = [];
@@ -1197,13 +1368,15 @@ create policy "family_task_completions_public_all"
       }
     }
 
-    async function addRecurringTask() {
-      const titleInput = document.getElementById("taskTitleInput");
-      const title = String(titleInput.value || "").trim();
+    async function addRecurringTask(recurrenceValue) {
+      const recurrence = normalizeRecurrence(recurrenceValue);
+      const form = getRecurrenceForm(recurrence);
+      const titleInput = form?.querySelector("[data-task-title-input]");
+      const title = String(titleInput?.value || "").trim();
 
       if (!title) {
-        setTaskNote("Enter a recurring task name first.");
-        titleInput.focus();
+        setTaskNote(`Enter a ${getRecurrenceLabel(recurrence).toLowerCase()} task name first.`);
+        titleInput?.focus();
         return;
       }
 
@@ -1220,21 +1393,39 @@ create policy "family_task_completions_public_all"
           .insert({
             title,
             active: true,
+            recurrence_interval: recurrence,
             sort_order: nextSortOrder,
           });
 
-        if (result.error) {
+        if (result.error && isMissingColumnError(result.error, "recurrence_interval") && recurrence === "daily") {
+          const legacyResult = await client
+            .from(TASKS_TABLE)
+            .insert({
+              title,
+              active: true,
+              sort_order: nextSortOrder,
+            });
+
+          if (legacyResult.error) {
+            throw legacyResult.error;
+          }
+        } else if (result.error) {
           throw result.error;
         }
 
         titleInput.value = "";
         await loadRecurringTasks();
-        setTaskNote(`Added "${title}" as a recurring task.`);
-        titleInput.focus();
+        setTaskNote(`Added "${title}" as a ${getRecurrenceLabel(recurrence).toLowerCase()} task.`);
+        getRecurrenceForm(recurrence)?.querySelector("[data-task-title-input]")?.focus();
       } catch (error) {
         console.error(error);
         setTaskStatus("Save failed");
-        setTaskNote(error?.message || "Could not save recurring task.");
+        if (isMissingColumnError(error, "recurrence_interval")) {
+          document.getElementById("schemaDetails").open = true;
+          setTaskNote("Run the updated SQL above so Supabase can store weekly, monthly, and yearly task schedules.");
+        } else {
+          setTaskNote(error?.message || "Could not save recurring task.");
+        }
       }
     }
 
@@ -1403,12 +1594,11 @@ create policy "family_task_completions_public_all"
     });
     document.getElementById("resetSupabaseBtn").addEventListener("click", resetSupabaseConnection);
     document.getElementById("copySchemaBtn").addEventListener("click", copySchemaSql);
-    document.getElementById("addTaskBtn").addEventListener("click", addRecurringTask);
-    document.getElementById("taskTitleInput").addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        addRecurringTask();
-      }
+    document.getElementById("taskList").addEventListener("submit", (event) => {
+      const form = event.target.closest("[data-recurrence-form]");
+      if (!form) return;
+      event.preventDefault();
+      addRecurringTask(form.dataset.recurrenceForm);
     });
     document.getElementById("taskList").addEventListener("click", (event) => {
       const button = event.target.closest("[data-task-id]");
@@ -1419,6 +1609,7 @@ create policy "family_task_completions_public_all"
     document.getElementById("authBtn").disabled = true;
 
     window.addEventListener("load", async () => {
+      renderRecurringTasks();
       renderSupabaseConnection();
       testSupabaseTables({ reloadTasks: true });
       try {

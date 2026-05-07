@@ -242,10 +242,10 @@
       align-items:center;
     }
 
-    .task-form{
+    .task-add-row{
       display:grid;
-      grid-template-columns:minmax(0, 1fr) minmax(180px, .45fr) auto;
-      gap:12px;
+      grid-template-columns:minmax(0, 1fr) auto;
+      gap:10px;
       align-items:center;
     }
 
@@ -274,20 +274,18 @@
       box-shadow:0 0 0 4px rgba(255,122,24,.12);
     }
 
-    select.field{
-      appearance:none;
-      cursor:pointer;
-    }
-
     .task-list{
       display:grid;
-      gap:12px;
+      gap:14px;
     }
 
     .task-group{
       display:grid;
-      gap:10px;
-      padding-top:2px;
+      gap:12px;
+      padding:14px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);
+      border-radius:20px;
     }
 
     .task-group-head{
@@ -299,7 +297,7 @@
     }
 
     .task-group-title{
-      font-size:15px;
+      font-size:18px;
       font-weight:900;
       letter-spacing:-.01em;
     }
@@ -493,7 +491,7 @@
       }
 
       .connection-form,
-      .task-form{
+      .task-add-row{
         grid-template-columns:1fr;
       }
     }
@@ -955,12 +953,6 @@ create policy "family_grocery_items_public_all"
         <div class="status-text" id="taskStatusText">Loading…</div>
       </div>
 
-      <div class="task-form">
-        <input id="taskTitleInput" class="field" type="text" placeholder="Add recurring task" autocomplete="off" autocapitalize="words" spellcheck="false" />
-        <select id="taskRecurrenceSelect" class="field" aria-label="Task recurrence"></select>
-        <button class="action-btn accent" id="addTaskBtn" type="button">Add Task</button>
-      </div>
-
       <div class="task-list" id="taskList"></div>
       <div class="task-empty" id="taskEmpty">No recurring tasks yet.</div>
       <div class="note" id="taskNote">Scheduled tasks use the built-in Supabase project.</div>
@@ -1114,14 +1106,6 @@ create policy "family_grocery_items_public_all"
     function isMissingColumnError(error, columnName) {
       const text = `${error?.message || ""} ${error?.details || ""} ${error?.hint || ""}`;
       return text.toLowerCase().includes(columnName.toLowerCase());
-    }
-
-    function renderRecurrenceSelect() {
-      const select = document.getElementById("taskRecurrenceSelect");
-      select.innerHTML = RECURRENCE_OPTIONS
-        .map((option) => `<option value="${option.value}">${option.label}</option>`)
-        .join("");
-      select.value = "daily";
     }
 
     function hasSupabaseConfig() {
@@ -1286,6 +1270,18 @@ create policy "family_grocery_items_public_all"
             <div class="task-group-title">${option.label}</div>
             <div class="task-group-count">${groupTasks.length} task${groupTasks.length === 1 ? "" : "s"}</div>
           </div>
+          <form class="task-add-row" data-recurrence-form="${option.value}">
+            <input
+              class="field"
+              type="text"
+              placeholder="Add ${option.label.toLowerCase()} task"
+              autocomplete="off"
+              autocapitalize="words"
+              spellcheck="false"
+              data-task-title-input
+            />
+            <button class="action-btn accent" type="submit">Add</button>
+          </form>
           <div class="task-group-list">
             ${groupTasks.length
               ? groupTasks.map((task) => `
@@ -1305,6 +1301,12 @@ create policy "family_grocery_items_public_all"
         `;
         listEl.appendChild(group);
       });
+    }
+
+    function getRecurrenceForm(recurrenceValue) {
+      const recurrence = normalizeRecurrence(recurrenceValue);
+      return Array.from(document.querySelectorAll("[data-recurrence-form]"))
+        .find((form) => form.dataset.recurrenceForm === recurrence);
     }
 
     async function loadRecurringTasks() {
@@ -1366,15 +1368,15 @@ create policy "family_grocery_items_public_all"
       }
     }
 
-    async function addRecurringTask() {
-      const titleInput = document.getElementById("taskTitleInput");
-      const recurrenceSelect = document.getElementById("taskRecurrenceSelect");
-      const title = String(titleInput.value || "").trim();
-      const recurrence = normalizeRecurrence(recurrenceSelect.value);
+    async function addRecurringTask(recurrenceValue) {
+      const recurrence = normalizeRecurrence(recurrenceValue);
+      const form = getRecurrenceForm(recurrence);
+      const titleInput = form?.querySelector("[data-task-title-input]");
+      const title = String(titleInput?.value || "").trim();
 
       if (!title) {
-        setTaskNote("Enter a recurring task name first.");
-        titleInput.focus();
+        setTaskNote(`Enter a ${getRecurrenceLabel(recurrence).toLowerCase()} task name first.`);
+        titleInput?.focus();
         return;
       }
 
@@ -1412,10 +1414,9 @@ create policy "family_grocery_items_public_all"
         }
 
         titleInput.value = "";
-        recurrenceSelect.value = "daily";
         await loadRecurringTasks();
         setTaskNote(`Added "${title}" as a ${getRecurrenceLabel(recurrence).toLowerCase()} task.`);
-        titleInput.focus();
+        getRecurrenceForm(recurrence)?.querySelector("[data-task-title-input]")?.focus();
       } catch (error) {
         console.error(error);
         setTaskStatus("Save failed");
@@ -1593,12 +1594,11 @@ create policy "family_grocery_items_public_all"
     });
     document.getElementById("resetSupabaseBtn").addEventListener("click", resetSupabaseConnection);
     document.getElementById("copySchemaBtn").addEventListener("click", copySchemaSql);
-    document.getElementById("addTaskBtn").addEventListener("click", addRecurringTask);
-    document.getElementById("taskTitleInput").addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        addRecurringTask();
-      }
+    document.getElementById("taskList").addEventListener("submit", (event) => {
+      const form = event.target.closest("[data-recurrence-form]");
+      if (!form) return;
+      event.preventDefault();
+      addRecurringTask(form.dataset.recurrenceForm);
     });
     document.getElementById("taskList").addEventListener("click", (event) => {
       const button = event.target.closest("[data-task-id]");
@@ -1609,7 +1609,6 @@ create policy "family_grocery_items_public_all"
     document.getElementById("authBtn").disabled = true;
 
     window.addEventListener("load", async () => {
-      renderRecurrenceSelect();
       renderRecurringTasks();
       renderSupabaseConnection();
       testSupabaseTables({ reloadTasks: true });
