@@ -246,11 +246,31 @@
       display:grid;
       grid-template-columns:minmax(220px, 1.35fr) minmax(170px, .65fr) minmax(0, 1fr) auto;
       gap:10px;
-      align-items:center;
+      align-items:end;
       padding:12px;
       border:1px solid rgba(255,255,255,.08);
       background:rgba(255,255,255,.03);
       border-radius:20px;
+    }
+
+    .task-builder:not(.has-schedule){
+      grid-template-columns:minmax(220px, 1.35fr) minmax(170px, .65fr) auto;
+    }
+
+    .task-field{
+      display:grid;
+      gap:6px;
+      min-width:0;
+    }
+
+    .task-field-label{
+      color:var(--muted);
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.08em;
+      line-height:1.2;
+      padding:0 2px;
+      text-transform:uppercase;
     }
 
     .task-builder-schedule{
@@ -285,6 +305,7 @@
     }
 
     .field{
+      width:100%;
       min-height:52px;
       padding:0 16px;
       color:var(--text);
@@ -497,6 +518,10 @@
 
       .connection-form,
       .task-builder{
+        grid-template-columns:1fr;
+      }
+
+      .task-builder:not(.has-schedule){
         grid-template-columns:1fr;
       }
 
@@ -843,24 +868,30 @@
       </div>
 
       <form class="task-builder" id="recurringTaskForm">
-        <input
-          id="taskTitleInput"
-          class="field"
-          type="text"
-          placeholder="Task"
-          autocomplete="off"
-          autocapitalize="words"
-          spellcheck="false"
-        />
-        <select id="taskRecurrenceSelect" class="field" aria-label="Recurrence">
-          <option value="daily">Daily</option>
-          <option value="weekly">Weekly</option>
-          <option value="bi_weekly">Bi Weekly</option>
-          <option value="monthly">Monthly</option>
-          <option value="every_other_month">Every Other Month</option>
-          <option value="twice_a_year">Twice A Year</option>
-          <option value="yearly">Once A Year</option>
-        </select>
+        <div class="task-field">
+          <label class="task-field-label" for="taskTitleInput">Task</label>
+          <input
+            id="taskTitleInput"
+            class="field"
+            type="text"
+            placeholder="Task name"
+            autocomplete="off"
+            autocapitalize="words"
+            spellcheck="false"
+          />
+        </div>
+        <div class="task-field">
+          <label class="task-field-label" for="taskRecurrenceSelect">Recurrence</label>
+          <select id="taskRecurrenceSelect" class="field">
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="bi_weekly">Bi Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="every_other_month">Every Other Month</option>
+            <option value="twice_a_year">Twice A Year</option>
+            <option value="yearly">Once A Year</option>
+          </select>
+        </div>
         <div class="task-builder-schedule" id="taskBuilderSchedule"></div>
         <button class="action-btn accent" id="addRecurringTaskBtn" type="submit">Add</button>
       </form>
@@ -1353,8 +1384,14 @@
           .join("");
         return `
           <div class="task-schedule-controls">
-            <select class="field" aria-label="${getRecurrenceLabel(recurrence)} weekday" data-schedule-weekday>${options}</select>
-            <input class="field" type="date" aria-label="${getRecurrenceLabel(recurrence)} start date" value="${escapeHtml(startDate)}" data-schedule-start />
+            <div class="task-field">
+              <label class="task-field-label">Day</label>
+              <select class="field" aria-label="${getRecurrenceLabel(recurrence)} weekday" data-schedule-weekday>${options}</select>
+            </div>
+            <div class="task-field">
+              <label class="task-field-label">Start Date</label>
+              <input class="field" type="date" aria-label="${getRecurrenceLabel(recurrence)} start date" value="${escapeHtml(startDate)}" data-schedule-start />
+            </div>
           </div>
         `;
       }
@@ -1371,8 +1408,14 @@
         }).join("");
         return `
           <div class="task-schedule-controls">
-            <select class="field" aria-label="${getRecurrenceLabel(recurrence)} month" data-schedule-month>${monthOptions}</select>
-            <select class="field" aria-label="${getRecurrenceLabel(recurrence)} day" data-schedule-day>${dayOptions}</select>
+            <div class="task-field">
+              <label class="task-field-label">Month</label>
+              <select class="field" aria-label="${getRecurrenceLabel(recurrence)} month" data-schedule-month>${monthOptions}</select>
+            </div>
+            <div class="task-field">
+              <label class="task-field-label">Date</label>
+              <select class="field" aria-label="${getRecurrenceLabel(recurrence)} day" data-schedule-day>${dayOptions}</select>
+            </div>
           </div>
         `;
       }
