@@ -242,15 +242,26 @@
       align-items:center;
     }
 
-    .task-add-row{
+    .task-builder{
       display:grid;
-      grid-template-columns:minmax(0, 1fr) auto;
+      grid-template-columns:minmax(220px, 1.35fr) minmax(170px, .65fr) minmax(0, 1fr) auto;
       gap:10px;
       align-items:center;
+      padding:12px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.03);
+      border-radius:20px;
+    }
+
+    .task-builder-schedule{
+      min-width:0;
+    }
+
+    .task-builder-schedule:empty{
+      display:none;
     }
 
     .task-schedule-controls{
-      grid-column:1 / -1;
       display:grid;
       grid-template-columns:repeat(2, minmax(0, 1fr));
       gap:8px;
@@ -260,7 +271,7 @@
       grid-template-columns:1fr;
     }
 
-    .task-add-row .action-btn{
+    .task-builder .action-btn{
       min-width:68px;
       min-height:44px;
       padding:10px 14px;
@@ -280,6 +291,7 @@
       font-size:14px;
       font-weight:800;
       outline:none;
+      color-scheme:dark;
     }
 
     select.field{
@@ -305,7 +317,7 @@
 
     .task-group{
       display:grid;
-      grid-template-rows:auto auto minmax(0, 1fr);
+      grid-template-rows:auto minmax(0, 1fr);
       gap:12px;
       padding:14px;
       height:380px;
@@ -441,78 +453,6 @@
       padding-top:4px;
     }
 
-    .schema-wrap{
-      display:grid;
-      gap:12px;
-      padding-top:4px;
-    }
-
-    .schema-details{
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:20px;
-      background:rgba(255,255,255,.03);
-      padding:14px 16px 16px;
-    }
-
-    .schema-details summary{
-      list-style:none;
-      cursor:pointer;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      font-size:15px;
-      font-weight:850;
-      color:var(--text);
-      user-select:none;
-    }
-
-    .schema-details summary::-webkit-details-marker{
-      display:none;
-    }
-
-    .schema-summary-copy{
-      font-size:13px;
-      font-weight:700;
-      color:var(--muted);
-      flex:1 1 auto;
-      min-width:0;
-    }
-
-    .schema-head{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      flex-wrap:wrap;
-    }
-
-    .schema-title{
-      font-size:15px;
-      font-weight:850;
-      letter-spacing:-.01em;
-    }
-
-    .schema-box{
-      width:100%;
-      min-height:340px;
-      resize:vertical;
-      border:1px solid rgba(255,255,255,.08);
-      background:rgba(8,10,14,.65);
-      border-radius:18px;
-      padding:16px;
-      color:var(--text);
-      font-size:12px;
-      line-height:1.6;
-      font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      outline:none;
-    }
-
-    .schema-box:focus{
-      border-color:rgba(255,122,24,.42);
-      box-shadow:0 0 0 4px rgba(255,122,24,.12);
-    }
-
     @media (max-width: 1180px){
       .task-list{
         grid-template-columns:repeat(2, minmax(0, 1fr));
@@ -556,7 +496,7 @@
       }
 
       .connection-form,
-      .task-add-row{
+      .task-builder{
         grid-template-columns:1fr;
       }
 
@@ -868,7 +808,7 @@
     <section class="panel">
       <div class="panel-head">
         <div class="panel-title">Supabase Connection</div>
-        <div class="panel-meta">Point the family task screens at your own Supabase project, then run the SQL below to create or update the tables this app expects.</div>
+        <div class="panel-meta">Point the family task screens at your own Supabase project and keep the database setup private.</div>
       </div>
 
       <div class="status-pill">
@@ -889,225 +829,6 @@
 
       <div class="note" id="supabaseNote">The family task screens use a Supabase project URL plus a publishable key.</div>
 
-      <details class="schema-details" id="schemaDetails">
-        <summary>
-          <span>SQL To Create The Required Tables</span>
-          <span class="schema-summary-copy">Run once for a new project, or again to add recurrence scheduling.</span>
-        </summary>
-
-        <div class="schema-wrap">
-          <div class="schema-head">
-            <div class="schema-title">SQL To Create The Required Tables</div>
-            <button class="action-btn" id="copySchemaBtn" type="button">Copy SQL</button>
-          </div>
-          <textarea id="schemaSql" class="schema-box" readonly>create extension if not exists pgcrypto;
-
-create table if not exists public.family_tasks (
-  id uuid primary key default gen_random_uuid(),
-  title text not null,
-  active boolean not null default true,
-  recurrence_interval text not null default 'daily',
-  recurrence_day_of_week integer not null default 1,
-  recurrence_month integer not null default 1,
-  recurrence_day_of_month integer not null default 1,
-  sort_order integer,
-  created_at timestamptz not null default now()
-);
-
-alter table public.family_tasks
-  add column if not exists recurrence_interval text not null default 'daily';
-
-alter table public.family_tasks
-  add column if not exists recurrence_day_of_week integer not null default 1;
-
-alter table public.family_tasks
-  add column if not exists recurrence_month integer not null default 1;
-
-alter table public.family_tasks
-  add column if not exists recurrence_day_of_month integer not null default 1;
-
-update public.family_tasks
-  set recurrence_interval = 'daily'
-  where recurrence_interval is null;
-
-update public.family_tasks
-  set recurrence_day_of_week = 1
-  where recurrence_day_of_week is null
-    or recurrence_day_of_week < 0
-    or recurrence_day_of_week > 6;
-
-update public.family_tasks
-  set recurrence_month = 1
-  where recurrence_month is null
-    or recurrence_month < 1
-    or recurrence_month > 12;
-
-update public.family_tasks
-  set recurrence_day_of_month = 1
-  where recurrence_day_of_month is null
-    or recurrence_day_of_month < 1
-    or recurrence_day_of_month > 31;
-
-alter table public.family_tasks
-  alter column recurrence_interval set default 'daily';
-
-alter table public.family_tasks
-  alter column recurrence_interval set not null;
-
-alter table public.family_tasks
-  alter column recurrence_day_of_week set default 1;
-
-alter table public.family_tasks
-  alter column recurrence_day_of_week set not null;
-
-alter table public.family_tasks
-  alter column recurrence_month set default 1;
-
-alter table public.family_tasks
-  alter column recurrence_month set not null;
-
-alter table public.family_tasks
-  alter column recurrence_day_of_month set default 1;
-
-alter table public.family_tasks
-  alter column recurrence_day_of_month set not null;
-
-do $$
-begin
-  if not exists (
-    select 1
-    from pg_constraint
-    where conname = 'family_tasks_recurrence_interval_check'
-      and conrelid = 'public.family_tasks'::regclass
-  ) then
-    alter table public.family_tasks
-      add constraint family_tasks_recurrence_interval_check
-      check (recurrence_interval in (
-        'daily',
-        'weekly',
-        'bi_weekly',
-        'monthly',
-        'every_other_month',
-        'twice_a_year',
-        'yearly'
-      ));
-  end if;
-end $$;
-
-do $$
-begin
-  if not exists (
-    select 1
-    from pg_constraint
-    where conname = 'family_tasks_recurrence_day_of_week_check'
-      and conrelid = 'public.family_tasks'::regclass
-  ) then
-    alter table public.family_tasks
-      add constraint family_tasks_recurrence_day_of_week_check
-      check (recurrence_day_of_week between 0 and 6);
-  end if;
-end $$;
-
-do $$
-begin
-  if not exists (
-    select 1
-    from pg_constraint
-    where conname = 'family_tasks_recurrence_month_check'
-      and conrelid = 'public.family_tasks'::regclass
-  ) then
-    alter table public.family_tasks
-      add constraint family_tasks_recurrence_month_check
-      check (recurrence_month between 1 and 12);
-  end if;
-end $$;
-
-do $$
-begin
-  if not exists (
-    select 1
-    from pg_constraint
-    where conname = 'family_tasks_recurrence_day_of_month_check'
-      and conrelid = 'public.family_tasks'::regclass
-  ) then
-    alter table public.family_tasks
-      add constraint family_tasks_recurrence_day_of_month_check
-      check (recurrence_day_of_month between 1 and 31);
-  end if;
-end $$;
-
-alter table public.family_tasks
-  alter column sort_order drop not null;
-
-create table if not exists public.family_task_completions (
-  id uuid primary key default gen_random_uuid(),
-  task_id uuid not null references public.family_tasks(id) on delete cascade,
-  completed_at timestamptz not null default now(),
-  day_key text not null,
-  week_start text not null
-);
-
-alter table public.family_task_completions
-  drop column if exists completed_by;
-
-alter table public.family_task_completions
-  drop column if exists points;
-
-create table if not exists public.family_grocery_items (
-  id uuid primary key default gen_random_uuid(),
-  item text not null,
-  active boolean not null default true,
-  created_at timestamptz not null default now(),
-  purchased_at timestamptz
-);
-
-create index if not exists family_tasks_active_sort_idx
-  on public.family_tasks (active, sort_order, created_at);
-
-create index if not exists family_task_completions_week_idx
-  on public.family_task_completions (week_start, completed_at desc);
-
-create unique index if not exists family_task_completions_task_day_idx
-  on public.family_task_completions (task_id, day_key);
-
-create index if not exists family_grocery_items_active_created_idx
-  on public.family_grocery_items (active, created_at desc);
-
-grant usage on schema public to anon, authenticated;
-grant select, insert, update, delete on public.family_tasks to anon, authenticated;
-grant select, insert, update, delete on public.family_task_completions to anon, authenticated;
-grant select, insert, update, delete on public.family_grocery_items to anon, authenticated;
-
-alter table public.family_tasks enable row level security;
-alter table public.family_task_completions enable row level security;
-alter table public.family_grocery_items enable row level security;
-
-drop policy if exists "family_tasks_public_all" on public.family_tasks;
-create policy "family_tasks_public_all"
-  on public.family_tasks
-  for all
-  to anon, authenticated
-  using (true)
-  with check (true);
-
-drop policy if exists "family_task_completions_public_all" on public.family_task_completions;
-create policy "family_task_completions_public_all"
-  on public.family_task_completions
-  for all
-  to anon, authenticated
-  using (true)
-  with check (true);
-
-drop policy if exists "family_grocery_items_public_all" on public.family_grocery_items;
-create policy "family_grocery_items_public_all"
-  on public.family_grocery_items
-  for all
-  to anon, authenticated
-  using (true)
-  with check (true);</textarea>
-          <div class="note">Paste this into the Supabase SQL Editor once for your project. These starter policies are intentionally open because this family app writes directly from the browser without login.</div>
-        </div>
-      </details>
     </section>
 
     <section class="panel">
@@ -1120,6 +841,29 @@ create policy "family_grocery_items_public_all"
         <div class="status-label">Supabase Tasks</div>
         <div class="status-text" id="taskStatusText">Loading…</div>
       </div>
+
+      <form class="task-builder" id="recurringTaskForm">
+        <input
+          id="taskTitleInput"
+          class="field"
+          type="text"
+          placeholder="Task"
+          autocomplete="off"
+          autocapitalize="words"
+          spellcheck="false"
+        />
+        <select id="taskRecurrenceSelect" class="field" aria-label="Recurrence">
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="bi_weekly">Bi Weekly</option>
+          <option value="monthly">Monthly</option>
+          <option value="every_other_month">Every Other Month</option>
+          <option value="twice_a_year">Twice A Year</option>
+          <option value="yearly">Once A Year</option>
+        </select>
+        <div class="task-builder-schedule" id="taskBuilderSchedule"></div>
+        <button class="action-btn accent" id="addRecurringTaskBtn" type="submit">Add</button>
+      </form>
 
       <div class="task-list" id="taskList"></div>
       <div class="task-empty" id="taskEmpty">No recurring tasks yet.</div>
@@ -1139,12 +883,13 @@ create policy "family_grocery_items_public_all"
     const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000;
     const TASKS_TABLE = "family_tasks";
     const TASK_COMPLETIONS_TABLE = "family_task_completions";
+    const SUPABASE_SETUP_NOTE = "Database setup needs a private schema update. Ask Andrew or Codex to apply it, then test again.";
     const RECURRENCE_OPTIONS = [
       { value: "daily", label: "Daily", timing: "Resets at local midnight." },
-      { value: "weekly", label: "Weekly", timing: "Choose the weekday it resets." },
-      { value: "bi_weekly", label: "Bi Weekly", timing: "Choose the weekday in every other week." },
-      { value: "monthly", label: "Monthly", timing: "Choose the first weekday of each month." },
-      { value: "every_other_month", label: "Every Other Month", timing: "Choose the first weekday of each 2-month cycle." },
+      { value: "weekly", label: "Weekly", timing: "Choose the weekday and start date." },
+      { value: "bi_weekly", label: "Bi Weekly", timing: "Choose the weekday and cycle start date." },
+      { value: "monthly", label: "Monthly", timing: "Choose the first weekday and start date." },
+      { value: "every_other_month", label: "Every Other Month", timing: "Choose the first weekday and cycle start date." },
       { value: "twice_a_year", label: "Twice A Year", timing: "Choose the first date; the second is six months later." },
       { value: "yearly", label: "Once A Year", timing: "Choose the yearly date." },
     ];
@@ -1275,6 +1020,65 @@ create policy "family_grocery_items_public_all"
       document.getElementById("supabaseNote").textContent = text;
     }
 
+    function getSupabaseErrorMessage(error) {
+      return String(
+        error?.message ||
+        error?.details ||
+        error?.hint ||
+        error?.code ||
+        "REST schema cache has not exposed the required columns yet"
+      );
+    }
+
+    function getTodayDateKey() {
+      if (window.PocketSteakSupabase?.getCurrentDayKey) {
+        return window.PocketSteakSupabase.getCurrentDayKey();
+      }
+
+      const date = new Date();
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function parseScheduleDate(value) {
+      const text = String(value || "").trim();
+      if (!text) return null;
+
+      const dateOnly = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (dateOnly) {
+        const date = new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]));
+        return Number.isNaN(date.getTime()) ? null : date;
+      }
+
+      const date = new Date(text);
+      if (Number.isNaN(date.getTime())) return null;
+      date.setHours(0, 0, 0, 0);
+      return date;
+    }
+
+    function formatDateKey(dateInput) {
+      const date = parseScheduleDate(dateInput) || new Date();
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function normalizeStartDate(value) {
+      return formatDateKey(parseScheduleDate(value) || getTodayDateKey());
+    }
+
+    function formatShortDateLabel(value) {
+      const date = parseScheduleDate(value);
+      if (!date) return "Today";
+      return date.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+      });
+    }
+
     function escapeHtml(value) {
       return String(value)
         .replaceAll("&", "&amp;")
@@ -1359,12 +1163,18 @@ create policy "family_grocery_items_public_all"
       return "Every day";
     }
 
+    function getScheduleStartLabel(recurrenceValue, schedule = {}) {
+      if (normalizeRecurrence(recurrenceValue) === "daily") return "";
+      return `Starts ${formatShortDateLabel(schedule.startDate)}`;
+    }
+
     function getScheduleFromTask(task) {
       const month = normalizeMonth(task?.recurrence_month);
       return {
         dayOfWeek: normalizeDayOfWeek(task?.recurrence_day_of_week),
         month,
         dayOfMonth: normalizeDayOfMonth(task?.recurrence_day_of_month, month),
+        startDate: normalizeStartDate(task?.recurrence_start_date || task?.created_at),
       };
     }
 
@@ -1385,12 +1195,24 @@ create policy "family_grocery_items_public_all"
         dayOfWeek: normalizeDayOfWeek(form?.querySelector("[data-schedule-weekday]")?.value),
         month,
         dayOfMonth: normalizeDayOfMonth(form?.querySelector("[data-schedule-day]")?.value, month),
+        startDate: normalizeStartDate(form?.querySelector("[data-schedule-start]")?.value),
       };
     }
 
     function isMissingColumnError(error, columnName) {
       const text = `${error?.message || ""} ${error?.details || ""} ${error?.hint || ""}`;
       return text.toLowerCase().includes(columnName.toLowerCase());
+    }
+
+    function isScheduleSchemaError(error) {
+      return (
+        isMissingColumnError(error, "recurrence_interval") ||
+        isMissingColumnError(error, "recurrence_day_of_week") ||
+        isMissingColumnError(error, "recurrence_month") ||
+        isMissingColumnError(error, "recurrence_day_of_month") ||
+        isMissingColumnError(error, "recurrence_start_date") ||
+        error?.code === "PGRST204"
+      );
     }
 
     function hasSupabaseConfig() {
@@ -1421,14 +1243,12 @@ create policy "family_grocery_items_public_all"
       const config = window.PocketSteakSupabase?.getConfig();
       const urlInput = document.getElementById("supabaseUrlInput");
       const keyInput = document.getElementById("supabaseAnonKeyInput");
-      const schemaDetails = document.getElementById("schemaDetails");
 
       if (!config) {
         urlInput.value = "";
         keyInput.value = "";
         setSupabaseStatus("Unavailable");
         setSupabaseNote("Supabase helper is not ready yet.");
-        schemaDetails.open = true;
         return;
       }
 
@@ -1451,19 +1271,18 @@ create policy "family_grocery_items_public_all"
       try {
         const client = ensureSupabaseClient();
         const checks = await Promise.all([
-          client.from(TASKS_TABLE).select("id,recurrence_interval,recurrence_day_of_week,recurrence_month,recurrence_day_of_month", { head: true, count: "exact" }),
+          client.from(TASKS_TABLE).select("id,recurrence_interval,recurrence_day_of_week,recurrence_month,recurrence_day_of_month,recurrence_start_date", { head: true, count: "exact" }),
           client.from(TASK_COMPLETIONS_TABLE).select("id", { head: true, count: "exact" }),
         ]);
 
         const tableNames = [TASKS_TABLE, TASK_COMPLETIONS_TABLE];
         const failures = checks
-          .map((result, index) => (result.error ? `${tableNames[index]}: ${result.error.message}` : ""))
+          .map((result, index) => (result.error ? `${tableNames[index]}: ${getSupabaseErrorMessage(result.error)}` : ""))
           .filter(Boolean);
 
         if (failures.length) {
           setSupabaseStatus("Schema missing");
-          setSupabaseNote(failures.join(" | "));
-          document.getElementById("schemaDetails").open = true;
+          setSupabaseNote(`${SUPABASE_SETUP_NOTE} ${failures.join(" | ")}`);
           if (reloadTasks) {
             await loadRecurringTasks();
           }
@@ -1472,7 +1291,6 @@ create policy "family_grocery_items_public_all"
 
         setSupabaseStatus("Connected");
         setSupabaseNote("Connection works and both family task tables are available.");
-        document.getElementById("schemaDetails").open = false;
         if (reloadTasks) {
           await loadRecurringTasks();
         }
@@ -1481,7 +1299,6 @@ create policy "family_grocery_items_public_all"
         console.error(error);
         setSupabaseStatus("Connection failed");
         setSupabaseNote(error?.message || "Could not reach Supabase.");
-        document.getElementById("schemaDetails").open = true;
         if (reloadTasks) {
           await loadRecurringTasks();
         }
@@ -1526,29 +1343,18 @@ create policy "family_grocery_items_public_all"
       await testSupabaseTables({ reloadTasks: true });
     }
 
-    async function copySchemaSql() {
-      const sqlEl = document.getElementById("schemaSql");
-
-      try {
-        await navigator.clipboard.writeText(sqlEl.value);
-        setSupabaseNote("Copied the family schema SQL. Paste it into the Supabase SQL Editor for your project.");
-      } catch (error) {
-        sqlEl.focus();
-        sqlEl.select();
-        setSupabaseNote("Selected the SQL for you. Copy it and paste it into the Supabase SQL Editor.");
-      }
-    }
-
     function renderScheduleControls(recurrenceValue, schedule = {}) {
       const recurrence = normalizeRecurrence(recurrenceValue);
+      const startDate = normalizeStartDate(schedule.startDate);
       if (usesWeekdaySchedule(recurrence)) {
         const selectedDay = normalizeDayOfWeek(schedule.dayOfWeek);
         const options = WEEKDAY_OPTIONS
           .map((option) => `<option value="${option.value}"${option.value === selectedDay ? " selected" : ""}>${option.label}</option>`)
           .join("");
         return `
-          <div class="task-schedule-controls single">
+          <div class="task-schedule-controls">
             <select class="field" aria-label="${getRecurrenceLabel(recurrence)} weekday" data-schedule-weekday>${options}</select>
+            <input class="field" type="date" aria-label="${getRecurrenceLabel(recurrence)} start date" value="${escapeHtml(startDate)}" data-schedule-start />
           </div>
         `;
       }
@@ -1574,6 +1380,15 @@ create policy "family_grocery_items_public_all"
       return "";
     }
 
+    function renderTaskBuilderSchedule() {
+      const form = document.getElementById("recurringTaskForm");
+      const recurrence = normalizeRecurrence(document.getElementById("taskRecurrenceSelect").value);
+      const scheduleEl = document.getElementById("taskBuilderSchedule");
+      scheduleEl.innerHTML = renderScheduleControls(recurrence);
+      form.classList.toggle("has-schedule", recurrence !== "daily");
+      form.classList.toggle("has-date-schedule", usesDateSchedule(recurrence));
+    }
+
     function renderRecurringTasks() {
       const listEl = document.getElementById("taskList");
       const emptyEl = document.getElementById("taskEmpty");
@@ -1591,19 +1406,6 @@ create policy "family_grocery_items_public_all"
             <div class="task-group-count">${groupTasks.length} task${groupTasks.length === 1 ? "" : "s"}</div>
             <div class="task-group-rule">${escapeHtml(option.timing)}</div>
           </div>
-          <form class="task-add-row" data-recurrence-form="${option.value}">
-            <input
-              class="field"
-              type="text"
-              placeholder="Add ${option.label.toLowerCase()} task"
-              autocomplete="off"
-              autocapitalize="words"
-              spellcheck="false"
-              data-task-title-input
-            />
-            <button class="action-btn accent" type="submit">Add</button>
-            ${renderScheduleControls(option.value)}
-          </form>
           <div class="task-group-list">
             ${groupTasks.length
               ? groupTasks.map((task) => `
@@ -1613,6 +1415,7 @@ create policy "family_grocery_items_public_all"
                       <div class="task-meta-row">
                         <span class="task-pill">${escapeHtml(getRecurrenceLabel(task.recurrence))}</span>
                         <span class="task-pill">${escapeHtml(getScheduleLabel(task.recurrence, task.schedule))}</span>
+                        ${task.recurrence !== "daily" ? `<span class="task-pill">${escapeHtml(getScheduleStartLabel(task.recurrence, task.schedule))}</span>` : ""}
                         <span class="task-pill">Order ${task.sortOrder}</span>
                       </div>
                     </div>
@@ -1631,12 +1434,6 @@ create policy "family_grocery_items_public_all"
       });
     }
 
-    function getRecurrenceForm(recurrenceValue) {
-      const recurrence = normalizeRecurrence(recurrenceValue);
-      return Array.from(document.querySelectorAll("[data-recurrence-form]"))
-        .find((form) => form.dataset.recurrenceForm === recurrence);
-    }
-
     async function loadRecurringTasks() {
       if (!hasSupabaseConfig()) {
         recurringTasks = [];
@@ -1653,22 +1450,14 @@ create policy "family_grocery_items_public_all"
         const client = ensureSupabaseClient();
         let taskResult = await client
           .from(TASKS_TABLE)
-          .select("id,title,sort_order,recurrence_interval,recurrence_day_of_week,recurrence_month,recurrence_day_of_month,created_at")
+          .select("id,title,sort_order,recurrence_interval,recurrence_day_of_week,recurrence_month,recurrence_day_of_month,recurrence_start_date,created_at")
           .eq("active", true)
           .not("sort_order", "is", null)
           .gt("sort_order", 0)
           .order("sort_order", { ascending: true })
           .order("created_at", { ascending: true });
 
-        if (
-          taskResult.error &&
-          (
-            isMissingColumnError(taskResult.error, "recurrence_interval") ||
-            isMissingColumnError(taskResult.error, "recurrence_day_of_week") ||
-            isMissingColumnError(taskResult.error, "recurrence_month") ||
-            isMissingColumnError(taskResult.error, "recurrence_day_of_month")
-          )
-        ) {
+        if (taskResult.error && isScheduleSchemaError(taskResult.error)) {
           taskResult = await client
             .from(TASKS_TABLE)
             .select("id,title,sort_order,created_at")
@@ -1705,10 +1494,10 @@ create policy "family_grocery_items_public_all"
       }
     }
 
-    async function addRecurringTask(recurrenceValue) {
-      const recurrence = normalizeRecurrence(recurrenceValue);
-      const form = getRecurrenceForm(recurrence);
-      const titleInput = form?.querySelector("[data-task-title-input]");
+    async function addRecurringTask() {
+      const form = document.getElementById("recurringTaskForm");
+      const recurrence = normalizeRecurrence(document.getElementById("taskRecurrenceSelect").value);
+      const titleInput = document.getElementById("taskTitleInput");
       const title = String(titleInput?.value || "").trim();
       const schedule = getFormSchedule(form, recurrence);
 
@@ -1735,19 +1524,11 @@ create policy "family_grocery_items_public_all"
             recurrence_day_of_week: schedule.dayOfWeek,
             recurrence_month: schedule.month,
             recurrence_day_of_month: schedule.dayOfMonth,
+            recurrence_start_date: recurrence === "daily" ? null : schedule.startDate,
             sort_order: nextSortOrder,
           });
 
-        if (
-          result.error &&
-          (
-            isMissingColumnError(result.error, "recurrence_interval") ||
-            isMissingColumnError(result.error, "recurrence_day_of_week") ||
-            isMissingColumnError(result.error, "recurrence_month") ||
-            isMissingColumnError(result.error, "recurrence_day_of_month")
-          ) &&
-          recurrence === "daily"
-        ) {
+        if (result.error && isScheduleSchemaError(result.error) && recurrence === "daily") {
           const legacyResult = await client
             .from(TASKS_TABLE)
             .insert({
@@ -1765,19 +1546,14 @@ create policy "family_grocery_items_public_all"
 
         titleInput.value = "";
         await loadRecurringTasks();
-        setTaskNote(`Added "${title}" as a ${getRecurrenceLabel(recurrence).toLowerCase()} task for ${getScheduleLabel(recurrence, schedule).toLowerCase()}.`);
-        getRecurrenceForm(recurrence)?.querySelector("[data-task-title-input]")?.focus();
+        const startLabel = getScheduleStartLabel(recurrence, schedule);
+        setTaskNote(`Added "${title}" as a ${getRecurrenceLabel(recurrence).toLowerCase()} task for ${getScheduleLabel(recurrence, schedule).toLowerCase()}${startLabel ? `, ${startLabel.toLowerCase()}` : ""}.`);
+        titleInput?.focus();
       } catch (error) {
         console.error(error);
         setTaskStatus("Save failed");
-        if (
-          isMissingColumnError(error, "recurrence_interval") ||
-          isMissingColumnError(error, "recurrence_day_of_week") ||
-          isMissingColumnError(error, "recurrence_month") ||
-          isMissingColumnError(error, "recurrence_day_of_month")
-        ) {
-          document.getElementById("schemaDetails").open = true;
-          setTaskNote("Run the updated SQL above so Supabase can store the selected weekday/date for each routine.");
+        if (isScheduleSchemaError(error)) {
+          setTaskNote(SUPABASE_SETUP_NOTE);
         } else {
           setTaskNote(error?.message || "Could not save recurring task.");
         }
@@ -1800,6 +1576,7 @@ create policy "family_grocery_items_public_all"
             recurrence_day_of_week: schedule.dayOfWeek,
             recurrence_month: schedule.month,
             recurrence_day_of_month: schedule.dayOfMonth,
+            recurrence_start_date: recurrence === "daily" ? null : schedule.startDate,
           })
           .eq("id", taskId);
 
@@ -1808,17 +1585,13 @@ create policy "family_grocery_items_public_all"
         }
 
         await loadRecurringTasks();
-        setTaskNote(`Updated schedule to ${getScheduleLabel(recurrence, schedule)}.`);
+        const startLabel = getScheduleStartLabel(recurrence, schedule);
+        setTaskNote(`Updated schedule to ${getScheduleLabel(recurrence, schedule)}${startLabel ? `, ${startLabel.toLowerCase()}` : ""}.`);
       } catch (error) {
         console.error(error);
         setTaskStatus("Save failed");
-        if (
-          isMissingColumnError(error, "recurrence_day_of_week") ||
-          isMissingColumnError(error, "recurrence_month") ||
-          isMissingColumnError(error, "recurrence_day_of_month")
-        ) {
-          document.getElementById("schemaDetails").open = true;
-          setTaskNote("Run the updated SQL above so Supabase can store routine timing changes.");
+        if (isScheduleSchemaError(error)) {
+          setTaskNote(SUPABASE_SETUP_NOTE);
         } else {
           setTaskNote(error?.message || "Could not update routine schedule.");
         }
@@ -1989,12 +1762,16 @@ create policy "family_grocery_items_public_all"
       testSupabaseTables({ reloadTasks: true });
     });
     document.getElementById("resetSupabaseBtn").addEventListener("click", resetSupabaseConnection);
-    document.getElementById("copySchemaBtn").addEventListener("click", copySchemaSql);
-    document.getElementById("taskList").addEventListener("submit", (event) => {
-      const form = event.target.closest("[data-recurrence-form]");
-      if (!form) return;
+    document.getElementById("recurringTaskForm").addEventListener("submit", (event) => {
       event.preventDefault();
-      addRecurringTask(form.dataset.recurrenceForm);
+      addRecurringTask();
+    });
+    document.getElementById("taskRecurrenceSelect").addEventListener("change", renderTaskBuilderSchedule);
+    document.getElementById("recurringTaskForm").addEventListener("change", (event) => {
+      const monthSelect = event.target.closest("[data-schedule-month]");
+      if (!monthSelect) return;
+      const container = monthSelect.closest("#recurringTaskForm");
+      updateDayOptions(container?.querySelector("[data-schedule-day]"), monthSelect.value);
     });
     document.getElementById("taskList").addEventListener("click", (event) => {
       const button = event.target.closest("[data-task-id]");
@@ -2020,6 +1797,7 @@ create policy "family_grocery_items_public_all"
     document.getElementById("authBtn").disabled = true;
 
     window.addEventListener("load", async () => {
+      renderTaskBuilderSchedule();
       renderRecurringTasks();
       renderSupabaseConnection();
       testSupabaseTables({ reloadTasks: true });
