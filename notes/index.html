@@ -549,8 +549,6 @@
     }
   </style>
 
-  <script async defer src="https://apis.google.com/js/api.js"></script>
-  <script async defer src="https://accounts.google.com/gsi/client"></script>
 </head>
 <body>
   <div class="page">
@@ -562,11 +560,6 @@
       </div>
       <div class="top-actions">
         <button class="top-btn" type="button" onclick="window.location.href='/family/settings.html'">Settings</button>
-        <div class="status-pill">
-          <div class="status-label">Google</div>
-          <div class="status-text" id="statusText">Loading…</div>
-        </div>
-        <button class="top-btn accent" id="connectBtn" type="button">Connect</button>
       </div>
     </div>
 
@@ -579,7 +572,7 @@
       <section class="notes-panel">
         <div class="panel-head">
           <div class="panel-title">Notes</div>
-          <div class="panel-meta" id="notesMeta">Connect Google to load your notes.</div>
+          <div class="panel-meta" id="notesMeta">No notes yet.</div>
         </div>
 
         <button class="action-btn accent" id="newNoteBtn" type="button">Add Note</button>
@@ -613,29 +606,12 @@
   </div>
 
   <script>
-    const GOOGLE_API_KEY = "AIzaSyBPZEeYB8IaheJPJA2Y44msGfDwIhJMpGU";
-    const GOOGLE_CLIENT_ID = "82204016171-ta1ipuu88gie0tkq69je3di5uifu1kki.apps.googleusercontent.com";
-    const DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
-    const SCOPES = "https://www.googleapis.com/auth/spreadsheets";
+    const NOTES_STORAGE_KEY = "pocketsteak_family_notes";
 
-    const SPREADSHEET_ID = "1ccfVTfNqrrzMLkD4uK8fkWs3wRJENs5XQJHJfjkWmmY";
-    const SHEET_NAME = "CM Notes";
-    const SHEET_RANGE = "A:D";
-
-    const SHARED_TOKEN_KEY = "pocketsteak_google_access_token";
-    const SHARED_TOKEN_EXP_KEY = "pocketsteak_google_token_exp";
-
-    let tokenClient = null;
-    let gapiReady = false;
-    let gisReady = false;
-    let appReady = false;
-    let isConnected = false;
     let isBusy = false;
     let notesRows = [];
     let activeNoteId = "";
 
-    const statusText = document.getElementById("statusText");
-    const connectBtn = document.getElementById("connectBtn");
     const notesMeta = document.getElementById("notesMeta");
     const notesList = document.getElementById("notesList");
     const newNoteBtn = document.getElementById("newNoteBtn");
@@ -645,16 +621,11 @@
     const messageEl = document.getElementById("message");
     const backHomeBtn = document.getElementById("backHomeBtn");
 
-    function setStatus(text) {
-      statusText.textContent = text;
-    }
-
     function setBusy(value) {
       isBusy = value;
-      connectBtn.disabled = value && appReady;
-      saveBtn.disabled = value || !isConnected;
-      newNoteBtn.disabled = value || !isConnected;
-      noteInput.disabled = value || !isConnected;
+      saveBtn.disabled = value;
+      newNoteBtn.disabled = value;
+      noteInput.disabled = value;
     }
 
     function showMessage(text = "", type = "") {
@@ -704,71 +675,21 @@
       return `note_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     }
 
-    function isLikelyHeaderRow(row) {
-      const first = String(row?.[0] || "").trim().toLowerCase();
-      const second = String(row?.[1] || "").trim().toLowerCase();
-      const third = String(row?.[2] || "").trim().toLowerCase();
-      const fourth = String(row?.[3] || "").trim().toLowerCase();
-
-      return (
-        ["id", "note id", "noteid"].includes(first) ||
-        ["title", "note title", "name"].includes(second) ||
-        ["body", "note", "content", "text"].includes(third) ||
-        ["updated", "updated at", "modified", "modified at", "timestamp"].includes(fourth)
-      );
-    }
-
-    function getAccessTokenFromSession() {
-      const sharedToken = localStorage.getItem(SHARED_TOKEN_KEY);
-      const sharedExp = Number(localStorage.getItem(SHARED_TOKEN_EXP_KEY) || "0");
-
-      if (!sharedToken || !sharedExp) return null;
-      if (Date.now() >= sharedExp) {
-        localStorage.removeItem(SHARED_TOKEN_KEY);
-        localStorage.removeItem(SHARED_TOKEN_EXP_KEY);
-        return null;
-      }
-      return sharedToken;
-    }
-
-    function saveAccessTokenToSession(token, expiresInSeconds = 3600) {
-      if (!token) return;
-      localStorage.setItem(SHARED_TOKEN_KEY, token);
-      localStorage.setItem(
-        SHARED_TOKEN_EXP_KEY,
-        String(Date.now() + (Number(expiresInSeconds || 3600) * 1000))
-      );
-    }
-
-    function clearAccessTokenFromSession() {
-      localStorage.removeItem(SHARED_TOKEN_KEY);
-      localStorage.removeItem(SHARED_TOKEN_EXP_KEY);
-    }
-
     function getReadableError(error) {
       const message =
-        error?.result?.error?.message ||
-        error?.details ||
         error?.message ||
         error?.error ||
-        "Something went wrong with Google Sheets.";
-      const code = error?.code || error?.result?.error?.code;
-      const status = error?.status || error?.result?.error?.status;
-      const suffix = [code, status].filter(Boolean).join(" / ");
-      return suffix ? `${message} (${suffix})` : message;
+        "Something went wrong with notes.";
+      return message;
     }
 
     function updateNotesMeta() {
       const count = notesRows.length;
-      if (!isConnected) {
-        notesMeta.textContent = "Connect Google to load your notes.";
-        return;
-      }
       if (!count) {
         notesMeta.textContent = "No notes yet.";
         return;
       }
-      notesMeta.textContent = `${count} note${count === 1 ? "" : "s"} synced`;
+      notesMeta.textContent = `${count} note${count === 1 ? "" : "s"} saved`;
     }
 
     function closeRevealedRows(exceptRow = null) {
@@ -854,11 +775,6 @@
     }
 
     function renderNotesList() {
-      if (!isConnected) {
-        notesList.innerHTML = `<div class="empty-state">Connect Google to use notes.</div>`;
-        return;
-      }
-
       if (!notesRows.length) {
         notesList.innerHTML = `<div class="empty-state">No notes yet.</div>`;
         return;
@@ -887,9 +803,7 @@
 
       if (!note) {
         noteInput.value = "";
-        editorMeta.textContent = isConnected
-          ? "New note draft."
-          : "No note selected yet.";
+        editorMeta.textContent = "New note draft.";
         return;
       }
 
@@ -912,32 +826,25 @@
       noteInput.focus();
     }
 
-    async function ensureHeaders() {
-      const response = await gapi.client.sheets.spreadsheets.values.get({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!A1:D2`,
-      });
-
-      const values = response.result.values || [];
-      if (values.length && isLikelyHeaderRow(values[0])) {
-        return;
+    function readStoredNotes() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(NOTES_STORAGE_KEY) || "[]");
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (error) {
+        console.warn("Could not parse saved notes:", error);
+        return [];
       }
-
-      await gapi.client.sheets.spreadsheets.values.update({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!A1`,
-        valueInputOption: "USER_ENTERED",
-        resource: {
-          values: [["Note ID", "Title", "Body", "Updated At"]],
-        },
-      });
     }
 
-    async function testSheetsAccess() {
-      await gapi.client.sheets.spreadsheets.values.get({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_NAME}!A:D`,
-      });
+    function persistNotes() {
+      localStorage.setItem(
+        NOTES_STORAGE_KEY,
+        JSON.stringify(notesRows.map((note) => ({
+          id: note.id,
+          body: note.body,
+          updatedAt: note.updatedAt,
+        })))
+      );
     }
 
     async function loadNotes() {
@@ -945,31 +852,18 @@
       showMessage("", "");
 
       try {
-        await ensureHeaders();
-        const response = await gapi.client.sheets.spreadsheets.values.get({
-          spreadsheetId: SPREADSHEET_ID,
-          range: `${SHEET_NAME}!A:D`,
-        });
-
-        const values = response.result.values || [];
-        const startIndex = values.length > 0 && isLikelyHeaderRow(values[0]) ? 1 : 0;
-
-        notesRows = values.slice(startIndex).map((row, index) => {
-          const body = String(row[2] || row[1] || "");
-          return {
-            rowNumber: startIndex + index + 1,
-            id: normalizeId(row[0]),
-            title: getNoteLabel(body),
-            body,
-            updatedAt: String(row[3] || ""),
-          };
-        }).filter((row) => row.id);
-
-        notesRows.sort((a, b) => {
-          const aTime = new Date(a.updatedAt).getTime() || 0;
-          const bTime = new Date(b.updatedAt).getTime() || 0;
-          return bTime - aTime;
-        });
+        notesRows = readStoredNotes()
+          .map((row) => ({
+            id: normalizeId(row.id),
+            body: String(row.body || ""),
+            updatedAt: String(row.updatedAt || ""),
+          }))
+          .filter((row) => row.id)
+          .sort((a, b) => {
+            const aTime = new Date(a.updatedAt).getTime() || 0;
+            const bTime = new Date(b.updatedAt).getTime() || 0;
+            return bTime - aTime;
+          });
 
         if (activeNoteId && !notesRows.some((note) => note.id === activeNoteId)) {
           activeNoteId = "";
@@ -990,13 +884,7 @@
     }
 
     async function saveCurrentNote() {
-      if (!isConnected) {
-        showMessage("Connect Google first.", "error");
-        return;
-      }
-
       const body = String(noteInput.value || "");
-      const title = getNoteLabel(body);
 
       if (!body.trim()) {
         showMessage("Write something before saving.", "error");
@@ -1010,38 +898,34 @@
       showMessage("", "");
 
       try {
-        await ensureHeaders();
-
         if (!activeNoteId) {
           const newId = createNoteId();
-          await gapi.client.sheets.spreadsheets.values.append({
-            spreadsheetId: SPREADSHEET_ID,
-            range: `${SHEET_NAME}!A:D`,
-            valueInputOption: "USER_ENTERED",
-            insertDataOption: "INSERT_ROWS",
-            resource: {
-              values: [[newId, title, body, updatedAt]],
-            },
+          notesRows.unshift({
+            id: newId,
+            body,
+            updatedAt,
           });
           activeNoteId = newId;
           showMessage("Note saved.", "success");
         } else {
-          const current = notesRows.find((note) => note.id === activeNoteId);
-          if (!current) {
-            throw new Error("That note could not be found. Try reloading the page.");
+          const currentIndex = notesRows.findIndex((note) => note.id === activeNoteId);
+          if (currentIndex < 0) {
+            notesRows.unshift({
+              id: activeNoteId,
+              body,
+              updatedAt,
+            });
+          } else {
+            notesRows[currentIndex] = {
+              ...notesRows[currentIndex],
+              body,
+              updatedAt,
+            };
           }
-
-          await gapi.client.sheets.spreadsheets.values.update({
-            spreadsheetId: SPREADSHEET_ID,
-            range: `${SHEET_NAME}!A${current.rowNumber}:D${current.rowNumber}`,
-            valueInputOption: "USER_ENTERED",
-            resource: {
-              values: [[current.id, title, body, updatedAt]],
-            },
-          });
           showMessage("Note updated.", "success");
         }
 
+        persistNotes();
         await loadNotes();
       } catch (error) {
         console.error(error);
@@ -1051,23 +935,23 @@
     }
 
     async function deleteNoteById(noteId) {
-      if (!isConnected || isBusy || !noteId) return;
-
-      const current = notesRows.find((note) => note.id === noteId);
-      if (!current) return;
+      if (isBusy || !noteId) return;
 
       setBusy(true);
       showMessage("", "");
 
       try {
-        await gapi.client.sheets.spreadsheets.values.clear({
-          spreadsheetId: SPREADSHEET_ID,
-          range: `${SHEET_NAME}!A${current.rowNumber}:D${current.rowNumber}`,
-        });
+        const beforeCount = notesRows.length;
+        notesRows = notesRows.filter((note) => note.id !== noteId);
+        if (notesRows.length === beforeCount) {
+          setBusy(false);
+          return;
+        }
 
-        if (activeNoteId === current.id) {
+        if (activeNoteId === noteId) {
           activeNoteId = "";
         }
+        persistNotes();
         await loadNotes();
         showMessage("Note deleted.", "success");
       } catch (error) {
@@ -1077,157 +961,6 @@
       }
     }
 
-    function restoreSessionIfPossible() {
-      const savedToken = getAccessTokenFromSession();
-      if (!savedToken) {
-        setStatus("Not connected");
-        setBusy(false);
-        updateNotesMeta();
-        renderNotesList();
-        renderEditor();
-        return;
-      }
-
-      gapi.client.setToken({ access_token: savedToken });
-      testSheetsAccess()
-        .then(async () => {
-          isConnected = true;
-          setStatus("Connected");
-          connectBtn.textContent = "Reconnect";
-          await loadNotes();
-        })
-        .catch((error) => {
-          console.warn("Saved token no longer valid:", error);
-          gapi.client.setToken(null);
-          clearAccessTokenFromSession();
-          isConnected = false;
-          setStatus("Not connected");
-          connectBtn.textContent = "Connect";
-          setBusy(false);
-          updateNotesMeta();
-          renderNotesList();
-          renderEditor();
-        });
-    }
-
-    function ensureAppInitialized() {
-      if (appReady || !gapiReady || !gisReady) return;
-
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: GOOGLE_CLIENT_ID,
-        scope: SCOPES,
-        callback: async (response) => {
-          if (response.error) {
-            console.error("OAuth token error:", response);
-            setStatus("Setup failed");
-            showMessage(getReadableError(response), "error");
-            setBusy(false);
-            return;
-          }
-
-          const token = gapi.client.getToken()?.access_token;
-          if (token) {
-            saveAccessTokenToSession(token, response.expires_in || 3600);
-          }
-
-          isConnected = true;
-          setStatus("Connected");
-          connectBtn.textContent = "Reconnect";
-
-          try {
-            await loadNotes();
-          } catch (error) {
-            console.error(error);
-            setStatus("Setup failed");
-            showMessage(getReadableError(error), "error");
-          } finally {
-            setBusy(false);
-          }
-        },
-      });
-
-      appReady = true;
-      restoreSessionIfPossible();
-    }
-
-    function initGapi() {
-      const startedAt = Date.now();
-
-      const waitForGapi = () => {
-        if (window.gapi && typeof window.gapi.load === "function") {
-          window.gapi.load("client", async () => {
-            try {
-              await window.gapi.client.init({
-                apiKey: GOOGLE_API_KEY,
-                discoveryDocs: [DISCOVERY_DOC],
-              });
-              gapiReady = true;
-              ensureAppInitialized();
-            } catch (error) {
-              console.error("gapi init error:", error);
-              setStatus("Setup failed");
-              showMessage(getReadableError(error), "error");
-            }
-          });
-          return;
-        }
-
-        if (Date.now() - startedAt > 10000) {
-          setStatus("Google failed to load");
-          showMessage("The Google API script did not finish loading. Refresh and try again.", "error");
-          return;
-        }
-
-        window.setTimeout(waitForGapi, 100);
-      };
-
-      waitForGapi();
-    }
-
-    function initGisReadyCheck() {
-      const startedAt = Date.now();
-
-      const waitForGoogle = () => {
-        if (window.google && google.accounts && google.accounts.oauth2) {
-          gisReady = true;
-          ensureAppInitialized();
-          return;
-        }
-
-        if (Date.now() - startedAt > 10000) {
-          setStatus("Google failed to load");
-          showMessage("The Google sign-in script did not finish loading. Refresh and try again.", "error");
-          return;
-        }
-
-        window.setTimeout(waitForGoogle, 100);
-      };
-
-      waitForGoogle();
-    }
-
-    function connectGoogle(forceConsent = false) {
-      if (!appReady || !tokenClient) {
-        showMessage("Google is still loading. Try again in a second.", "error");
-        return;
-      }
-
-      setBusy(true);
-      showMessage("", "");
-
-      try {
-        const existingToken = gapi.client.getToken();
-        tokenClient.requestAccessToken({
-          prompt: forceConsent || !existingToken ? "consent" : "",
-        });
-      } catch (error) {
-        console.error(error);
-        showMessage(getReadableError(error), "error");
-        setBusy(false);
-      }
-    }
-
-    connectBtn.addEventListener("click", () => connectGoogle(true));
     newNoteBtn.addEventListener("click", createNewNoteDraft);
     saveBtn.addEventListener("click", saveCurrentNote);
 
@@ -1246,11 +979,7 @@
     });
 
     window.addEventListener("load", () => {
-      setBusy(true);
-      renderNotesList();
-      renderEditor();
-      initGapi();
-      initGisReadyCheck();
+      loadNotes();
     });
   </script>
 </body>

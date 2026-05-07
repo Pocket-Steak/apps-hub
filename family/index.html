@@ -2727,7 +2727,7 @@
       }
 
       if (!notesPreviewRows.length) {
-        metaEl.textContent = "No notes loaded yet.";
+        metaEl.textContent = "No notes yet.";
         listEl.innerHTML = `<div class="preview-empty">Open Notes to add a quick note.</div>`;
         return;
       }
@@ -2905,7 +2905,7 @@
       } else {
         console.error(results[2].reason);
         notesPreviewRows = [];
-        notesPreviewError = "Open Notes to connect.";
+        notesPreviewError = "Open Notes to add a note.";
       }
 
       renderAll();
