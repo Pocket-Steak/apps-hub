@@ -1040,6 +1040,7 @@
     const TASKS_TABLE = "family_tasks";
     const TASK_COMPLETIONS_TABLE = "family_task_completions";
     const PEOPLE_TABLE = "family_people";
+    const LEGACY_PEOPLE_TABLE = "family_members";
     const TASK_CLAIMS_TABLE = "family_task_claims";
     const TASK_COLORS_TABLE = "family_task_type_colors";
     const SUPABASE_SETUP_NOTE = "Database setup needs a private schema update. Ask Andrew or Codex to apply it, then test again.";
@@ -1100,6 +1101,9 @@
     let recurringTasks = [];
     let taskTypeColors = { ...DEFAULT_TASK_TYPE_COLORS };
     let people = [];
+    let activePeopleTable = PEOPLE_TABLE;
+    let activePeopleTableSupportsActive = true;
+    let activePeopleTableSupportsSortOrder = true;
     let supabaseClient = null;
     let supabaseConfigSignature = "";
 
@@ -1407,6 +1411,66 @@
       return text.toLowerCase().includes(columnName.toLowerCase());
     }
 
+    function normalizePeopleRows(rows = []) {
+      return rows
+        .map((person) => ({
+          id: String(person.id || "").trim(),
+          name: String(person.name || "").trim(),
+          color: normalizeColor(person.color, "#ec4899"),
+          active: person.active !== false,
+          sortOrder: Number.isFinite(Number(person.sort_order)) ? Number(person.sort_order) : null,
+          createdAt: String(person.created_at || "").trim(),
+        }))
+        .filter((person) => person.id && person.name);
+    }
+
+    async function selectPeopleRows(client) {
+      activePeopleTable = PEOPLE_TABLE;
+      activePeopleTableSupportsActive = true;
+      activePeopleTableSupportsSortOrder = true;
+
+      let result = await client
+        .from(PEOPLE_TABLE)
+        .select("id,name,color,active,sort_order,created_at")
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: true });
+
+      if (!result.error) {
+        return result;
+      }
+
+      if (isMissingColumnError(result.error, "active") || isMissingColumnError(result.error, "sort_order")) {
+        const basicResult = await client
+          .from(PEOPLE_TABLE)
+          .select("id,name,color,created_at")
+          .order("created_at", { ascending: true });
+
+        if (!basicResult.error) {
+          activePeopleTableSupportsActive = false;
+          activePeopleTableSupportsSortOrder = false;
+        }
+
+        return basicResult;
+      }
+
+      if (!isMissingColumnError(result.error, PEOPLE_TABLE) && result.error?.code !== "PGRST205") {
+        return result;
+      }
+
+      const legacyResult = await client
+        .from(LEGACY_PEOPLE_TABLE)
+        .select("id,name,color,created_at")
+        .order("created_at", { ascending: true });
+
+      if (!legacyResult.error) {
+        activePeopleTable = LEGACY_PEOPLE_TABLE;
+        activePeopleTableSupportsActive = false;
+        activePeopleTableSupportsSortOrder = false;
+      }
+
+      return legacyResult;
+    }
+
     function isScheduleSchemaError(error) {
       return (
         isMissingColumnError(error, "recurrence_interval") ||
@@ -1711,7 +1775,7 @@
             </div>
             <div class="action-row">
               <button class="mini-btn" type="button" data-person-save>Save</button>
-              <button class="mini-btn" type="button" data-person-archive>Archive</button>
+              ${activePeopleTableSupportsActive ? `<button class="mini-btn" type="button" data-person-archive>Archive</button>` : ""}
             </div>
           </div>
         `;
@@ -1788,28 +1852,18 @@
 
       try {
         const client = ensureSupabaseClient();
-        const result = await client
-          .from(PEOPLE_TABLE)
-          .select("id,name,color,active,sort_order,created_at")
-          .order("sort_order", { ascending: true })
-          .order("created_at", { ascending: true });
+        const result = await selectPeopleRows(client);
 
         if (result.error) throw result.error;
 
-        people = (result.data || [])
-          .map((person) => ({
-            id: String(person.id || "").trim(),
-            name: String(person.name || "").trim(),
-            color: normalizeColor(person.color, "#ec4899"),
-            active: person.active !== false,
-            sortOrder: Number.isFinite(Number(person.sort_order)) ? Number(person.sort_order) : null,
-            createdAt: String(person.created_at || "").trim(),
-          }))
-          .filter((person) => person.id && person.name);
+        people = normalizePeopleRows(result.data || []);
 
         renderPeople();
         document.getElementById("personColorInput").value = getNextPersonColor();
-        setPeopleNote(`${people.filter((person) => person.active !== false).length} people available for assignment.`);
+        const activeCount = people.filter((person) => person.active !== false).length;
+        setPeopleNote(activePeopleTable === LEGACY_PEOPLE_TABLE
+          ? `${activeCount} people loaded from Supabase. Adding people works here; task assignment still needs the private schema update.`
+          : `${activeCount} people available for assignment.`);
       } catch (error) {
         console.error(error);
         renderPeople();
@@ -1835,14 +1889,19 @@
         const nextSortOrder = activePeople.length
           ? Math.max(...activePeople.map((person) => Number(person.sortOrder) || 0)) + 10
           : 10;
+        const payload = {
+          name,
+          color,
+        };
+        if (activePeopleTableSupportsActive) {
+          payload.active = true;
+        }
+        if (activePeopleTableSupportsSortOrder) {
+          payload.sort_order = nextSortOrder;
+        }
         const result = await client
-          .from(PEOPLE_TABLE)
-          .insert({
-            name,
-            color,
-            active: true,
-            sort_order: nextSortOrder,
-          });
+          .from(activePeopleTable)
+          .insert(payload);
 
         if (result.error) throw result.error;
 
@@ -1870,7 +1929,7 @@
       try {
         const client = ensureSupabaseClient();
         const result = await client
-          .from(PEOPLE_TABLE)
+          .from(activePeopleTable)
           .update({ name, color })
           .eq("id", personId);
 
@@ -1887,13 +1946,17 @@
     async function archivePerson(personId) {
       const person = people.find((entry) => entry.id === personId);
       if (!person) return;
+      if (!activePeopleTableSupportsActive) {
+        setPeopleNote("Archiving people needs the private schema update. You can still add and edit names.");
+        return;
+      }
       const confirmed = window.confirm(`Archive ${person.name}? Existing assigned tasks will keep their name, but they will no longer appear as an option.`);
       if (!confirmed) return;
 
       try {
         const client = ensureSupabaseClient();
         const result = await client
-          .from(PEOPLE_TABLE)
+          .from(activePeopleTable)
           .update({ active: false })
           .eq("id", personId);
 
