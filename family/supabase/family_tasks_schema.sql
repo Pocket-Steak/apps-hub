@@ -8,6 +8,7 @@ create table if not exists public.family_tasks (
   recurrence_day_of_week integer not null default 1,
   recurrence_month integer not null default 1,
   recurrence_day_of_month integer not null default 1,
+  recurrence_start_date date,
   sort_order integer,
   created_at timestamptz not null default now()
 );
@@ -23,6 +24,9 @@ alter table public.family_tasks
 
 alter table public.family_tasks
   add column if not exists recurrence_day_of_month integer not null default 1;
+
+alter table public.family_tasks
+  add column if not exists recurrence_start_date date;
 
 update public.family_tasks
   set recurrence_interval = 'daily'
@@ -45,6 +49,11 @@ update public.family_tasks
   where recurrence_day_of_month is null
     or recurrence_day_of_month < 1
     or recurrence_day_of_month > 31;
+
+update public.family_tasks
+  set recurrence_start_date = coalesce(created_at::date, current_date)
+  where recurrence_start_date is null
+    and coalesce(sort_order, 0) > 0;
 
 alter table public.family_tasks
   alter column recurrence_interval set default 'daily';
@@ -203,3 +212,5 @@ create policy "family_grocery_items_public_all"
   to anon, authenticated
   using (true)
   with check (true);
+
+select pg_notify('pgrst', 'reload schema');
