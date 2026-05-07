@@ -5,6 +5,9 @@ create table if not exists public.family_tasks (
   title text not null,
   active boolean not null default true,
   recurrence_interval text not null default 'daily',
+  recurrence_day_of_week integer not null default 1,
+  recurrence_month integer not null default 1,
+  recurrence_day_of_month integer not null default 1,
   sort_order integer,
   created_at timestamptz not null default now()
 );
@@ -12,15 +15,60 @@ create table if not exists public.family_tasks (
 alter table public.family_tasks
   add column if not exists recurrence_interval text not null default 'daily';
 
+alter table public.family_tasks
+  add column if not exists recurrence_day_of_week integer not null default 1;
+
+alter table public.family_tasks
+  add column if not exists recurrence_month integer not null default 1;
+
+alter table public.family_tasks
+  add column if not exists recurrence_day_of_month integer not null default 1;
+
 update public.family_tasks
   set recurrence_interval = 'daily'
   where recurrence_interval is null;
+
+update public.family_tasks
+  set recurrence_day_of_week = 1
+  where recurrence_day_of_week is null
+    or recurrence_day_of_week < 0
+    or recurrence_day_of_week > 6;
+
+update public.family_tasks
+  set recurrence_month = 1
+  where recurrence_month is null
+    or recurrence_month < 1
+    or recurrence_month > 12;
+
+update public.family_tasks
+  set recurrence_day_of_month = 1
+  where recurrence_day_of_month is null
+    or recurrence_day_of_month < 1
+    or recurrence_day_of_month > 31;
 
 alter table public.family_tasks
   alter column recurrence_interval set default 'daily';
 
 alter table public.family_tasks
   alter column recurrence_interval set not null;
+
+alter table public.family_tasks
+  alter column recurrence_day_of_week set default 1;
+
+alter table public.family_tasks
+  alter column recurrence_day_of_week set not null;
+
+alter table public.family_tasks
+  alter column recurrence_month set default 1;
+
+alter table public.family_tasks
+  alter column recurrence_month set not null;
+
+alter table public.family_tasks
+  alter column recurrence_day_of_month set default 1;
+
+alter table public.family_tasks
+  alter column recurrence_day_of_month set not null;
 
 do $$
 begin
@@ -41,6 +89,48 @@ begin
         'twice_a_year',
         'yearly'
       ));
+  end if;
+end $$;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'family_tasks_recurrence_day_of_week_check'
+      and conrelid = 'public.family_tasks'::regclass
+  ) then
+    alter table public.family_tasks
+      add constraint family_tasks_recurrence_day_of_week_check
+      check (recurrence_day_of_week between 0 and 6);
+  end if;
+end $$;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'family_tasks_recurrence_month_check'
+      and conrelid = 'public.family_tasks'::regclass
+  ) then
+    alter table public.family_tasks
+      add constraint family_tasks_recurrence_month_check
+      check (recurrence_month between 1 and 12);
+  end if;
+end $$;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'family_tasks_recurrence_day_of_month_check'
+      and conrelid = 'public.family_tasks'::regclass
+  ) then
+    alter table public.family_tasks
+      add constraint family_tasks_recurrence_day_of_month_check
+      check (recurrence_day_of_month between 1 and 31);
   end if;
 end $$;
 

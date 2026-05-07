@@ -739,6 +739,21 @@
       { value: "yearly", label: "Once A Year" },
     ];
     const RECURRENCE_VALUES = new Set(RECURRENCE_OPTIONS.map((option) => option.value));
+    const WEEKDAY_LABELS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const MONTH_LABELS = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
     const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
     let taskRows = [];
@@ -834,6 +849,68 @@
       return RECURRENCE_OPTIONS.find((option) => option.value === normalized)?.label || "Daily";
     }
 
+    function usesWeekdaySchedule(recurrenceValue) {
+      return ["weekly", "bi_weekly", "monthly", "every_other_month"].includes(normalizeRecurrence(recurrenceValue));
+    }
+
+    function usesDateSchedule(recurrenceValue) {
+      return ["twice_a_year", "yearly"].includes(normalizeRecurrence(recurrenceValue));
+    }
+
+    function normalizeDayOfWeek(value) {
+      const numeric = Number(value);
+      if (Number.isInteger(numeric) && numeric >= 0 && numeric <= 6) return numeric;
+      return 1;
+    }
+
+    function normalizeMonth(value) {
+      const numeric = Number(value);
+      if (Number.isInteger(numeric) && numeric >= 1 && numeric <= 12) return numeric;
+      return 1;
+    }
+
+    function getDaysInMonth(year, monthIndex) {
+      return new Date(year, monthIndex + 1, 0).getDate();
+    }
+
+    function normalizeDayOfMonth(value, monthValue = 1) {
+      const numeric = Number(value);
+      if (Number.isInteger(numeric) && numeric >= 1 && numeric <= 31) return numeric;
+      return 1;
+    }
+
+    function getTaskSchedule(task) {
+      const month = normalizeMonth(task?.recurrence_month);
+      return {
+        dayOfWeek: normalizeDayOfWeek(task?.recurrence_day_of_week),
+        month,
+        dayOfMonth: normalizeDayOfMonth(task?.recurrence_day_of_month, month),
+      };
+    }
+
+    function getScheduleLabel(recurrenceValue, schedule = {}) {
+      const recurrence = normalizeRecurrence(recurrenceValue);
+      if (usesWeekdaySchedule(recurrence)) {
+        const weekday = WEEKDAY_LABELS[normalizeDayOfWeek(schedule.dayOfWeek)] || "Monday";
+        if (recurrence === "monthly") return `First ${weekday}`;
+        if (recurrence === "every_other_month") return `First ${weekday} of cycle`;
+        return weekday;
+      }
+
+      if (usesDateSchedule(recurrence)) {
+        const month = normalizeMonth(schedule.month);
+        const day = normalizeDayOfMonth(schedule.dayOfMonth, month);
+        const firstDate = `${MONTH_LABELS[month - 1]} ${day}`;
+        if (recurrence === "twice_a_year") {
+          const secondMonth = ((month + 5) % 12) + 1;
+          return `${firstDate} and ${MONTH_LABELS[secondMonth - 1]} ${day}`;
+        }
+        return firstDate;
+      }
+
+      return "Every day";
+    }
+
     function formatDateKeyFor(date) {
       if (window.PocketSteakSupabase?.formatDateKey) {
         return window.PocketSteakSupabase.formatDateKey(date);
@@ -871,45 +948,118 @@
       return Math.floor(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / MS_PER_DAY);
     }
 
-    function getRecurrencePeriodStart(recurrence, dateInput = new Date()) {
+    function addDays(dateInput, amount) {
+      const date = getStartOfDayFor(dateInput);
+      date.setDate(date.getDate() + amount);
+      return date;
+    }
+
+    function addMonthsClamped(dateInput, amount) {
+      const date = getStartOfDayFor(dateInput);
+      return new Date(date.getFullYear(), date.getMonth() + amount, 1);
+    }
+
+    function getClampedMonthDate(year, monthIndex, dayValue) {
+      const day = Math.min(normalizeDayOfMonth(dayValue), getDaysInMonth(year, monthIndex));
+      return new Date(year, monthIndex, day);
+    }
+
+    function getFirstWeekdayOnOrAfter(dateInput, dayOfWeekValue) {
+      const date = getStartOfDayFor(dateInput);
+      const dayOfWeek = normalizeDayOfWeek(dayOfWeekValue);
+      const diff = (dayOfWeek - date.getDay() + 7) % 7;
+      date.setDate(date.getDate() + diff);
+      return date;
+    }
+
+    function getFirstWeekdayInMonth(year, monthIndex, dayOfWeekValue) {
+      return getFirstWeekdayOnOrAfter(new Date(year, monthIndex, 1), dayOfWeekValue);
+    }
+
+    function getBiWeeklyBucketStart(dateInput) {
+      const weekStart = getWeekStartDateFor(dateInput);
+      const epochStart = getWeekStartDateFor(new Date(2024, 0, 1));
+      const weeksSinceEpoch = Math.floor((getUtcDayNumber(weekStart) - getUtcDayNumber(epochStart)) / 7);
+      if (weeksSinceEpoch % 2 !== 0) {
+        weekStart.setDate(weekStart.getDate() - 7);
+      }
+      return weekStart;
+    }
+
+    function getLatestTwiceYearlyDate(dateInput, schedule = {}) {
+      const date = getStartOfDayFor(dateInput);
+      const monthIndex = normalizeMonth(schedule.month) - 1;
+      const day = normalizeDayOfMonth(schedule.dayOfMonth, monthIndex + 1);
+      const candidates = [];
+      for (let year = date.getFullYear() - 1; year <= date.getFullYear(); year += 1) {
+        candidates.push(getClampedMonthDate(year, monthIndex, day));
+        candidates.push(getClampedMonthDate(year, (monthIndex + 6) % 12, day));
+      }
+      return candidates
+        .filter((candidate) => candidate.getTime() <= date.getTime())
+        .sort((a, b) => b.getTime() - a.getTime())[0] || candidates[0];
+    }
+
+    function getRecurrencePeriodStart(recurrence, schedule = {}, dateInput = new Date()) {
       const interval = normalizeRecurrence(recurrence);
       const date = getStartOfDayFor(dateInput);
 
       if (interval === "weekly") {
-        return getWeekStartDateFor(date);
+        let dueDate = getFirstWeekdayOnOrAfter(getWeekStartDateFor(date), schedule.dayOfWeek);
+        if (date.getTime() < dueDate.getTime()) {
+          dueDate = addDays(dueDate, -7);
+        }
+        return dueDate;
       }
 
       if (interval === "bi_weekly") {
-        const weekStart = getWeekStartDateFor(date);
-        const epochStart = getWeekStartDateFor(new Date(2024, 0, 1));
-        const weeksSinceEpoch = Math.floor((getUtcDayNumber(weekStart) - getUtcDayNumber(epochStart)) / 7);
-        if (weeksSinceEpoch % 2 !== 0) {
-          weekStart.setDate(weekStart.getDate() - 7);
+        let bucketStart = getBiWeeklyBucketStart(date);
+        let dueDate = getFirstWeekdayOnOrAfter(bucketStart, schedule.dayOfWeek);
+        if (date.getTime() < dueDate.getTime()) {
+          bucketStart = addDays(bucketStart, -14);
+          dueDate = getFirstWeekdayOnOrAfter(bucketStart, schedule.dayOfWeek);
         }
-        return weekStart;
+        return dueDate;
       }
 
       if (interval === "monthly") {
-        return new Date(date.getFullYear(), date.getMonth(), 1);
+        let dueDate = getFirstWeekdayInMonth(date.getFullYear(), date.getMonth(), schedule.dayOfWeek);
+        if (date.getTime() < dueDate.getTime()) {
+          const previousMonth = addMonthsClamped(date, -1);
+          dueDate = getFirstWeekdayInMonth(previousMonth.getFullYear(), previousMonth.getMonth(), schedule.dayOfWeek);
+        }
+        return dueDate;
       }
 
       if (interval === "every_other_month") {
-        return new Date(date.getFullYear(), Math.floor(date.getMonth() / 2) * 2, 1);
+        let bucketStart = new Date(date.getFullYear(), Math.floor(date.getMonth() / 2) * 2, 1);
+        let dueDate = getFirstWeekdayInMonth(bucketStart.getFullYear(), bucketStart.getMonth(), schedule.dayOfWeek);
+        if (date.getTime() < dueDate.getTime()) {
+          bucketStart = addMonthsClamped(bucketStart, -2);
+          dueDate = getFirstWeekdayInMonth(bucketStart.getFullYear(), bucketStart.getMonth(), schedule.dayOfWeek);
+        }
+        return dueDate;
       }
 
       if (interval === "twice_a_year") {
-        return new Date(date.getFullYear(), date.getMonth() < 6 ? 0 : 6, 1);
+        return getLatestTwiceYearlyDate(date, schedule);
       }
 
       if (interval === "yearly") {
-        return new Date(date.getFullYear(), 0, 1);
+        const monthIndex = normalizeMonth(schedule.month) - 1;
+        const day = normalizeDayOfMonth(schedule.dayOfMonth, monthIndex + 1);
+        let dueDate = getClampedMonthDate(date.getFullYear(), monthIndex, day);
+        if (date.getTime() < dueDate.getTime()) {
+          dueDate = getClampedMonthDate(date.getFullYear() - 1, monthIndex, day);
+        }
+        return dueDate;
       }
 
       return date;
     }
 
-    function getRecurrencePeriodKey(recurrence, dateInput = new Date()) {
-      return formatDateKeyFor(getRecurrencePeriodStart(recurrence, dateInput));
+    function getRecurrencePeriodKey(recurrence, schedule = {}, dateInput = new Date()) {
+      return formatDateKeyFor(getRecurrencePeriodStart(recurrence, schedule, dateInput));
     }
 
     function formatCompletedAt(value) {
@@ -934,7 +1084,9 @@
     }
 
     function getTaskKind(row) {
-      return row.isRecurring ? getRecurrenceLabel(row.recurrence) : "Ad hoc";
+      return row.isRecurring
+        ? `${getRecurrenceLabel(row.recurrence)} • ${getScheduleLabel(row.recurrence, row.schedule)}`
+        : "Ad hoc";
     }
 
     function isMissingColumnError(error, columnName) {
@@ -964,10 +1116,18 @@
     async function selectTaskRows(client) {
       let result = await client
         .from(TASKS_TABLE)
-        .select("id,title,active,sort_order,recurrence_interval,created_at")
+        .select("id,title,active,sort_order,recurrence_interval,recurrence_day_of_week,recurrence_month,recurrence_day_of_month,created_at")
         .order("created_at", { ascending: false });
 
-      if (result.error && isMissingColumnError(result.error, "recurrence_interval")) {
+      if (
+        result.error &&
+        (
+          isMissingColumnError(result.error, "recurrence_interval") ||
+          isMissingColumnError(result.error, "recurrence_day_of_week") ||
+          isMissingColumnError(result.error, "recurrence_month") ||
+          isMissingColumnError(result.error, "recurrence_day_of_month")
+        )
+      ) {
         result = await client
           .from(TASKS_TABLE)
           .select("id,title,active,sort_order,created_at")
@@ -1051,7 +1211,8 @@
             const sortOrder = getSortOrder(task.sort_order);
             const isRecurring = isRecurringSortOrder(task.sort_order);
             const recurrence = isRecurring ? normalizeRecurrence(task.recurrence_interval) : "";
-            const completionPeriodKey = isRecurring ? getRecurrencePeriodKey(recurrence) : "";
+            const schedule = getTaskSchedule(task);
+            const completionPeriodKey = isRecurring ? getRecurrencePeriodKey(recurrence, schedule) : "";
             const completion = isRecurring
               ? completionByTaskAndPeriod.get(`${task.id}::${completionPeriodKey}`)
               : latestCompletionByTask.get(task.id);
@@ -1061,6 +1222,7 @@
               bought: isRecurring ? Boolean(completion) : task.active === false,
               isRecurring,
               recurrence,
+              schedule,
               active: task.active !== false,
               sortOrder,
               createdAt: String(task.created_at || "").trim(),
@@ -1126,7 +1288,7 @@
         const nextDone = !targetRow.bought;
         const currentDayKey = getCurrentDayKey();
         const completionDayKey = targetRow.isRecurring
-          ? getRecurrencePeriodKey(targetRow.recurrence)
+          ? getRecurrencePeriodKey(targetRow.recurrence, targetRow.schedule)
           : currentDayKey;
 
         let deleteQuery = client
