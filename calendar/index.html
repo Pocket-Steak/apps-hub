@@ -25,8 +25,13 @@
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{min-height:100%}
 
+    html{
+      background:#171922;
+    }
+
     body{
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      min-height:100dvh;
       background:
         radial-gradient(900px 500px at 0% 0%, rgba(255,122,24,.12), transparent 55%),
         linear-gradient(180deg,#0d0e11,#12141a 35%, #171922 100%);
@@ -125,7 +130,8 @@
 
     .month-bar,
     .legend,
-    .calendar-shell{
+    .calendar-shell,
+    .agenda-shell{
       background:
         radial-gradient(circle at top left, rgba(255,255,255,.05), transparent 34%),
         linear-gradient(180deg,var(--panel),var(--panel-2));
@@ -275,6 +281,104 @@
       padding:16px;
       color:var(--muted);
       font-weight:700;
+    }
+
+    .agenda-shell{
+      display:none;
+      min-height:0;
+      overflow:hidden;
+      padding:14px;
+    }
+
+    .agenda-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:12px;
+      padding-bottom:12px;
+      border-bottom:1px solid var(--border);
+    }
+
+    .agenda-title{
+      font-size:22px;
+      font-weight:900;
+      letter-spacing:-.02em;
+    }
+
+    .agenda-range{
+      color:var(--muted);
+      font-size:13px;
+      font-weight:800;
+      text-align:right;
+    }
+
+    .agenda-list{
+      display:grid;
+      gap:10px;
+      padding-top:12px;
+      overflow:auto;
+      max-height:100%;
+    }
+
+    .agenda-day{
+      display:grid;
+      gap:8px;
+      padding:12px;
+      border:1px solid var(--border);
+      border-radius:16px;
+      background:rgba(255,255,255,.035);
+    }
+
+    .agenda-day.today{
+      border-color:rgba(255,122,24,.55);
+      box-shadow:0 0 0 1px rgba(255,122,24,.18);
+    }
+
+    .agenda-date{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      color:var(--text);
+      font-size:16px;
+      font-weight:900;
+    }
+
+    .agenda-date span:last-child{
+      color:var(--muted);
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+
+    .agenda-event{
+      display:grid;
+      grid-template-columns:82px minmax(0, 1fr);
+      gap:10px;
+      align-items:center;
+      padding:10px;
+      border-radius:14px;
+      background:rgba(255,255,255,.06);
+      border-left:5px solid var(--accent);
+    }
+
+    .agenda-time{
+      color:var(--muted);
+      font-size:13px;
+      font-weight:900;
+    }
+
+    .agenda-summary{
+      font-size:14px;
+      font-weight:850;
+      line-height:1.25;
+      overflow-wrap:anywhere;
+    }
+
+    .agenda-empty{
+      color:var(--muted);
+      font-size:14px;
+      font-weight:800;
+      padding:4px 0;
     }
 
     @media (max-width: 1100px){
@@ -499,6 +603,71 @@
         font-size:10px;
       }
     }
+
+    @media (max-width: 820px), (orientation: portrait) and (max-width: 1180px){
+      body{
+        padding:10px;
+      }
+
+      .page{
+        height:calc(100dvh - 20px);
+        gap:10px;
+        grid-template-rows:auto minmax(0, 1fr);
+      }
+
+      .topbar{
+        position:sticky;
+        top:8px;
+        z-index:5;
+        padding:10px 12px;
+        border-radius:18px;
+      }
+
+      .top-actions{
+        width:100%;
+        gap:8px;
+      }
+
+      .topbar .top-actions + .top-actions{
+        display:none;
+      }
+
+      .top-actions img{
+        width:34px !important;
+        height:34px !important;
+      }
+
+      .top-actions .top-btn,
+      .top-actions .nav-btn{
+        flex:1 1 130px;
+      }
+
+      .status-pill{
+        display:none;
+      }
+
+      .month-bar,
+      .legend,
+      .calendar-shell{
+        display:none;
+      }
+
+      .agenda-shell{
+        display:grid;
+        grid-template-rows:auto minmax(0, 1fr);
+        border-radius:18px;
+        padding:12px;
+      }
+
+      .agenda-title{
+        font-size:20px;
+      }
+
+      .agenda-event{
+        grid-template-columns:74px minmax(0, 1fr);
+        padding:9px 10px;
+      }
+    }
   </style>
 
   <script async defer src="https://apis.google.com/js/api.js"></script>
@@ -513,7 +682,7 @@
       </div>
 
       <div class="top-actions">
-        <button class="top-btn" type="button" onclick="window.location.href='/settings/'" style="display:none;">Settings</button>
+        <button class="top-btn" type="button" onclick="window.location.href='/family/settings.html'">Settings</button>
         <div style="display:none;">
           <div class="status-pill">
             <div class="status-label">Google</div>
@@ -533,6 +702,16 @@
 
     <section class="legend" id="legend"></section>
 
+    <section class="agenda-shell" id="agendaShell">
+      <div class="agenda-head">
+        <div>
+          <div class="agenda-title">Agenda</div>
+          <div class="agenda-range" id="agendaRange">Today forward</div>
+        </div>
+      </div>
+      <div class="agenda-list" id="agendaList"></div>
+    </section>
+
     <section class="calendar-shell">
       <div class="weekday-row" id="weekdayRow"></div>
       <div class="month-grid" id="monthGrid"></div>
@@ -549,6 +728,7 @@
     const TOKEN_EXP_KEY = "pocketsteak_google_token_exp";
     const CONNECTION_KEY = "pocketsteak_google_connected";
     const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000;
+    const AGENDA_DAY_COUNT = 21;
     const STORAGE_KEY = "pocketsteak-family-events";
 
     let tokenClient = null;
@@ -562,6 +742,16 @@
 
     function setStatus(text) {
       document.getElementById("statusText").textContent = text;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&#039;",
+      }[char]));
     }
 
     function saveToken(accessToken, expiresInSeconds = 3600) {
@@ -635,6 +825,16 @@
       return `${year}-${month}-${day}`;
     }
 
+    function startOfDay(date) {
+      return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    }
+
+    function addDays(date, days) {
+      const next = new Date(date);
+      next.setDate(next.getDate() + days);
+      return next;
+    }
+
     function formatMonthTitle(date) {
       return date.toLocaleDateString(undefined, {
         month: "long",
@@ -673,6 +873,63 @@
           const bStart = b.start.dateTime || `${b.start.date}T00:00:00`;
           return aStart.localeCompare(bStart);
         });
+    }
+
+    function formatAgendaDayLabel(date, index) {
+      if (index === 0) return "Today";
+      if (index === 1) return "Tomorrow";
+      return date.toLocaleDateString(undefined, { weekday: "long" });
+    }
+
+    function formatAgendaDate(date) {
+      return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    }
+
+    function formatEventTime(event) {
+      if (event.start?.date) return "All day";
+      const start = new Date(event.start?.dateTime || "");
+      if (Number.isNaN(start.getTime())) return "";
+      return start.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+    }
+
+    function renderAgenda() {
+      const agendaList = document.getElementById("agendaList");
+      const agendaRange = document.getElementById("agendaRange");
+      if (!agendaList || !agendaRange) return;
+
+      const today = startOfDay(new Date());
+      const lastDay = addDays(today, AGENDA_DAY_COUNT - 1);
+      agendaRange.textContent = `${formatAgendaDate(today)} - ${formatAgendaDate(lastDay)}`;
+
+      agendaList.innerHTML = Array.from({ length: AGENDA_DAY_COUNT }, (_, index) => {
+        const date = addDays(today, index);
+        const key = formatDateKey(date);
+        const events = getEventsForDate(key);
+        const eventMarkup = events.length
+          ? events.map(event => `
+              <div class="agenda-event" style="border-left-color:${getCalendarColor(event.calendarId)}">
+                <div class="agenda-time">${escapeHtml(formatEventTime(event))}</div>
+                <div class="agenda-summary">${escapeHtml(event.summary || "(Untitled event)")}</div>
+              </div>
+            `).join("")
+          : `<div class="agenda-empty">No events</div>`;
+
+        return `
+          <article class="agenda-day${index === 0 ? " today" : ""}" data-agenda-date="${key}">
+            <div class="agenda-date">
+              <span>${escapeHtml(formatAgendaDayLabel(date, index))}</span>
+              <span>${escapeHtml(formatAgendaDate(date))}</span>
+            </div>
+            ${eventMarkup}
+          </article>
+        `;
+      }).join("");
+
+      document.querySelectorAll(".agenda-day").forEach(day => {
+        day.addEventListener("click", () => {
+          window.location.href = `/family/day.html?date=${day.dataset.agendaDate}`;
+        });
+      });
     }
 
     function buildLegend() {
@@ -748,9 +1005,11 @@
 
       document.querySelectorAll(".day-cell").forEach(cell => {
         cell.addEventListener("click", () => {
-          window.location.href = `/day/?date=${cell.dataset.date}`;
+          window.location.href = `/family/day.html?date=${cell.dataset.date}`;
         });
       });
+
+      renderAgenda();
     }
 
     async function gapiLoaded() {
@@ -864,8 +1123,12 @@
 
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
-        const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 1);
+        const monthFirstDay = new Date(year, month, 1);
+        const monthLastDay = new Date(year, month + 1, 1);
+        const agendaFirstDay = startOfDay(new Date());
+        const agendaLastDay = addDays(agendaFirstDay, AGENDA_DAY_COUNT);
+        const firstDay = new Date(Math.min(monthFirstDay.getTime(), agendaFirstDay.getTime()));
+        const lastDay = new Date(Math.max(monthLastDay.getTime(), agendaLastDay.getTime()));
 
         const responses = await Promise.all(
           visibleCalendars.map(cal =>
@@ -945,6 +1208,5 @@
       }
     });
   </script>
-  <script src="../feedback-widget.js" data-app-name="Apps Hub - Calendar" data-feedback-endpoint="https://baseball-betting-app.vercel.app/api/send-feedback" defer></script>
 </body>
 </html>

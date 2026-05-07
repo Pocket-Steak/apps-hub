@@ -547,6 +547,88 @@
         padding:10px;
       }
     }
+
+    @media (max-width: 820px), (orientation: portrait) and (max-width: 1180px){
+      body{
+        padding:10px;
+      }
+
+      .page{
+        height:auto;
+        min-height:calc(100dvh - 20px);
+        gap:10px;
+        align-content:start;
+      }
+
+      .topbar{
+        position:sticky;
+        top:8px;
+        z-index:5;
+        border-radius:18px;
+        padding:10px 12px;
+      }
+
+      .top-actions{
+        width:100%;
+        gap:8px;
+      }
+
+      .top-actions img{
+        width:34px !important;
+        height:34px !important;
+      }
+
+      .top-actions .top-btn{
+        flex:1 1 130px;
+      }
+
+      .top-actions .top-btn[onclick*="cookbook"]{
+        display:none;
+      }
+
+      .hero{
+        display:none;
+      }
+
+      .notes-layout{
+        grid-template-columns:1fr;
+        height:auto;
+        gap:10px;
+        overflow:visible;
+      }
+
+      .editor-panel{
+        order:-1;
+        min-height:330px;
+      }
+
+      .notes-panel{
+        min-height:300px;
+      }
+
+      .notes-panel,
+      .editor-panel{
+        border-radius:18px;
+        padding:12px;
+      }
+
+      .note-textarea{
+        min-height:220px;
+        padding:14px;
+        font-size:15px;
+      }
+
+      .note-card{
+        border-radius:16px;
+        padding:12px;
+      }
+
+      .editor-actions-left,
+      .editor-actions-right,
+      .action-btn{
+        width:100%;
+      }
+    }
   </style>
 
 </head>
