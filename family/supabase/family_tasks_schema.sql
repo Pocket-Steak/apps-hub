@@ -4,9 +4,45 @@ create table if not exists public.family_tasks (
   id uuid primary key default gen_random_uuid(),
   title text not null,
   active boolean not null default true,
+  recurrence_interval text not null default 'daily',
   sort_order integer,
   created_at timestamptz not null default now()
 );
+
+alter table public.family_tasks
+  add column if not exists recurrence_interval text not null default 'daily';
+
+update public.family_tasks
+  set recurrence_interval = 'daily'
+  where recurrence_interval is null;
+
+alter table public.family_tasks
+  alter column recurrence_interval set default 'daily';
+
+alter table public.family_tasks
+  alter column recurrence_interval set not null;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'family_tasks_recurrence_interval_check'
+      and conrelid = 'public.family_tasks'::regclass
+  ) then
+    alter table public.family_tasks
+      add constraint family_tasks_recurrence_interval_check
+      check (recurrence_interval in (
+        'daily',
+        'weekly',
+        'bi_weekly',
+        'monthly',
+        'every_other_month',
+        'twice_a_year',
+        'yearly'
+      ));
+  end if;
+end $$;
 
 alter table public.family_tasks
   alter column sort_order drop not null;
@@ -18,6 +54,12 @@ create table if not exists public.family_task_completions (
   day_key text not null,
   week_start text not null
 );
+
+alter table public.family_task_completions
+  drop column if exists completed_by;
+
+alter table public.family_task_completions
+  drop column if exists points;
 
 create table if not exists public.family_grocery_items (
   id uuid primary key default gen_random_uuid(),
