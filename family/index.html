@@ -2054,6 +2054,19 @@
           <div class="preview-empty">Waiting for Supabase tasks…</div>
         </div>
         </article>
+
+        <article class="preview-card" id="notesPreviewCard">
+        <div class="preview-head">
+          <div class="preview-heading">
+            <div class="preview-title">Notes</div>
+            <div class="preview-meta" id="notesPreviewMeta">Loading family notes.</div>
+          </div>
+          <button class="preview-open" id="notesPreviewBtn" type="button">Open Notes</button>
+        </div>
+        <div class="preview-list" id="notesPreviewList">
+          <div class="preview-empty">Waiting for notes…</div>
+        </div>
+        </article>
       </section>
     </section>
   </div>
@@ -2078,6 +2091,9 @@
     const CLIENT_ID = "82204016171-ta1ipuu88gie0tkq69je3di5uifu1kki.apps.googleusercontent.com";
     const API_KEY = "AIzaSyBPZEeYB8IaheJPJA2Y44msGfDwIhJMpGU";
     const DISCOVERY_DOC = "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest";
+    const SHEETS_DISCOVERY_DOC = "https://sheets.googleapis.com/$discovery/rest?version=v4";
+    const NOTES_SPREADSHEET_ID = "1ccfVTfNqrrzMLkD4uK8fkWs3wRJENs5XQJHJfjkWmmY";
+    const NOTES_SHEET_NAME = "CM Notes";
     const GROCERY_TABLE = "family_grocery_items";
     const TASKS_TABLE = "family_tasks";
     const TASK_COMPLETIONS_TABLE = "family_task_completions";
@@ -2085,6 +2101,7 @@
     const BUILT_IN_SUPABASE_ANON_KEY = "sb_publishable_Y95c2qYSmD8YKdaIeOZYWA_6GmC2OHM";
     const SCOPES = [
       "https://www.googleapis.com/auth/calendar",
+      "https://www.googleapis.com/auth/spreadsheets",
     ].join(" ");
 
     const TOKEN_KEY = "pocketsteak_google_access_token";
@@ -2110,8 +2127,10 @@
     let weekEvents = [];
     let groceryPreviewRows = [];
     let taskPreviewRows = [];
+    let notesPreviewRows = [];
     let groceryPreviewError = "";
     let taskPreviewError = "";
+    let notesPreviewError = "";
     let activeOverlayPath = "";
     let taskPreviewClient = null;
     let taskPreviewClientSignature = "";
@@ -2611,6 +2630,7 @@
         accentColor: "#ff7a18",
       });
       renderTaskPreviewCard();
+      renderNotesPreviewCard();
     }
 
     function renderPreviewCard({ rows, listId, metaId, emptyText, activeLabel, doneLabel, accentColor = "#ff7a18", errorText = "" }) {
@@ -2674,6 +2694,40 @@
             </button>
           `).join("")
         : `<div class="preview-empty">Everything is completed for today.</div>`;
+    }
+
+    function getNoteLabel(body) {
+      const words = String(body || "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .split(" ")
+        .filter(Boolean);
+      return words.slice(0, 2).join(" ") || "Blank note";
+    }
+
+    function renderNotesPreviewCard() {
+      const listEl = document.getElementById("notesPreviewList");
+      const metaEl = document.getElementById("notesPreviewMeta");
+
+      if (notesPreviewError) {
+        metaEl.textContent = notesPreviewError;
+        listEl.innerHTML = `<div class="preview-empty">${escapeHtml(notesPreviewError)}</div>`;
+        return;
+      }
+
+      if (!notesPreviewRows.length) {
+        metaEl.textContent = "No notes loaded yet.";
+        listEl.innerHTML = `<div class="preview-empty">Open Notes to add a quick note.</div>`;
+        return;
+      }
+
+      metaEl.textContent = `${notesPreviewRows.length} note${notesPreviewRows.length === 1 ? "" : "s"} synced`;
+      listEl.innerHTML = notesPreviewRows.slice(0, 8).map((row) => `
+        <div class="preview-item" style="border-left-color:#8b5cf6">
+          <div class="preview-item-title">${escapeHtml(getNoteLabel(row.body))}</div>
+          <div class="preview-item-meta">Note</div>
+        </div>
+      `).join("");
     }
 
     function openDashboardOverlay(title, path) {
@@ -2784,10 +2838,56 @@
         });
     }
 
+    function isLikelyNotesHeaderRow(row) {
+      const first = String(row?.[0] || "").trim().toLowerCase();
+      const second = String(row?.[1] || "").trim().toLowerCase();
+      const third = String(row?.[2] || "").trim().toLowerCase();
+      const fourth = String(row?.[3] || "").trim().toLowerCase();
+      return (
+        ["id", "note id", "noteid"].includes(first) ||
+        ["title", "note title", "name"].includes(second) ||
+        ["body", "note", "content", "text"].includes(third) ||
+        ["updated", "updated at", "modified", "modified at", "timestamp"].includes(fourth)
+      );
+    }
+
+    async function loadNotesPreview() {
+      if (!window.gapi?.client?.sheets) {
+        return [];
+      }
+
+      const savedToken = getSavedToken();
+      if (!savedToken) {
+        return [];
+      }
+
+      gapi.client.setToken({ access_token: savedToken });
+      const response = await gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: NOTES_SPREADSHEET_ID,
+        range: `${NOTES_SHEET_NAME}!A:D`,
+      });
+
+      const values = response.result.values || [];
+      const startIndex = values.length > 0 && isLikelyNotesHeaderRow(values[0]) ? 1 : 0;
+      return values.slice(startIndex)
+        .map((row) => ({
+          id: String(row[0] || "").trim(),
+          body: String(row[2] || row[1] || ""),
+          updatedAt: String(row[3] || ""),
+        }))
+        .filter((row) => row.id && row.body.trim())
+        .sort((a, b) => {
+          const aTime = new Date(a.updatedAt).getTime() || 0;
+          const bTime = new Date(b.updatedAt).getTime() || 0;
+          return bTime - aTime;
+        });
+    }
+
     async function loadDashboardLists() {
       const results = await Promise.allSettled([
         loadGroceryPreview(),
         loadTaskPreview(),
+        loadNotesPreview(),
       ]);
 
       if (results[0].status === "fulfilled") {
@@ -2806,6 +2906,15 @@
         console.error(results[1].reason);
         taskPreviewRows = [];
         taskPreviewError = results[1].reason?.message || "Could not load tasks preview.";
+      }
+
+      if (results[2].status === "fulfilled") {
+        notesPreviewRows = results[2].value;
+        notesPreviewError = "";
+      } else {
+        console.error(results[2].reason);
+        notesPreviewRows = [];
+        notesPreviewError = "Open Notes to connect.";
       }
 
       renderAll();
