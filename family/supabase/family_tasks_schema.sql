@@ -9,6 +9,29 @@ create table if not exists public.family_people (
   created_at timestamptz not null default now()
 );
 
+do $$
+begin
+  if to_regclass('public.family_members') is not null then
+    execute $copy_members$
+      insert into public.family_people (id, name, color, active, sort_order, created_at)
+      select
+        legacy_member.id,
+        legacy_member.name,
+        coalesce(nullif(legacy_member.color, ''), '#ec4899'),
+        true,
+        row_number() over (order by legacy_member.created_at, legacy_member.name) * 10,
+        coalesce(legacy_member.created_at, now())
+      from public.family_members legacy_member
+      where not exists (
+        select 1
+        from public.family_people person
+        where person.id = legacy_member.id
+          or lower(person.name) = lower(legacy_member.name)
+      )
+    $copy_members$;
+  end if;
+end $$;
+
 create table if not exists public.family_tasks (
   id uuid primary key default gen_random_uuid(),
   title text not null,
