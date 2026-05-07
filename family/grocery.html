@@ -879,6 +879,7 @@
     })();
 
     const GROCERY_TABLE = "family_grocery_items";
+    const GROCERY_SYNC_INTERVAL_MS = 15000;
 
     let groceryRows = [];
     let isBusy = false;
@@ -1043,9 +1044,13 @@
       return supabaseClient;
     }
 
-    async function loadGroceries() {
-      setBusy(true);
-      showMessage("", "");
+    async function loadGroceries({ silent = false } = {}) {
+      if (silent && isBusy) return;
+
+      if (!silent) {
+        setBusy(true);
+        showMessage("", "");
+      }
 
       try {
         const client = ensureSupabaseClient();
@@ -1057,6 +1062,7 @@
         if (result.error) {
           throw result.error;
         }
+        if (silent && isBusy) return;
 
         groceryRows = (result.data || [])
           .map((row) => ({
@@ -1074,13 +1080,20 @@
         renderGroceries();
       } catch (error) {
         console.error(error);
+        if (silent) {
+          setStatus("Sync delayed", false);
+          return;
+        }
+
         groceryRows = [];
         isConnected = false;
         setStatus("Connection failed", false);
         renderGroceries();
         showMessage(getReadableError(error), "error");
       } finally {
-        setBusy(false);
+        if (!silent) {
+          setBusy(false);
+        }
       }
     }
 
@@ -1258,6 +1271,19 @@
         addItem();
       }
     });
+
+    function syncGroceriesInBackground() {
+      if (document.visibilityState === "hidden") return;
+      loadGroceries({ silent: true });
+    }
+
+    window.addEventListener("focus", syncGroceriesInBackground);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        syncGroceriesInBackground();
+      }
+    });
+    setInterval(syncGroceriesInBackground, GROCERY_SYNC_INTERVAL_MS);
 
     setBusy(true);
     setStatus("Loading…", false);
