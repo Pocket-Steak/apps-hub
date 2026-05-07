@@ -25,10 +25,14 @@
     }
 
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{min-height:100%}
+    html,body{
+      min-height:100%;
+      background:#12141a;
+    }
 
     body{
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      min-height:100dvh;
       background:
         radial-gradient(900px 500px at 0% 0%, rgba(255,122,24,.12), transparent 55%),
         linear-gradient(180deg,#0d0e11,#12141a 35%, #171922 100%);
@@ -192,13 +196,13 @@
 
     .notes-panel{
       display:grid;
-      grid-template-rows:auto auto auto minmax(0, 1fr);
+      grid-template-rows:auto auto minmax(0, 1fr);
       gap:12px;
     }
 
     .editor-panel{
       display:grid;
-      grid-template-rows:auto auto minmax(0, 1fr) auto;
+      grid-template-rows:auto minmax(0, 1fr) auto;
       gap:12px;
     }
 
@@ -220,8 +224,6 @@
       line-height:1.4;
     }
 
-    .search-input,
-    .title-input,
     .note-textarea{
       width:100%;
       border-radius:18px;
@@ -233,12 +235,6 @@
       outline:none;
     }
 
-    .search-input,
-    .title-input{
-      min-height:52px;
-      padding:0 16px;
-    }
-
     .note-textarea{
       min-height:100%;
       resize:none;
@@ -246,8 +242,6 @@
       line-height:1.55;
     }
 
-    .search-input:focus,
-    .title-input:focus,
     .note-textarea:focus{
       border-color:rgba(255,122,24,.55);
       box-shadow:0 0 0 4px rgba(255,122,24,.14);
@@ -265,18 +259,54 @@
       scrollbar-color:rgba(255,255,255,.18) transparent;
     }
 
+    .note-row{
+      position:relative;
+      overflow:hidden;
+      border-radius:var(--radius);
+    }
+
+    .note-delete{
+      position:absolute;
+      top:0;
+      right:0;
+      bottom:0;
+      width:88px;
+      border:none;
+      border-radius:0 var(--radius) var(--radius) 0;
+      background:var(--danger);
+      color:#fff;
+      font-size:13px;
+      font-weight:900;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:0;
+    }
+
     .note-card{
       padding:10px 12px;
       display:grid;
       gap:6px;
+      width:100%;
+      border:none;
       border-left:4px solid transparent;
+      color:var(--text);
+      position:relative;
+      z-index:1;
       transition:transform .18s ease, border-color .18s ease, background .18s ease;
       cursor:pointer;
       box-shadow:var(--shadow-soft);
       align-content:start;
+      text-align:left;
+      touch-action:pan-y;
       background:
         linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.025)),
         var(--surface);
+    }
+
+    .note-card.swiping{
+      transition:none;
     }
 
     .note-card:hover{
@@ -296,6 +326,10 @@
       box-shadow:0 16px 28px rgba(0,0,0,.24);
     }
 
+    .note-row.revealed .note-card{
+      transform:translateX(-88px);
+    }
+
     .note-card-title{
       font-size:15px;
       font-weight:850;
@@ -305,19 +339,6 @@
       letter-spacing:-.01em;
     }
 
-    .note-card-preview{
-      font-size:12px;
-      color:var(--muted);
-      font-weight:700;
-      line-height:1.4;
-      display:-webkit-box;
-      -webkit-line-clamp:2;
-      -webkit-box-orient:vertical;
-      overflow:hidden;
-      white-space:pre-wrap;
-    }
-
-    .note-card-meta,
     .editor-meta,
     .message{
       font-size:11px;
@@ -420,8 +441,6 @@
         height:calc(100dvh - 226px);
       }
 
-      .search-input,
-      .title-input,
       .top-btn,
       .action-btn{
         min-height:46px;
@@ -475,12 +494,6 @@
       .editor-panel{
         padding:12px;
         gap:10px;
-      }
-
-      .search-input,
-      .title-input{
-        min-height:46px;
-        font-size:14px;
       }
 
       .note-textarea{
@@ -560,54 +573,35 @@
     <section class="hero">
       <div class="eyebrow">Family</div>
       <div class="title">Notes</div>
-      <div class="meta">This gives the command center a clean brain-dump space: quick capture on the left, full writing space on the right, and everything stays synced to your <strong>CM Notes</strong> Google Sheets tab.</div>
     </section>
 
     <section class="notes-layout">
       <section class="notes-panel">
         <div class="panel-head">
-          <div class="panel-title">Note Library</div>
+          <div class="panel-title">Notes</div>
           <div class="panel-meta" id="notesMeta">Connect Google to load your notes.</div>
         </div>
 
-        <input
-          id="searchInput"
-          class="search-input"
-          type="search"
-          placeholder="Search titles or note text"
-          autocomplete="off"
-        />
-
-        <button class="action-btn accent" id="newNoteBtn" type="button">New Note</button>
+        <button class="action-btn accent" id="newNoteBtn" type="button">Add Note</button>
 
         <div class="notes-list" id="notesList"></div>
       </section>
 
       <section class="editor-panel">
         <div class="panel-head">
-          <div class="panel-title">Editor</div>
-          <div class="panel-meta">Use short titles so the list stays easy to scan. The body is where the full details live.</div>
+          <div class="panel-title">Write</div>
         </div>
-
-        <input
-          id="titleInput"
-          class="title-input"
-          type="text"
-          placeholder="Note title"
-          autocomplete="off"
-        />
 
         <textarea
           id="noteInput"
           class="note-textarea"
-          placeholder="Write the note here..."
+          placeholder=""
           spellcheck="true"
         ></textarea>
 
         <div class="editor-actions">
           <div class="editor-actions-left">
             <button class="action-btn accent" id="saveBtn" type="button">Save Note</button>
-            <button class="action-btn danger" id="deleteBtn" type="button">Delete Note</button>
           </div>
           <div class="editor-actions-right">
             <div class="editor-meta" id="editorMeta">No note selected yet.</div>
@@ -638,19 +632,15 @@
     let isConnected = false;
     let isBusy = false;
     let notesRows = [];
-    let filteredNotes = [];
     let activeNoteId = "";
 
     const statusText = document.getElementById("statusText");
     const connectBtn = document.getElementById("connectBtn");
     const notesMeta = document.getElementById("notesMeta");
     const notesList = document.getElementById("notesList");
-    const searchInput = document.getElementById("searchInput");
     const newNoteBtn = document.getElementById("newNoteBtn");
-    const titleInput = document.getElementById("titleInput");
     const noteInput = document.getElementById("noteInput");
     const saveBtn = document.getElementById("saveBtn");
-    const deleteBtn = document.getElementById("deleteBtn");
     const editorMeta = document.getElementById("editorMeta");
     const messageEl = document.getElementById("message");
     const backHomeBtn = document.getElementById("backHomeBtn");
@@ -663,11 +653,8 @@
       isBusy = value;
       connectBtn.disabled = value && appReady;
       saveBtn.disabled = value || !isConnected;
-      deleteBtn.disabled = value || !isConnected || !activeNoteId;
       newNoteBtn.disabled = value || !isConnected;
-      titleInput.disabled = value || !isConnected;
       noteInput.disabled = value || !isConnected;
-      searchInput.disabled = value || !isConnected;
     }
 
     function showMessage(text = "", type = "") {
@@ -691,9 +678,13 @@
       return String(value || "").trim();
     }
 
-    function normalizeTitle(value) {
-      const title = String(value || "").trim();
-      return title || "Untitled Note";
+    function getNoteLabel(body) {
+      const words = String(body || "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .split(" ")
+        .filter(Boolean);
+      return words.slice(0, 2).join(" ") || "Blank note";
     }
 
     function formatDateTime(value) {
@@ -711,10 +702,6 @@
 
     function createNoteId() {
       return `note_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-    }
-
-    function getSearchValue() {
-      return String(searchInput.value || "").trim().toLowerCase();
     }
 
     function isLikelyHeaderRow(row) {
@@ -773,33 +760,97 @@
 
     function updateNotesMeta() {
       const count = notesRows.length;
-      const query = getSearchValue();
       if (!isConnected) {
         notesMeta.textContent = "Connect Google to load your notes.";
         return;
       }
       if (!count) {
-        notesMeta.textContent = "No notes yet. Start with a quick family note or shopping reminder.";
+        notesMeta.textContent = "No notes yet.";
         return;
       }
-      notesMeta.textContent = query
-        ? `${filteredNotes.length} of ${count} notes showing`
-        : `${count} notes synced`;
+      notesMeta.textContent = `${count} note${count === 1 ? "" : "s"} synced`;
     }
 
-    function applyFilter() {
-      const query = getSearchValue();
-      filteredNotes = notesRows.filter((note) => {
-        if (!query) return true;
-        return `${note.title}\n${note.body}`.toLowerCase().includes(query);
+    function closeRevealedRows(exceptRow = null) {
+      notesList.querySelectorAll(".note-row.revealed").forEach((row) => {
+        if (row !== exceptRow) {
+          row.classList.remove("revealed");
+        }
+      });
+    }
+
+    function bindSwipeDeleteRow(row) {
+      const card = row.querySelector("[data-note-id]");
+      if (!card) return;
+
+      let startX = 0;
+      let currentX = 0;
+      let wasRevealed = false;
+      let moved = false;
+      let dragging = false;
+      const maxSwipe = 88;
+
+      const setOffset = (value) => {
+        const offset = Math.max(-maxSwipe, Math.min(0, value));
+        card.style.transform = `translateX(${offset}px)`;
+      };
+
+      const endDrag = () => {
+        if (!dragging) return;
+        dragging = false;
+        card.classList.remove("swiping");
+        card.style.transform = "";
+
+        const baseOffset = wasRevealed ? -maxSwipe : 0;
+        const offset = baseOffset + currentX - startX;
+        if (offset < -maxSwipe / 2) {
+          closeRevealedRows(row);
+          row.classList.add("revealed");
+        } else {
+          row.classList.remove("revealed");
+        }
+      };
+
+      card.addEventListener("pointerdown", (event) => {
+        if (event.button && event.button !== 0) return;
+        startX = event.clientX;
+        currentX = startX;
+        wasRevealed = row.classList.contains("revealed");
+        moved = false;
+        dragging = true;
+        card.classList.add("swiping");
+        card.setPointerCapture?.(event.pointerId);
       });
 
-      if (activeNoteId && !filteredNotes.some((note) => note.id === activeNoteId)) {
-        activeNoteId = "";
-      }
+      card.addEventListener("pointermove", (event) => {
+        if (!dragging) return;
+        currentX = event.clientX;
+        const deltaX = currentX - startX;
+        if (Math.abs(deltaX) > 6) {
+          moved = true;
+        }
+        if (moved) {
+          setOffset((wasRevealed ? -maxSwipe : 0) + deltaX);
+        }
+      });
 
-      updateNotesMeta();
-      renderNotesList();
+      card.addEventListener("pointerup", endDrag);
+      card.addEventListener("pointercancel", endDrag);
+
+      card.addEventListener("click", (event) => {
+        if (moved) {
+          event.preventDefault();
+          return;
+        }
+
+        if (row.classList.contains("revealed")) {
+          row.classList.remove("revealed");
+          return;
+        }
+
+        closeRevealedRows(row);
+        selectNote(card.dataset.noteId);
+      });
     }
 
     function renderNotesList() {
@@ -808,38 +859,40 @@
         return;
       }
 
-      if (!filteredNotes.length) {
-        notesList.innerHTML = `<div class="empty-state">No notes match this search yet.</div>`;
+      if (!notesRows.length) {
+        notesList.innerHTML = `<div class="empty-state">No notes yet.</div>`;
         return;
       }
 
-      notesList.innerHTML = filteredNotes.map((note) => `
-        <button class="note-card${note.id === activeNoteId ? " active" : ""}" data-note-id="${escapeHtml(note.id)}" type="button">
-          <div class="note-card-title">${escapeHtml(note.title)}</div>
-          <div class="note-card-preview">${escapeHtml(note.body || "No note text yet.")}</div>
-          <div class="note-card-meta">Updated ${escapeHtml(formatDateTime(note.updatedAt))}</div>
-        </button>
+      notesList.innerHTML = notesRows.map((note) => `
+        <div class="note-row" data-note-row="${escapeHtml(note.id)}">
+          <button class="note-delete" data-delete-note-id="${escapeHtml(note.id)}" type="button">Delete</button>
+          <button class="note-card${note.id === activeNoteId ? " active" : ""}" data-note-id="${escapeHtml(note.id)}" type="button">
+            <div class="note-card-title">${escapeHtml(getNoteLabel(note.body))}</div>
+          </button>
+        </div>
       `).join("");
 
-      notesList.querySelectorAll("[data-note-id]").forEach((button) => {
-        button.addEventListener("click", () => selectNote(button.dataset.noteId));
+      notesList.querySelectorAll("[data-note-row]").forEach(bindSwipeDeleteRow);
+      notesList.querySelectorAll("[data-delete-note-id]").forEach((button) => {
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
+          deleteNoteById(button.dataset.deleteNoteId);
+        });
       });
     }
 
     function renderEditor() {
       const note = notesRows.find((entry) => entry.id === activeNoteId);
-      deleteBtn.disabled = isBusy || !isConnected || !note;
 
       if (!note) {
-        titleInput.value = "";
         noteInput.value = "";
         editorMeta.textContent = isConnected
-          ? "New note draft. Give it a title and save when you are ready."
+          ? "New note draft."
           : "No note selected yet.";
         return;
       }
 
-      titleInput.value = note.title;
       noteInput.value = note.body;
       editorMeta.textContent = `Updated ${formatDateTime(note.updatedAt)}`;
     }
@@ -856,7 +909,7 @@
       showMessage("", "");
       renderEditor();
       renderNotesList();
-      titleInput.focus();
+      noteInput.focus();
     }
 
     async function ensureHeaders() {
@@ -901,13 +954,16 @@
         const values = response.result.values || [];
         const startIndex = values.length > 0 && isLikelyHeaderRow(values[0]) ? 1 : 0;
 
-        notesRows = values.slice(startIndex).map((row, index) => ({
-          rowNumber: startIndex + index + 1,
-          id: normalizeId(row[0]),
-          title: normalizeTitle(row[1]),
-          body: String(row[2] || ""),
-          updatedAt: String(row[3] || ""),
-        })).filter((row) => row.id);
+        notesRows = values.slice(startIndex).map((row, index) => {
+          const body = String(row[2] || row[1] || "");
+          return {
+            rowNumber: startIndex + index + 1,
+            id: normalizeId(row[0]),
+            title: getNoteLabel(body),
+            body,
+            updatedAt: String(row[3] || ""),
+          };
+        }).filter((row) => row.id);
 
         notesRows.sort((a, b) => {
           const aTime = new Date(a.updatedAt).getTime() || 0;
@@ -919,12 +975,12 @@
           activeNoteId = "";
         }
 
-        applyFilter();
+        updateNotesMeta();
+        renderNotesList();
         renderEditor();
       } catch (error) {
         console.error(error);
         notesRows = [];
-        filteredNotes = [];
         notesList.innerHTML = `<div class="empty-state">Could not load notes. ${escapeHtml(getReadableError(error))}</div>`;
         notesMeta.textContent = "Could not load your notes.";
         renderEditor();
@@ -940,15 +996,14 @@
       }
 
       const body = String(noteInput.value || "");
-      let title = String(titleInput.value || "").trim();
+      const title = getNoteLabel(body);
 
-      if (!title && !body.trim()) {
+      if (!body.trim()) {
         showMessage("Write something before saving.", "error");
-        titleInput.focus();
+        noteInput.focus();
         return;
       }
 
-      title = title || "Untitled Note";
       const updatedAt = new Date().toISOString();
 
       setBusy(true);
@@ -995,14 +1050,11 @@
       }
     }
 
-    async function deleteCurrentNote() {
-      if (!isConnected || !activeNoteId) return;
+    async function deleteNoteById(noteId) {
+      if (!isConnected || isBusy || !noteId) return;
 
-      const current = notesRows.find((note) => note.id === activeNoteId);
+      const current = notesRows.find((note) => note.id === noteId);
       if (!current) return;
-
-      const confirmed = window.confirm(`Delete "${current.title}"?`);
-      if (!confirmed) return;
 
       setBusy(true);
       showMessage("", "");
@@ -1013,7 +1065,9 @@
           range: `${SHEET_NAME}!A${current.rowNumber}:D${current.rowNumber}`,
         });
 
-        activeNoteId = "";
+        if (activeNoteId === current.id) {
+          activeNoteId = "";
+        }
         await loadNotes();
         showMessage("Note deleted.", "success");
       } catch (error) {
@@ -1176,8 +1230,6 @@
     connectBtn.addEventListener("click", () => connectGoogle(true));
     newNoteBtn.addEventListener("click", createNewNoteDraft);
     saveBtn.addEventListener("click", saveCurrentNote);
-    deleteBtn.addEventListener("click", deleteCurrentNote);
-    searchInput.addEventListener("input", applyFilter);
 
     backHomeBtn.addEventListener("click", () => {
       if (window.location.search.includes("overlay=")) {
