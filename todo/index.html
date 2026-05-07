@@ -1401,6 +1401,16 @@
 
       if (
         result.error &&
+        isMissingColumnError(result.error, "assigned_person_id")
+      ) {
+        result = await client
+          .from(TASKS_TABLE)
+          .select("id,title,active,sort_order,recurrence_interval,recurrence_day_of_week,recurrence_month,recurrence_day_of_month,recurrence_start_date,created_at")
+          .order("created_at", { ascending: false });
+      }
+
+      if (
+        result.error &&
         (
           isMissingColumnError(result.error, "recurrence_interval") ||
           isMissingColumnError(result.error, "recurrence_day_of_week") ||
@@ -1487,13 +1497,13 @@
         if (completionResult.status !== "fulfilled") throw completionResult.reason;
         if (completionResult.value.error) throw completionResult.value.error;
         if (peopleResult.status !== "fulfilled") throw peopleResult.reason;
-        if (peopleResult.value.error) throw peopleResult.value.error;
+        if (peopleResult.value.error && !isMissingTaskSchemaError(peopleResult.value.error)) throw peopleResult.value.error;
         if (colorResult.status !== "fulfilled") throw colorResult.reason;
-        if (colorResult.value.error) throw colorResult.value.error;
+        if (colorResult.value.error && !isMissingTaskSchemaError(colorResult.value.error)) throw colorResult.value.error;
         if (claimResult.status !== "fulfilled") throw claimResult.reason;
-        if (claimResult.value.error) throw claimResult.value.error;
+        if (claimResult.value.error && !isMissingTaskSchemaError(claimResult.value.error)) throw claimResult.value.error;
 
-        people = (peopleResult.value.data || [])
+        people = (peopleResult.value.error ? [] : (peopleResult.value.data || []))
           .map((person) => ({
             id: String(person.id || "").trim(),
             name: String(person.name || "").trim(),
@@ -1504,7 +1514,7 @@
           .filter((person) => person.id && person.name);
 
         taskTypeColors = { ...DEFAULT_TASK_TYPE_COLORS };
-        (colorResult.value.data || []).forEach((row) => {
+        (colorResult.value.error ? [] : (colorResult.value.data || [])).forEach((row) => {
           const key = String(row.task_type || "").trim();
           if (Object.prototype.hasOwnProperty.call(DEFAULT_TASK_TYPE_COLORS, key)) {
             taskTypeColors[key] = normalizeColor(row.color, DEFAULT_TASK_TYPE_COLORS[key]);
@@ -1524,7 +1534,7 @@
             completionByTaskAndPeriod.set(periodMapKey, entry);
           }
         });
-        (claimResult.value.data || []).forEach((entry) => {
+        (claimResult.value.error ? [] : (claimResult.value.data || [])).forEach((entry) => {
           const periodMapKey = `${entry.task_id}::${entry.day_key}`;
           if (!claimByTaskAndPeriod.has(periodMapKey)) {
             claimByTaskAndPeriod.set(periodMapKey, entry);
@@ -1596,14 +1606,17 @@
 
       try {
         const client = ensureSupabaseClient();
+        const payload = {
+          title: item,
+          active: true,
+          sort_order: null,
+        };
+        if (assignedPersonId) {
+          payload.assigned_person_id = assignedPersonId;
+        }
         const result = await client
           .from(TASKS_TABLE)
-          .insert({
-            title: item,
-            active: true,
-            assigned_person_id: assignedPersonId,
-            sort_order: null,
-          });
+          .insert(payload);
 
         if (result.error) throw result.error;
 

@@ -1479,22 +1479,29 @@
 
       try {
         const client = ensureSupabaseClient();
-        const checks = await Promise.all([
-          client.from(TASKS_TABLE).select("id,assigned_person_id,recurrence_interval,recurrence_day_of_week,recurrence_month,recurrence_day_of_month,recurrence_start_date", { head: true, count: "exact" }),
+        const coreChecks = await Promise.all([
+          client.from(TASKS_TABLE).select("id,recurrence_interval,recurrence_day_of_week,recurrence_month,recurrence_day_of_month,recurrence_start_date", { head: true, count: "exact" }),
           client.from(TASK_COMPLETIONS_TABLE).select("id", { head: true, count: "exact" }),
+        ]);
+        const optionalChecks = await Promise.all([
+          client.from(TASKS_TABLE).select("id,assigned_person_id", { head: true, count: "exact" }),
           client.from(PEOPLE_TABLE).select("id,name,color,active,sort_order", { head: true, count: "exact" }),
           client.from(TASK_CLAIMS_TABLE).select("id,task_id,day_key,person_id", { head: true, count: "exact" }),
           client.from(TASK_COLORS_TABLE).select("task_type,color", { head: true, count: "exact" }),
         ]);
 
-        const tableNames = [TASKS_TABLE, TASK_COMPLETIONS_TABLE, PEOPLE_TABLE, TASK_CLAIMS_TABLE, TASK_COLORS_TABLE];
-        const failures = checks
-          .map((result, index) => (result.error ? `${tableNames[index]}: ${getSupabaseErrorMessage(result.error)}` : ""))
+        const coreTableNames = [TASKS_TABLE, TASK_COMPLETIONS_TABLE];
+        const coreFailures = coreChecks
+          .map((result, index) => (result.error ? `${coreTableNames[index]}: ${getSupabaseErrorMessage(result.error)}` : ""))
+          .filter(Boolean);
+        const optionalNames = [`${TASKS_TABLE}.assigned_person_id`, PEOPLE_TABLE, TASK_CLAIMS_TABLE, TASK_COLORS_TABLE];
+        const optionalFailures = optionalChecks
+          .map((result, index) => (result.error ? `${optionalNames[index]}: ${getSupabaseErrorMessage(result.error)}` : ""))
           .filter(Boolean);
 
-        if (failures.length) {
+        if (coreFailures.length) {
           setSupabaseStatus("Schema missing");
-          setSupabaseNote(`${SUPABASE_SETUP_NOTE} ${failures.join(" | ")}`);
+          setSupabaseNote(`${SUPABASE_SETUP_NOTE} ${coreFailures.join(" | ")}`);
           if (reloadTasks) {
             await loadTaskSettingsData();
           }
@@ -1502,11 +1509,13 @@
         }
 
         setSupabaseStatus("Connected");
-        setSupabaseNote("Connection works and family task tables are available.");
+        setSupabaseNote(optionalFailures.length
+          ? `${SUPABASE_SETUP_NOTE} Existing tasks still work; assignment features need the private update.`
+          : "Connection works and family task tables are available.");
         if (reloadTasks) {
           await loadTaskSettingsData();
         }
-        return true;
+        return !optionalFailures.length;
       } catch (error) {
         console.error(error);
         setSupabaseStatus("Connection failed");

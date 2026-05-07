@@ -3174,6 +3174,16 @@
 
       if (
         taskResult.error &&
+        isMissingColumnError(taskResult.error, "assigned_person_id")
+      ) {
+        taskResult = await client
+          .from(TASKS_TABLE)
+          .select("id,title,active,sort_order,recurrence_interval,recurrence_day_of_week,recurrence_month,recurrence_day_of_month,recurrence_start_date,created_at")
+          .order("created_at", { ascending: false });
+      }
+
+      if (
+        taskResult.error &&
         (
           isMissingColumnError(taskResult.error, "recurrence_interval") ||
           isMissingColumnError(taskResult.error, "recurrence_day_of_week") ||
@@ -3194,17 +3204,17 @@
       if (completionResult.error) {
         throw completionResult.error;
       }
-      if (peopleResult.error) {
+      if (peopleResult.error && !isMissingTaskSchemaError(peopleResult.error)) {
         throw peopleResult.error;
       }
-      if (colorResult.error) {
+      if (colorResult.error && !isMissingTaskSchemaError(colorResult.error)) {
         throw colorResult.error;
       }
-      if (claimResult.error) {
+      if (claimResult.error && !isMissingTaskSchemaError(claimResult.error)) {
         throw claimResult.error;
       }
 
-      taskPreviewPeople = (peopleResult.data || [])
+      taskPreviewPeople = (peopleResult.error ? [] : (peopleResult.data || []))
         .map((person) => ({
           id: String(person.id || "").trim(),
           name: String(person.name || "").trim(),
@@ -3214,7 +3224,7 @@
         .filter((person) => person.id && person.name);
 
       taskPreviewTypeColors = { ...DEFAULT_TASK_TYPE_COLORS };
-      (colorResult.data || []).forEach((row) => {
+      (colorResult.error ? [] : (colorResult.data || [])).forEach((row) => {
         const key = String(row.task_type || "").trim();
         if (Object.prototype.hasOwnProperty.call(DEFAULT_TASK_TYPE_COLORS, key)) {
           taskPreviewTypeColors[key] = normalizeColor(row.color, DEFAULT_TASK_TYPE_COLORS[key]);
@@ -3233,7 +3243,7 @@
           completionByTaskAndPeriod.set(periodMapKey, entry);
         }
       });
-      (claimResult.data || []).forEach((entry) => {
+      (claimResult.error ? [] : (claimResult.data || [])).forEach((entry) => {
         const periodMapKey = `${entry.task_id}::${entry.day_key}`;
         if (!claimByTaskAndPeriod.has(periodMapKey)) {
           claimByTaskAndPeriod.set(periodMapKey, entry);
