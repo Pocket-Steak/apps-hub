@@ -196,7 +196,7 @@
 
     .notes-panel{
       display:grid;
-      grid-template-rows:auto auto minmax(0, 1fr);
+      grid-template-rows:auto minmax(0, 1fr);
       gap:12px;
     }
 
@@ -575,8 +575,6 @@
           <div class="panel-meta" id="notesMeta">No notes yet.</div>
         </div>
 
-        <button class="action-btn accent" id="newNoteBtn" type="button">Add Note</button>
-
         <div class="notes-list" id="notesList"></div>
       </section>
 
@@ -594,10 +592,10 @@
 
         <div class="editor-actions">
           <div class="editor-actions-left">
-            <button class="action-btn accent" id="saveBtn" type="button">Save Note</button>
+            <button class="action-btn accent" id="saveBtn" type="button">Add Note</button>
           </div>
           <div class="editor-actions-right">
-            <div class="editor-meta" id="editorMeta">No note selected yet.</div>
+            <div class="editor-meta" id="editorMeta">Ready for a new note.</div>
             <div class="message" id="message"></div>
           </div>
         </div>
@@ -614,7 +612,6 @@
 
     const notesMeta = document.getElementById("notesMeta");
     const notesList = document.getElementById("notesList");
-    const newNoteBtn = document.getElementById("newNoteBtn");
     const noteInput = document.getElementById("noteInput");
     const saveBtn = document.getElementById("saveBtn");
     const editorMeta = document.getElementById("editorMeta");
@@ -624,7 +621,6 @@
     function setBusy(value) {
       isBusy = value;
       saveBtn.disabled = value;
-      newNoteBtn.disabled = value;
       noteInput.disabled = value;
     }
 
@@ -803,7 +799,7 @@
 
       if (!note) {
         noteInput.value = "";
-        editorMeta.textContent = "New note draft.";
+        editorMeta.textContent = "Ready for a new note.";
         return;
       }
 
@@ -816,14 +812,6 @@
       showMessage("", "");
       renderEditor();
       renderNotesList();
-    }
-
-    function createNewNoteDraft() {
-      activeNoteId = "";
-      showMessage("", "");
-      renderEditor();
-      renderNotesList();
-      noteInput.focus();
     }
 
     function readStoredNotes() {
@@ -883,11 +871,11 @@
       }
     }
 
-    async function saveCurrentNote() {
+    async function addCurrentNote() {
       const body = String(noteInput.value || "");
 
       if (!body.trim()) {
-        showMessage("Write something before saving.", "error");
+        showMessage("Write something before adding.", "error");
         noteInput.focus();
         return;
       }
@@ -898,35 +886,19 @@
       showMessage("", "");
 
       try {
-        if (!activeNoteId) {
-          const newId = createNoteId();
-          notesRows.unshift({
-            id: newId,
-            body,
-            updatedAt,
-          });
-          activeNoteId = newId;
-          showMessage("Note saved.", "success");
-        } else {
-          const currentIndex = notesRows.findIndex((note) => note.id === activeNoteId);
-          if (currentIndex < 0) {
-            notesRows.unshift({
-              id: activeNoteId,
-              body,
-              updatedAt,
-            });
-          } else {
-            notesRows[currentIndex] = {
-              ...notesRows[currentIndex],
-              body,
-              updatedAt,
-            };
-          }
-          showMessage("Note updated.", "success");
-        }
+        notesRows.unshift({
+          id: createNoteId(),
+          body,
+          updatedAt,
+        });
+        activeNoteId = "";
 
         persistNotes();
         await loadNotes();
+        noteInput.value = "";
+        editorMeta.textContent = "Ready for a new note.";
+        showMessage("Note added.", "success");
+        noteInput.focus();
       } catch (error) {
         console.error(error);
         showMessage(getReadableError(error), "error");
@@ -961,8 +933,7 @@
       }
     }
 
-    newNoteBtn.addEventListener("click", createNewNoteDraft);
-    saveBtn.addEventListener("click", saveCurrentNote);
+    saveBtn.addEventListener("click", addCurrentNote);
 
     backHomeBtn.addEventListener("click", () => {
       if (window.location.search.includes("overlay=")) {
