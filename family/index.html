@@ -823,13 +823,6 @@
       letter-spacing:-.02em;
     }
 
-    .preview-meta{
-      font-size:13px;
-      font-weight:800;
-      color:var(--muted);
-      line-height:1.35;
-    }
-
     .preview-open{
       border:none;
       background:rgba(255,122,24,.16);
@@ -1254,8 +1247,7 @@
       }
 
       .day-date,
-      .preview-item-meta,
-      .preview-meta{
+      .preview-item-meta{
         font-size:11px;
       }
 
@@ -1444,7 +1436,6 @@
         font-size:16px;
       }
 
-      .preview-meta,
       .preview-item-meta{
         font-size:10px;
       }
@@ -2290,7 +2281,6 @@
         <div class="preview-head">
           <div class="preview-heading">
             <div class="preview-title">Grocery List</div>
-            <div class="preview-meta" id="groceryPreviewMeta">Loading shared grocery items from Supabase.</div>
           </div>
           <button class="preview-open" id="groceryPreviewBtn" type="button">Open List</button>
         </div>
@@ -2303,7 +2293,6 @@
         <div class="preview-head">
           <div class="preview-heading">
             <div class="preview-title">Tasks</div>
-            <div class="preview-meta" id="taskPreviewMeta">Loading recurring and ad hoc tasks.</div>
           </div>
           <button class="preview-open" id="taskPreviewBtn" type="button">Open Tasks</button>
         </div>
@@ -2316,7 +2305,6 @@
         <div class="preview-head">
           <div class="preview-heading">
             <div class="preview-title">Notes</div>
-            <div class="preview-meta" id="notesPreviewMeta">Loading family notes.</div>
           </div>
           <button class="preview-open" id="notesPreviewBtn" type="button">Open Notes</button>
         </div>
@@ -3248,36 +3236,28 @@
       renderPreviewCard({
         rows: groceryPreviewRows,
         listId: "groceryPreviewList",
-        metaId: "groceryPreviewMeta",
         errorText: groceryPreviewError,
         emptyText: "No grocery items right now.",
-        activeLabel: "items to grab",
-        doneLabel: "bought",
         accentColor: "#ff7a18",
       });
       renderTaskPreviewCard();
       renderNotesPreviewCard();
     }
 
-    function renderPreviewCard({ rows, listId, metaId, emptyText, activeLabel, doneLabel, accentColor = "#ff7a18", errorText = "" }) {
+    function renderPreviewCard({ rows, listId, emptyText, accentColor = "#ff7a18", errorText = "" }) {
       const listEl = document.getElementById(listId);
-      const metaEl = document.getElementById(metaId);
 
       if (errorText) {
-        metaEl.textContent = errorText;
         listEl.innerHTML = `<div class="preview-empty">${escapeHtml(errorText)}</div>`;
         return;
       }
 
       const activeRows = rows.filter(row => !row.done);
-      const doneRows = rows.filter(row => row.done);
       if (rows.length === 0) {
-        metaEl.textContent = emptyText;
         listEl.innerHTML = `<div class="preview-empty">${emptyText}</div>`;
         return;
       }
 
-      metaEl.textContent = `${activeRows.length} ${activeLabel} • ${doneRows.length} ${doneLabel}`;
       listEl.innerHTML = activeRows.length
         ? activeRows.map(row => `
             <div class="preview-item${row.done ? " done" : ""}" style="border-left-color:${accentColor}">
@@ -3292,23 +3272,18 @@
 
     function renderTaskPreviewCard() {
       const listEl = document.getElementById("taskPreviewList");
-      const metaEl = document.getElementById("taskPreviewMeta");
 
       if (taskPreviewError) {
-        metaEl.textContent = taskPreviewError;
         listEl.innerHTML = `<div class="preview-empty">${escapeHtml(taskPreviewError)}</div>`;
         return;
       }
 
       if (!taskPreviewRows.length) {
-        metaEl.textContent = "No tasks loaded yet.";
         listEl.innerHTML = `<div class="preview-empty">Open Tasks to add recurring or ad hoc work.</div>`;
         return;
       }
 
       const activeRows = taskPreviewRows.filter((row) => !row.done);
-      const doneRows = taskPreviewRows.filter((row) => row.done);
-      metaEl.textContent = `${activeRows.length} active • ${doneRows.length} done`;
 
       listEl.innerHTML = activeRows.length
         ? activeRows.map((row) => `
@@ -3333,21 +3308,17 @@
 
     function renderNotesPreviewCard() {
       const listEl = document.getElementById("notesPreviewList");
-      const metaEl = document.getElementById("notesPreviewMeta");
 
       if (notesPreviewError) {
-        metaEl.textContent = notesPreviewError;
         listEl.innerHTML = `<div class="preview-empty">${escapeHtml(notesPreviewError)}</div>`;
         return;
       }
 
       if (!notesPreviewRows.length) {
-        metaEl.textContent = "No notes yet.";
         listEl.innerHTML = `<div class="preview-empty">Open Notes to add a quick note.</div>`;
         return;
       }
 
-      metaEl.textContent = `${notesPreviewRows.length} note${notesPreviewRows.length === 1 ? "" : "s"} saved`;
       listEl.innerHTML = notesPreviewRows.slice(0, 8).map((row) => `
         <div class="preview-item" style="border-left-color:#8b5cf6">
           <div class="preview-item-title">${escapeHtml(getNoteLabel(row.body))}</div>
