@@ -261,18 +261,18 @@
 
     .note-row{
       position:relative;
-      overflow:hidden;
+      display:grid;
+      grid-template-columns:minmax(0, 1fr) 88px;
+      gap:8px;
+      align-items:stretch;
       border-radius:var(--radius);
     }
 
     .note-delete{
-      position:absolute;
-      top:0;
-      right:0;
-      bottom:0;
+      position:static;
       width:88px;
       border:none;
-      border-radius:0 var(--radius) var(--radius) 0;
+      border-radius:16px;
       background:var(--danger);
       color:#fff;
       font-size:13px;
@@ -281,7 +281,6 @@
       display:flex;
       align-items:center;
       justify-content:center;
-      z-index:0;
     }
 
     .note-card{
@@ -293,20 +292,14 @@
       border-left:4px solid transparent;
       color:var(--text);
       position:relative;
-      z-index:1;
       transition:transform .18s ease, border-color .18s ease, background .18s ease;
       cursor:pointer;
       box-shadow:var(--shadow-soft);
       align-content:start;
       text-align:left;
-      touch-action:pan-y;
       background:
         linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.025)),
         var(--surface);
-    }
-
-    .note-card.swiping{
-      transition:none;
     }
 
     .note-card:hover{
@@ -324,10 +317,6 @@
         radial-gradient(circle at top left, rgba(255,255,255,.08), transparent 34%),
         linear-gradient(180deg,#20242d,#292e38);
       box-shadow:0 16px 28px rgba(0,0,0,.24);
-    }
-
-    .note-row.revealed .note-card{
-      transform:translateX(-88px);
     }
 
     .note-card-title{
@@ -900,75 +889,11 @@
       });
     }
 
-    function bindSwipeDeleteRow(row) {
+    function bindNoteRow(row) {
       const card = row.querySelector("[data-note-id]");
       if (!card) return;
 
-      let startX = 0;
-      let currentX = 0;
-      let wasRevealed = false;
-      let moved = false;
-      let dragging = false;
-      const maxSwipe = 88;
-
-      const setOffset = (value) => {
-        const offset = Math.max(-maxSwipe, Math.min(0, value));
-        card.style.transform = `translateX(${offset}px)`;
-      };
-
-      const endDrag = () => {
-        if (!dragging) return;
-        dragging = false;
-        card.classList.remove("swiping");
-        card.style.transform = "";
-
-        const baseOffset = wasRevealed ? -maxSwipe : 0;
-        const offset = baseOffset + currentX - startX;
-        if (offset < -maxSwipe / 2) {
-          closeRevealedRows(row);
-          row.classList.add("revealed");
-        } else {
-          row.classList.remove("revealed");
-        }
-      };
-
-      card.addEventListener("pointerdown", (event) => {
-        if (event.button && event.button !== 0) return;
-        startX = event.clientX;
-        currentX = startX;
-        wasRevealed = row.classList.contains("revealed");
-        moved = false;
-        dragging = true;
-        card.classList.add("swiping");
-        card.setPointerCapture?.(event.pointerId);
-      });
-
-      card.addEventListener("pointermove", (event) => {
-        if (!dragging) return;
-        currentX = event.clientX;
-        const deltaX = currentX - startX;
-        if (Math.abs(deltaX) > 6) {
-          moved = true;
-        }
-        if (moved) {
-          setOffset((wasRevealed ? -maxSwipe : 0) + deltaX);
-        }
-      });
-
-      card.addEventListener("pointerup", endDrag);
-      card.addEventListener("pointercancel", endDrag);
-
-      card.addEventListener("click", (event) => {
-        if (moved) {
-          event.preventDefault();
-          return;
-        }
-
-        if (row.classList.contains("revealed")) {
-          row.classList.remove("revealed");
-          return;
-        }
-
+      card.addEventListener("click", () => {
         closeRevealedRows(row);
         selectNote(card.dataset.noteId);
       });
@@ -982,14 +907,14 @@
 
       notesList.innerHTML = notesRows.map((note) => `
         <div class="note-row" data-note-row="${escapeHtml(note.id)}">
-          <button class="note-delete" data-delete-note-id="${escapeHtml(note.id)}" type="button">Delete</button>
           <button class="note-card${note.id === activeNoteId ? " active" : ""}" data-note-id="${escapeHtml(note.id)}" type="button">
             <div class="note-card-title">${escapeHtml(getNoteLabel(note.body))}</div>
           </button>
+          <button class="note-delete" data-delete-note-id="${escapeHtml(note.id)}" type="button">Delete</button>
         </div>
       `).join("");
 
-      notesList.querySelectorAll("[data-note-row]").forEach(bindSwipeDeleteRow);
+      notesList.querySelectorAll("[data-note-row]").forEach(bindNoteRow);
       notesList.querySelectorAll("[data-delete-note-id]").forEach((button) => {
         button.addEventListener("click", (event) => {
           event.preventDefault();
@@ -1090,7 +1015,7 @@
     }
 
     function applyLoadedNotes(rows) {
-      notesRows = sortNotes(rows);
+      notesRows = sortNotes(rows).filter((note) => note.body.trim());
       if (activeNoteId && !notesRows.some((note) => note.id === activeNoteId)) {
         activeNoteId = "";
       }
@@ -1210,9 +1135,13 @@
       try {
         const client = getNotesClient();
         if (client && !notesTableMissing) {
+          const deletedAt = new Date().toISOString();
           const result = await client
             .from(NOTES_TABLE)
-            .delete()
+            .update({
+              body: "",
+              updated_at: deletedAt,
+            })
             .eq("id", noteId);
 
           if (result.error) {
