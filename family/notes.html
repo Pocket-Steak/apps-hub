@@ -686,8 +686,11 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/assets/family-supabase.js?v=20260421"></script>
   <script>
+    const SUPABASE_URL_KEY = "pocketsteak_supabase_url";
+    const SUPABASE_ANON_KEY_KEY = "pocketsteak_supabase_anon_key";
+    const DEFAULT_SUPABASE_URL = "https://vmmdskviwqddgalccoyc.supabase.co";
+    const DEFAULT_SUPABASE_ANON_KEY = "sb_publishable_Y95c2qYSmD8YKdaIeOZYWA_6GmC2OHM";
     const NOTES_STORAGE_KEY = "pocketsteak_family_notes";
     const NOTES_TABLE = "family_notes";
     const NOTES_SYNC_INTERVAL_MS = 15000;
@@ -782,15 +785,78 @@
       return message;
     }
 
+    function normalizeSupabaseText(value) {
+      return String(value || "")
+        .replace(/[\u200B-\u200D\uFEFF]/g, "")
+        .trim();
+    }
+
+    function normalizeSupabaseUrl(value) {
+      const text = normalizeSupabaseText(value);
+      if (!text) return "";
+
+      try {
+        const url = new URL(text);
+        url.pathname = url.pathname
+          .replace(/\/rest\/v1\/?$/i, "/")
+          .replace(/\/auth\/v1\/?$/i, "/");
+        url.search = "";
+        url.hash = "";
+        return url.toString().replace(/\/$/, "");
+      } catch (error) {
+        return text.replace(/\/$/, "");
+      }
+    }
+
+    function isLikelySupabaseUrl(value) {
+      try {
+        const url = new URL(normalizeSupabaseUrl(value));
+        return Boolean(url.hostname && url.hostname.includes("supabase.co"));
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function isLikelyPublishableKey(value) {
+      const text = normalizeSupabaseText(value);
+      return text.startsWith("sb_publishable_") || text.startsWith("sb_anon_");
+    }
+
+    function getNotesSupabaseConfig() {
+      const helperConfig = window.PocketSteakSupabase?.getConfig?.();
+      if (helperConfig?.configured) {
+        return helperConfig;
+      }
+
+      const storedUrl = normalizeSupabaseText(localStorage.getItem(SUPABASE_URL_KEY));
+      const storedAnonKey = normalizeSupabaseText(localStorage.getItem(SUPABASE_ANON_KEY_KEY));
+      const url = isLikelySupabaseUrl(storedUrl) ? normalizeSupabaseUrl(storedUrl) : DEFAULT_SUPABASE_URL;
+      const anonKey = isLikelyPublishableKey(storedAnonKey) ? storedAnonKey : DEFAULT_SUPABASE_ANON_KEY;
+
+      return {
+        url,
+        anonKey,
+        configured: Boolean(url && anonKey),
+      };
+    }
+
     function getNotesClient() {
-      const config = window.PocketSteakSupabase?.getConfig?.();
+      const config = getNotesSupabaseConfig();
       if (!config?.configured) {
         return null;
       }
 
       const signature = `${config.url}::${config.anonKey}`;
       if (!notesClient || notesClientSignature !== signature) {
-        notesClient = window.PocketSteakSupabase.createClient();
+        if (!window.supabase || typeof window.supabase.createClient !== "function") {
+          throw new Error("Supabase client library is not loaded.");
+        }
+        notesClient = window.supabase.createClient(config.url, config.anonKey, {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+          },
+        });
         notesClientSignature = signature;
       }
 
