@@ -685,12 +685,19 @@
     </section>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/assets/family-supabase.js?v=20260421"></script>
   <script>
     const NOTES_STORAGE_KEY = "pocketsteak_family_notes";
+    const NOTES_TABLE = "family_notes";
+    const NOTES_SYNC_INTERVAL_MS = 15000;
 
     let isBusy = false;
     let notesRows = [];
     let activeNoteId = "";
+    let notesClient = null;
+    let notesClientSignature = "";
+    let notesTableMissing = false;
 
     const notesMeta = document.getElementById("notesMeta");
     const notesList = document.getElementById("notesList");
@@ -753,12 +760,61 @@
       return `note_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     }
 
+    function isMissingNotesTableError(error) {
+      const text = `${error?.code || ""} ${error?.message || ""} ${error?.details || ""} ${error?.hint || ""}`.toLowerCase();
+      return (
+        text.includes(NOTES_TABLE) ||
+        text.includes("could not find the table") ||
+        text.includes("schema cache") ||
+        error?.code === "PGRST205" ||
+        error?.code === "42P01"
+      );
+    }
+
     function getReadableError(error) {
+      if (isMissingNotesTableError(error)) {
+        return "Notes sync needs the Supabase notes table setup. Using this device only for now.";
+      }
       const message =
         error?.message ||
         error?.error ||
         "Something went wrong with notes.";
       return message;
+    }
+
+    function getNotesClient() {
+      const config = window.PocketSteakSupabase?.getConfig?.();
+      if (!config?.configured) {
+        return null;
+      }
+
+      const signature = `${config.url}::${config.anonKey}`;
+      if (!notesClient || notesClientSignature !== signature) {
+        notesClient = window.PocketSteakSupabase.createClient();
+        notesClientSignature = signature;
+      }
+
+      return notesClient;
+    }
+
+    function normalizeNoteRow(row) {
+      const updatedAt = String(row.updated_at || row.updatedAt || row.created_at || row.createdAt || "");
+      return {
+        id: normalizeId(row.id),
+        body: String(row.body || ""),
+        createdAt: String(row.created_at || row.createdAt || updatedAt),
+        updatedAt,
+      };
+    }
+
+    function sortNotes(rows) {
+      return rows
+        .filter((row) => row.id)
+        .sort((a, b) => {
+          const aTime = new Date(a.updatedAt).getTime() || 0;
+          const bTime = new Date(b.updatedAt).getTime() || 0;
+          return bTime - aTime;
+        });
     }
 
     function updateNotesMeta() {
@@ -870,6 +926,7 @@
       notesList.querySelectorAll("[data-note-row]").forEach(bindSwipeDeleteRow);
       notesList.querySelectorAll("[data-delete-note-id]").forEach((button) => {
         button.addEventListener("click", (event) => {
+          event.preventDefault();
           event.stopPropagation();
           deleteNoteById(button.dataset.deleteNoteId);
         });
@@ -906,50 +963,114 @@
       }
     }
 
-    function persistNotes() {
+    function getLocalNotes() {
+      return sortNotes(readStoredNotes().map(normalizeNoteRow));
+    }
+
+    function persistNotes(rows = notesRows) {
       localStorage.setItem(
         NOTES_STORAGE_KEY,
-        JSON.stringify(notesRows.map((note) => ({
+        JSON.stringify(rows.map((note) => ({
           id: note.id,
           body: note.body,
+          createdAt: note.createdAt,
           updatedAt: note.updatedAt,
         })))
       );
     }
 
-    async function loadNotes() {
-      setBusy(true);
-      showMessage("", "");
+    async function selectSupabaseNotes(client) {
+      const result = await client
+        .from(NOTES_TABLE)
+        .select("id, body, created_at, updated_at")
+        .order("updated_at", { ascending: false });
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      return sortNotes((result.data || []).map(normalizeNoteRow));
+    }
+
+    async function syncLocalNotesToSupabase(client, remoteRows) {
+      const localRows = getLocalNotes().filter((note) => note.body.trim());
+      if (!localRows.length) {
+        return remoteRows;
+      }
+
+      const remoteIds = new Set(remoteRows.map((note) => note.id));
+      const rowsToInsert = localRows
+        .filter((note) => !remoteIds.has(note.id))
+        .map((note) => ({
+          id: note.id,
+          body: note.body,
+          created_at: note.createdAt || note.updatedAt || new Date().toISOString(),
+          updated_at: note.updatedAt || note.createdAt || new Date().toISOString(),
+        }));
+
+      if (!rowsToInsert.length) {
+        return remoteRows;
+      }
+
+      const result = await client
+        .from(NOTES_TABLE)
+        .upsert(rowsToInsert, { onConflict: "id" });
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      return selectSupabaseNotes(client);
+    }
+
+    function applyLoadedNotes(rows) {
+      notesRows = sortNotes(rows);
+      if (activeNoteId && !notesRows.some((note) => note.id === activeNoteId)) {
+        activeNoteId = "";
+      }
+      updateNotesMeta();
+      renderNotesList();
+      renderEditor();
+    }
+
+    async function loadNotes(options = {}) {
+      const silent = Boolean(options.silent);
+      if (silent && isBusy) return;
+
+      if (!silent) {
+        setBusy(true);
+        showMessage("", "");
+      }
 
       try {
-        notesRows = readStoredNotes()
-          .map((row) => ({
-            id: normalizeId(row.id),
-            body: String(row.body || ""),
-            updatedAt: String(row.updatedAt || ""),
-          }))
-          .filter((row) => row.id)
-          .sort((a, b) => {
-            const aTime = new Date(a.updatedAt).getTime() || 0;
-            const bTime = new Date(b.updatedAt).getTime() || 0;
-            return bTime - aTime;
-          });
-
-        if (activeNoteId && !notesRows.some((note) => note.id === activeNoteId)) {
-          activeNoteId = "";
+        const client = getNotesClient();
+        if (!client) {
+          notesTableMissing = true;
+          applyLoadedNotes(getLocalNotes());
+          if (!silent) {
+            showMessage("Notes sync is not configured. Saved on this device only.", "error");
+          }
+          return;
         }
 
-        updateNotesMeta();
-        renderNotesList();
-        renderEditor();
+        let remoteRows = await selectSupabaseNotes(client);
+        notesTableMissing = false;
+        remoteRows = await syncLocalNotesToSupabase(client, remoteRows);
+        applyLoadedNotes(remoteRows);
+        persistNotes(notesRows);
       } catch (error) {
         console.error(error);
-        notesRows = [];
-        notesList.innerHTML = `<div class="empty-state">Could not load notes. ${escapeHtml(getReadableError(error))}</div>`;
-        notesMeta.textContent = "Could not load your notes.";
-        renderEditor();
+        applyLoadedNotes(getLocalNotes());
+        if (isMissingNotesTableError(error)) {
+          notesTableMissing = true;
+        }
+        if (!silent) {
+          showMessage(getReadableError(error), isMissingNotesTableError(error) ? "error" : "error");
+        }
       } finally {
-        setBusy(false);
+        if (!silent) {
+          setBusy(false);
+        }
       }
     }
 
@@ -968,22 +1089,48 @@
       showMessage("", "");
 
       try {
-        notesRows.unshift({
+        const note = {
           id: createNoteId(),
           body,
+          createdAt: updatedAt,
           updatedAt,
-        });
+        };
+
+        const client = getNotesClient();
+        if (client && !notesTableMissing) {
+          const result = await client
+            .from(NOTES_TABLE)
+            .insert({
+              id: note.id,
+              body: note.body,
+              created_at: note.createdAt,
+              updated_at: note.updatedAt,
+            });
+
+          if (result.error) {
+            if (!isMissingNotesTableError(result.error)) {
+              throw result.error;
+            }
+            notesTableMissing = true;
+            notesRows = sortNotes([note, ...getLocalNotes()]);
+            persistNotes(notesRows);
+          }
+        } else {
+          notesRows = sortNotes([note, ...getLocalNotes()]);
+          persistNotes(notesRows);
+        }
+
         activeNoteId = "";
 
-        persistNotes();
         await loadNotes();
         noteInput.value = "";
         editorMeta.textContent = "Ready for a new note.";
-        showMessage("Note added.", "success");
+        showMessage(notesTableMissing ? "Note saved on this device. Run the notes SQL to sync it." : "Note added.", notesTableMissing ? "error" : "success");
         noteInput.focus();
       } catch (error) {
         console.error(error);
         showMessage(getReadableError(error), "error");
+      } finally {
         setBusy(false);
       }
     }
@@ -995,13 +1142,22 @@
       showMessage("", "");
 
       try {
-        const beforeCount = notesRows.length;
-        notesRows = notesRows.filter((note) => note.id !== noteId);
-        if (notesRows.length === beforeCount) {
-          setBusy(false);
-          return;
+        const client = getNotesClient();
+        if (client && !notesTableMissing) {
+          const result = await client
+            .from(NOTES_TABLE)
+            .delete()
+            .eq("id", noteId);
+
+          if (result.error) {
+            if (!isMissingNotesTableError(result.error)) {
+              throw result.error;
+            }
+            notesTableMissing = true;
+          }
         }
 
+        notesRows = getLocalNotes().filter((note) => note.id !== noteId);
         if (activeNoteId === noteId) {
           activeNoteId = "";
         }
@@ -1011,6 +1167,7 @@
       } catch (error) {
         console.error(error);
         showMessage(getReadableError(error), "error");
+      } finally {
         setBusy(false);
       }
     }
@@ -1035,8 +1192,21 @@
       }
     });
 
+    window.addEventListener("focus", () => {
+      loadNotes({ silent: true });
+    });
+
+    window.addEventListener("storage", (event) => {
+      if (event.key === NOTES_STORAGE_KEY) {
+        loadNotes({ silent: true });
+      }
+    });
+
     window.addEventListener("load", () => {
       loadNotes();
+      setInterval(() => {
+        loadNotes({ silent: true });
+      }, NOTES_SYNC_INTERVAL_MS);
     });
   </script>
 </body>

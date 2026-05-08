@@ -2337,6 +2337,7 @@
     const API_KEY = "AIzaSyBPZEeYB8IaheJPJA2Y44msGfDwIhJMpGU";
     const DISCOVERY_DOC = "https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest";
     const NOTES_STORAGE_KEY = "pocketsteak_family_notes";
+    const NOTES_TABLE = "family_notes";
     const GROCERY_TABLE = "family_grocery_items";
     const TASKS_TABLE = "family_tasks";
     const TASK_COMPLETIONS_TABLE = "family_task_completions";
@@ -3560,19 +3561,56 @@
       }
     }
 
-    async function loadNotesPreview() {
-      return readStoredNotesPreview()
-        .map((row) => ({
-          id: String(row.id || "").trim(),
-          body: String(row.body || ""),
-          updatedAt: String(row.updatedAt || ""),
-        }))
+    function normalizeNotePreviewRow(row) {
+      return {
+        id: String(row.id || "").trim(),
+        body: String(row.body || ""),
+        updatedAt: String(row.updated_at || row.updatedAt || row.created_at || row.createdAt || ""),
+      };
+    }
+
+    function getSortedNotePreviewRows(rows) {
+      return rows
+        .map(normalizeNotePreviewRow)
         .filter((row) => row.id && row.body.trim())
         .sort((a, b) => {
           const aTime = new Date(a.updatedAt).getTime() || 0;
           const bTime = new Date(b.updatedAt).getTime() || 0;
           return bTime - aTime;
         });
+    }
+
+    function isMissingNotesTableError(error) {
+      const text = `${error?.code || ""} ${error?.message || ""} ${error?.details || ""} ${error?.hint || ""}`.toLowerCase();
+      return (
+        text.includes(NOTES_TABLE) ||
+        text.includes("could not find the table") ||
+        text.includes("schema cache") ||
+        error?.code === "PGRST205" ||
+        error?.code === "42P01"
+      );
+    }
+
+    async function loadNotesPreview() {
+      const localRows = getSortedNotePreviewRows(readStoredNotesPreview());
+      const client = getTaskPreviewClient();
+      if (!client) {
+        return localRows;
+      }
+
+      const result = await client
+        .from(NOTES_TABLE)
+        .select("id, body, created_at, updated_at")
+        .order("updated_at", { ascending: false });
+
+      if (result.error) {
+        if (isMissingNotesTableError(result.error)) {
+          return localRows;
+        }
+        throw result.error;
+      }
+
+      return getSortedNotePreviewRows(result.data || []);
     }
 
     async function loadDashboardLists() {
