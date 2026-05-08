@@ -981,12 +981,36 @@
 
     .dinner-day-row.is-today{
       border-left-color:#22c55e;
+      min-height:76px;
+      border-color:rgba(34,197,94,.2);
+      background:
+        linear-gradient(180deg, rgba(34,197,94,.1), rgba(255,255,255,.035)),
+        var(--surface);
     }
 
     .dinner-day-date{
       display:grid;
       gap:2px;
       min-width:42px;
+    }
+
+    .dinner-day-kicker{
+      display:none;
+      color:#86efac;
+      font-size:10px;
+      font-weight:900;
+      letter-spacing:.08em;
+      line-height:1;
+      text-transform:uppercase;
+    }
+
+    .dinner-day-row.is-today .dinner-day-kicker{
+      display:block;
+    }
+
+    .dinner-day-row.is-today .dinner-day-date{
+      gap:4px;
+      min-width:56px;
     }
 
     .dinner-day-name{
@@ -1015,6 +1039,15 @@
     .dinner-meal.empty{
       color:var(--muted);
       font-weight:800;
+    }
+
+    .dinner-day-row.is-today .dinner-meal{
+      font-size:15px;
+      line-height:1.16;
+      white-space:normal;
+      display:-webkit-box;
+      -webkit-line-clamp:2;
+      -webkit-box-orient:vertical;
     }
 
     .dinner-menu-notice{
@@ -1860,6 +1893,24 @@
         gap:7px;
         padding:5px 8px;
         border-radius:11px;
+      }
+
+      .dinner-day-row.is-today{
+        min-height:62px;
+        grid-template-columns:50px minmax(0, 1fr);
+      }
+
+      .dinner-day-row.is-today .dinner-day-date{
+        min-width:50px;
+        gap:3px;
+      }
+
+      .dinner-day-row.is-today .dinner-day-kicker{
+        font-size:8px;
+      }
+
+      .dinner-day-row.is-today .dinner-meal{
+        font-size:13px;
       }
     }
 
@@ -3211,8 +3262,8 @@
     }
 
     function getDinnerWeekDates(dateInput = new Date()) {
-      const weekStart = getWeekStartDateFor(dateInput);
-      return Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
+      const today = getStartOfDay(dateInput);
+      return Array.from({ length: 7 }, (_, index) => addDays(today, index));
     }
 
     function formatDinnerWeekLabel(dates) {
@@ -3732,6 +3783,7 @@
         return `
           <button class="dinner-day-row${dateKey === todayKey ? " is-today" : ""}" type="button" data-dinner-date="${dateKey}">
             <span class="dinner-day-date">
+              ${dateKey === todayKey ? '<span class="dinner-day-kicker">Tonight</span>' : ""}
               <span class="dinner-day-name">${escapeHtml(dayName)}</span>
               <span class="dinner-day-number">${escapeHtml(dayNumber)}</span>
             </span>
