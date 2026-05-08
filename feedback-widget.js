@@ -101,6 +101,12 @@
     document.body.style.overflow = '';
   }
 
+  window.PocketSteakFeedbackWidget = {
+    open: openModal,
+    close: closeModal,
+  };
+  window.dispatchEvent(new CustomEvent('pocketsteak-feedback-ready'));
+
   function validateFeedback(value) {
     const trimmed = value.trim();
     if (!trimmed) return EMPTY_MESSAGE;

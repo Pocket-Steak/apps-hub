@@ -2433,7 +2433,7 @@
         <a class="top-btn" id="recipesBtn" href="/family/recipes/">Recipes</a>
         <button class="top-btn" id="topNotesBtn" type="button">Notes</button>
         <button class="top-btn" id="settingsBtn" type="button" onclick="window.location.href='/settings/'">Settings</button>
-        <button class="top-btn feedback" id="topFeedbackBtn" type="button">Feedback</button>
+        <button class="top-btn feedback" id="topFeedbackBtn" type="button" data-feedback-widget="true">Feedback</button>
         <div style="display:none;">
           <div class="status-pill">
             <div class="status-label">Google</div>
@@ -4460,6 +4460,12 @@
       openDashboardOverlay("Notes", "/notes/");
     });
     document.getElementById("topFeedbackBtn").addEventListener("click", () => {
+      const feedbackWidget = window.PocketSteakFeedbackWidget;
+      if (feedbackWidget && typeof feedbackWidget.open === "function") {
+        feedbackWidget.open();
+        return;
+      }
+
       const feedbackButton = document.querySelector(".ps-feedback-button");
       if (feedbackButton instanceof HTMLButtonElement) {
         feedbackButton.click();
