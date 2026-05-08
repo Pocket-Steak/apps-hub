@@ -263,14 +263,6 @@
       font-weight: 700;
     }
 
-    .bulk-actions {
-      margin-top: 16px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      align-items: center;
-    }
-
     .message {
       margin-top: 10px;
       min-height: 28px;
@@ -607,7 +599,6 @@
 
       #clearAllBtn,
       .helper,
-      .bulk-actions,
       .purchased-card {
         display: none;
       }
@@ -729,10 +720,6 @@
       </div>
 
       <div class="helper">Tap an active grocery tile to mark it bought. Tap a purchased tile to move it back.</div>
-      <div class="bulk-actions">
-        <button id="copyListBtn" class="btn btn-back" type="button">Copy List</button>
-        <button id="textListBtn" class="btn btn-back" type="button">Text List</button>
-      </div>
       <div id="message" class="message"></div>
     </section>
 
@@ -834,8 +821,6 @@
     const connectBtn = document.getElementById("connectBtn");
     const clearAllBtn = document.getElementById("clearAllBtn");
     const addBtn = document.getElementById("addBtn");
-    const copyListBtn = document.getElementById("copyListBtn");
-    const textListBtn = document.getElementById("textListBtn");
     const itemInput = document.getElementById("itemInput");
     const messageEl = document.getElementById("message");
     const activeListEl = document.getElementById("activeList");
@@ -849,8 +834,6 @@
       addBtn.disabled = value;
       clearAllBtn.disabled = value || !isConnected;
       connectBtn.disabled = value;
-      copyListBtn.disabled = value || !isConnected;
-      textListBtn.disabled = value || !isConnected;
       itemInput.disabled = false;
       inputCard.classList.toggle("loading", value);
     }
@@ -890,45 +873,6 @@
       }
 
       return message;
-    }
-
-    function getRowsForShare() {
-      return groceryRows.filter((row) => !row.bought);
-    }
-
-    function buildListText(rows) {
-      return rows.map((row) => row.item).join("\n");
-    }
-
-    async function copyList() {
-      const rows = getRowsForShare();
-      if (!rows.length) {
-        showMessage("There are no grocery items to copy yet.", "error");
-        return;
-      }
-
-      const text = buildListText(rows);
-
-      try {
-        await navigator.clipboard.writeText(text);
-        showMessage(`Copied ${rows.length} grocery item${rows.length === 1 ? "" : "s"} to the clipboard.`, "success");
-      } catch (error) {
-        console.error(error);
-        showMessage("Clipboard copy failed in this browser.", "error");
-      }
-    }
-
-    function textList() {
-      const rows = getRowsForShare();
-      if (!rows.length) {
-        showMessage("There are no grocery items to text yet.", "error");
-        return;
-      }
-
-      const text = buildListText(rows);
-      const separator = /iphone|ipad|ipod/i.test(window.navigator.userAgent) ? "&" : "?";
-      window.location.href = `sms:${separator}body=${encodeURIComponent(text)}`;
-      showMessage("Opened your texting app with the grocery list.", "success");
     }
 
     function ensureSupabaseClient() {
@@ -1133,17 +1077,10 @@
     connectBtn.addEventListener("click", loadGroceries);
     addBtn.addEventListener("click", addItem);
     clearAllBtn.addEventListener("click", clearAllItems);
-    copyListBtn.addEventListener("click", copyList);
-    textListBtn.addEventListener("click", textList);
 
     if (new URLSearchParams(window.location.search).has("overlay")) {
       const backBtn = document.getElementById("backHomeBtn");
-      backBtn.textContent = "Close";
-      backBtn.setAttribute("href", "#");
-      backBtn.addEventListener("click", (event) => {
-        event.preventDefault();
-        window.parent.postMessage({ type: "family-overlay-close" }, "*");
-      });
+      backBtn.hidden = true;
     }
 
     itemInput.addEventListener("keydown", (event) => {

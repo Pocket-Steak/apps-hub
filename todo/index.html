@@ -2060,12 +2060,7 @@
 
     if (new URLSearchParams(window.location.search).has("overlay")) {
       const backBtn = document.getElementById("backHomeBtn");
-      backBtn.textContent = "Close";
-      backBtn.setAttribute("href", "#");
-      backBtn.addEventListener("click", (event) => {
-        event.preventDefault();
-        window.parent.postMessage({ type: "family-overlay-close" }, "*");
-      });
+      backBtn.hidden = true;
     }
 
     itemInput.addEventListener("keydown", (event) => {

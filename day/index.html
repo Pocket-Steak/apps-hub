@@ -1391,12 +1391,7 @@
 
     if (new URLSearchParams(window.location.search).has("overlay")) {
       const backBtn = document.getElementById("backHomeBtn");
-      backBtn.textContent = "Close";
-      backBtn.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        window.parent.postMessage({ type: "family-overlay-close" }, "*");
-      }, { capture: true });
+      backBtn.hidden = true;
     }
 
     document.getElementById("authBtn").addEventListener("click", handleAuthClick);
