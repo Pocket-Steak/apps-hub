@@ -1085,7 +1085,6 @@
     function renderGroceries() {
       activeListEl.innerHTML = "";
       boughtListEl.innerHTML = "";
-      updateSelectionStatus();
 
       const activeItems = groceryRows.filter((row) => !row.bought);
       const boughtItems = groceryRows.filter((row) => row.bought);
