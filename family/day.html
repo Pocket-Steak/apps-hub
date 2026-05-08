@@ -1391,7 +1391,7 @@
 
     if (new URLSearchParams(window.location.search).has("overlay")) {
       const backBtn = document.getElementById("backHomeBtn");
-      backBtn.hidden = true;
+      backBtn.remove();
     }
 
     document.getElementById("authBtn").addEventListener("click", handleAuthClick);

@@ -3332,6 +3332,16 @@
       return !["/grocery", "/chores", "/notes"].includes(overlayPath);
     }
 
+    function removeOverlayFrameBackButton() {
+      const frame = document.getElementById("overlayFrame");
+      try {
+        const frameDocument = frame.contentDocument || frame.contentWindow?.document;
+        frameDocument?.getElementById("backHomeBtn")?.remove();
+      } catch (error) {
+        // Cross-origin or partially loaded frames cannot be inspected.
+      }
+    }
+
     function openDashboardOverlay(title, path) {
       activeOverlayPath = path;
       document.getElementById("overlayTitle").textContent = title;
@@ -3343,6 +3353,7 @@
       document.getElementById("dashboardOverlay").classList.add("open");
       document.getElementById("dashboardOverlay").setAttribute("aria-hidden", "false");
       document.body.classList.add("modal-open");
+      window.setTimeout(removeOverlayFrameBackButton, 150);
     }
 
     function closeDashboardOverlay() {
@@ -3967,6 +3978,7 @@
       completeTaskFromPreview(button.getAttribute("data-task-id") || "");
     });
     document.getElementById("overlayCloseBtn").addEventListener("click", closeDashboardOverlay);
+    document.getElementById("overlayFrame").addEventListener("load", removeOverlayFrameBackButton);
     document.getElementById("overlayOpenPageBtn").addEventListener("click", () => {
       if (activeOverlayPath) {
         window.location.href = activeOverlayPath;

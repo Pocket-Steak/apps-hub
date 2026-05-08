@@ -1067,7 +1067,7 @@
 
     if (new URLSearchParams(window.location.search).has("overlay")) {
       const backBtn = document.getElementById("backHomeBtn");
-      backBtn.hidden = true;
+      backBtn.remove();
     }
 
     itemInput.addEventListener("keydown", (event) => {

@@ -1018,7 +1018,7 @@
     saveBtn.addEventListener("click", addCurrentNote);
 
     if (window.location.search.includes("overlay=")) {
-      backHomeBtn.hidden = true;
+      backHomeBtn.remove();
     }
 
     backHomeBtn.addEventListener("click", () => {
@@ -1031,7 +1031,7 @@
 
     window.addEventListener("message", (event) => {
       if (event.data?.type === "family-overlay-mode") {
-        backHomeBtn.hidden = true;
+        backHomeBtn.remove();
       }
     });
 
