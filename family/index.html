@@ -1004,6 +1004,10 @@
       transform:translateY(-1px);
     }
 
+    .overlay-btn.is-hidden{
+      display:none;
+    }
+
     .overlay-btn.accent{
       background:var(--accent);
       color:#fff;
@@ -3352,9 +3356,17 @@
       `).join("");
     }
 
+    function shouldShowOverlayOpenPage(path) {
+      const overlayPath = String(path || "").split("?")[0].replace(/\/+$/, "") || "/";
+      return !["/grocery", "/chores", "/notes"].includes(overlayPath);
+    }
+
     function openDashboardOverlay(title, path) {
       activeOverlayPath = path;
       document.getElementById("overlayTitle").textContent = title;
+      document
+        .getElementById("overlayOpenPageBtn")
+        .classList.toggle("is-hidden", !shouldShowOverlayOpenPage(path));
       const separator = path.includes("?") ? "&" : "?";
       document.getElementById("overlayFrame").src = `${path}${separator}overlay=${Date.now()}`;
       document.getElementById("dashboardOverlay").classList.add("open");
