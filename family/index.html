@@ -719,11 +719,15 @@
 
     .day-events{
       display:grid;
-      gap:8px;
-      margin-top:4px;
+      gap:4px;
+      margin-top:2px;
+      max-height:78px;
       min-height:0;
-      overflow:auto;
+      overflow-y:auto;
+      overflow-x:hidden;
       padding-right:2px;
+      overscroll-behavior:contain;
+      touch-action:pan-y;
       scrollbar-width:thin;
       scrollbar-color:rgba(255,255,255,.16) transparent;
     }
@@ -732,24 +736,33 @@
       background:
         linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03)),
         var(--surface);
-      border-radius:12px;
-      border-left:4px solid var(--accent);
-      padding:8px 10px;
+      border-radius:9px;
+      border-left:3px solid var(--accent);
+      min-height:22px;
+      padding:4px 7px;
       display:grid;
-      gap:4px;
+      grid-template-columns:auto minmax(0, 1fr);
+      align-items:center;
+      gap:6px;
       box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
     }
 
     .mini-time{
-      font-size:12px;
+      font-size:10px;
       color:var(--accent-2);
       font-weight:900;
+      line-height:1;
+      white-space:nowrap;
     }
 
     .mini-title{
-      font-size:13px;
+      font-size:10px;
       font-weight:800;
-      line-height:1.2;
+      line-height:1.08;
+      min-width:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
     }
 
     .nav-row{
@@ -1237,24 +1250,23 @@
       }
 
       .day-date,
-      .mini-time,
       .preview-item-meta,
       .preview-meta{
         font-size:11px;
       }
 
-      .day-events,
       .preview-list{
         gap:6px;
       }
 
       .mini-event{
-        padding:7px 9px;
-        gap:3px;
+        padding:4px 7px;
+        gap:6px;
       }
 
+      .mini-time,
       .mini-title{
-        font-size:12px;
+        font-size:10px;
       }
 
       .preview-head{
@@ -1411,17 +1423,17 @@
       }
 
       .day-events{
-        gap:5px;
+        gap:4px;
         margin-top:2px;
       }
 
       .mini-event{
-        padding:6px 8px;
+        padding:4px 7px;
       }
 
       .mini-time,
       .mini-title{
-        font-size:11px;
+        font-size:10px;
       }
 
       .preview-title{
@@ -2947,6 +2959,20 @@
       return `${startLabel} - ${endLabel}`;
     }
 
+    function formatTinyTime(date) {
+      return date
+        .toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+        .replace(/\s/g, "")
+        .toLowerCase()
+        .replace("am", "a")
+        .replace("pm", "p");
+    }
+
+    function getMiniEventTimeLabel(event) {
+      if (isAllDayEvent(event)) return "All day";
+      return formatTinyTime(new Date(event.start.dateTime));
+    }
+
     function getCalendarColor(calendarId) {
       const cal = calendarsById.get(calendarId);
       return cal?.backgroundColor || "#ff7a18";
@@ -3182,12 +3208,15 @@
 
         let eventsHtml = "";
         if (events.length > 0) {
-          eventsHtml = events.map(event => `
+          eventsHtml = events.map(event => {
+            const title = event.summary || "(Untitled event)";
+            return `
             <div class="mini-event" style="border-left-color:${getCalendarColor(event.calendarId)}">
-              <div class="mini-time">${getEventTimeLabel(event)}</div>
-              <div class="mini-title">${event.summary || "(Untitled event)"}</div>
+              <div class="mini-time">${getMiniEventTimeLabel(event)}</div>
+              <div class="mini-title" title="${escapeHtml(title)}">${escapeHtml(title)}</div>
             </div>
-          `).join("");
+          `;
+          }).join("");
         }
 
         card.innerHTML = `
