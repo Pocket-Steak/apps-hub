@@ -143,17 +143,7 @@
   ],
   "functions": {
     "server.mjs": {
-      "includeFiles": [
-        "**/*.html",
-        "**/*.js",
-        "**/*.json",
-        "**/*.png",
-        "**/*.jpg",
-        "**/*.jpeg",
-        "**/*.svg",
-        "**/*.ico",
-        "**/*.webp"
-      ]
+      "includeFiles": "**/*"
     }
   },
   "headers": [
