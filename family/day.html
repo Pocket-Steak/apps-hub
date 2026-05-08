@@ -39,6 +39,7 @@
       margin:0 auto;
       display:grid;
       gap:14px;
+      align-content:start;
       min-height:calc(100dvh - 32px);
     }
 
@@ -166,70 +167,65 @@
 
     .timeline-shell{
       overflow:hidden;
+      padding:14px;
     }
 
     .timeline{
-      position:relative;
+      display:block;
+      min-height:0;
+    }
+
+    .time-col{
+      display:none;
+    }
+
+    .events-col{
       display:grid;
-      grid-template-columns:88px 1fr;
-      min-height:1120px;
-    }
-
-    .time-col,
-    .events-col{
-      position:relative;
-    }
-
-    .time-slot,
-    .event-slot{
-      height:36px;
-      border-bottom:1px solid var(--border);
-    }
-
-    .time-slot{
-      padding:0 14px;
-      display:flex;
-      align-items:flex-start;
-      justify-content:flex-end;
-      font-size:13px;
-      font-weight:800;
-      color:var(--muted);
-    }
-
-    .time-slot.half{
-      color:transparent;
-    }
-
-    .events-col{
-      position:relative;
-    }
-
-    .event-slot{
-      position:relative;
+      gap:10px;
     }
 
     .event-block{
-      position:absolute;
-      left:10px;
-      right:10px;
-      border-radius:14px;
-      padding:8px 10px;
+      border:none;
+      border-radius:16px;
+      padding:12px 14px;
       color:#fff;
       font-weight:800;
       overflow:hidden;
       cursor:pointer;
       box-shadow:var(--shadow-soft);
-      z-index:2;
+      display:grid;
+      gap:4px;
+      min-height:68px;
+      text-align:left;
+      text-shadow:0 1px 2px rgba(0,0,0,.22);
+      transition:transform .18s ease, filter .18s ease;
+    }
+
+    .event-block:hover{
+      filter:brightness(1.05);
+      transform:translateY(-1px);
+    }
+
+    .event-block.all-day{
+      min-height:58px;
     }
 
     .event-time{
-      font-size:12px;
-      opacity:.95;
-      margin-bottom:4px;
+      font-size:13px;
+      opacity:.96;
+      font-weight:900;
+      line-height:1.2;
     }
 
     .event-title{
-      font-size:14px;
+      font-size:16px;
+      line-height:1.18;
+      font-weight:900;
+    }
+
+    .event-calendar{
+      font-size:12px;
+      opacity:.84;
       line-height:1.2;
     }
 
@@ -294,6 +290,32 @@
       flex-wrap:wrap;
     }
 
+    .all-day-row{
+      min-height:44px;
+      padding:10px 12px;
+      border:1px solid var(--border);
+      border-radius:12px;
+      background:var(--surface);
+      display:flex;
+      align-items:center;
+      gap:10px;
+      color:var(--text);
+      font-size:14px;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .all-day-row input[type="checkbox"]{
+      width:20px;
+      height:20px;
+      accent-color:var(--accent);
+      flex:0 0 auto;
+    }
+
+    .is-hidden{
+      display:none !important;
+    }
+
     .duration-btn{
       border:none;
       border-radius:14px;
@@ -322,7 +344,7 @@
       color:var(--muted);
     }
 
-    .field input,
+    .field input:not([type="checkbox"]),
     .field select{
       width:100%;
       border-radius:12px;
@@ -385,7 +407,7 @@
       }
 
       .timeline{
-        grid-template-columns:74px 1fr;
+        min-height:0;
       }
 
       .day-title{
@@ -393,8 +415,7 @@
       }
 
       .event-block{
-        left:8px;
-        right:8px;
+        padding:11px 12px;
       }
 
       .topbar{
@@ -454,13 +475,12 @@
       }
 
       .timeline{
-        min-height:940px;
-        grid-template-columns:76px 1fr;
+        min-height:0;
       }
 
       .time-slot,
       .event-slot{
-        height:32px;
+        height:auto;
       }
 
       .modal{
@@ -508,13 +528,12 @@
       }
 
       .timeline{
-        min-height:980px;
-        grid-template-columns:80px 1fr;
+        min-height:0;
       }
 
       .time-slot,
       .event-slot{
-        height:34px;
+        height:auto;
       }
     }
 
@@ -537,13 +556,12 @@
       }
 
       .timeline{
-        min-height:860px;
-        grid-template-columns:74px 1fr;
+        min-height:0;
       }
 
       .time-slot,
       .event-slot{
-        height:30px;
+        height:auto;
       }
 
       .time-slot{
@@ -552,8 +570,6 @@
       }
 
       .event-block{
-        left:8px;
-        right:8px;
         padding:7px 8px;
       }
 
@@ -594,7 +610,6 @@
 
     <section class="timeline-shell">
       <div class="timeline">
-        <div class="time-col" id="timeCol"></div>
         <div class="events-col" id="eventsCol"></div>
       </div>
     </section>
@@ -617,6 +632,13 @@
           <input id="eventName" type="text" placeholder="Enter event name" />
         </div>
 
+        <div class="field">
+          <label class="all-day-row" for="eventAllDay">
+            <input id="eventAllDay" type="checkbox" />
+            <span>All day</span>
+          </label>
+        </div>
+
         <div class="date-grid">
           <div class="field">
             <label for="eventDate">Start Date</label>
@@ -629,7 +651,7 @@
           </div>
         </div>
 
-        <div class="time-grid">
+        <div class="time-grid" id="timeGrid">
           <div class="field">
             <label for="eventStart">Start Time</label>
             <select id="eventStart"></select>
@@ -641,7 +663,7 @@
           </div>
         </div>
 
-        <div class="field">
+        <div class="field" id="durationField">
           <label>Quick Duration</label>
           <div class="duration-row" id="durationRow">
             <button class="duration-btn active" data-duration="30" type="button">30 min</button>
@@ -775,6 +797,31 @@
       return new Date(year, month - 1, day);
     }
 
+    function addDaysToDateKey(dateKey, days) {
+      const date = parseDateKey(dateKey);
+      date.setDate(date.getDate() + days);
+      return formatDateKey(date);
+    }
+
+    function isAllDayEvent(event) {
+      return !!event.start?.date && !event.start?.dateTime;
+    }
+
+    function getAllDayInputEndDate(event) {
+      const endDate = event.end?.date || event.start?.date || selectedDate;
+      return addDaysToDateKey(endDate, -1);
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[char]);
+    }
+
     function formatLongDate(dateKey) {
       const date = parseDateKey(dateKey);
       return date.toLocaleDateString(undefined, {
@@ -782,6 +829,13 @@
         month: "long",
         day: "numeric",
         year: "numeric"
+      });
+    }
+
+    function formatDateOnlyLabel(dateKey) {
+      return parseDateKey(dateKey).toLocaleDateString([], {
+        month: "short",
+        day: "numeric"
       });
     }
 
@@ -866,33 +920,15 @@
       suggestEndTime(startValue, duration);
     }
 
+    function setAllDayMode(isAllDay) {
+      document.getElementById("eventAllDay").checked = isAllDay;
+      document.getElementById("timeGrid").classList.toggle("is-hidden", isAllDay);
+      document.getElementById("durationField").classList.toggle("is-hidden", isAllDay);
+    }
+
     function buildTimelineShell() {
-      const timeCol = document.getElementById("timeCol");
       const eventsCol = document.getElementById("eventsCol");
-
-      timeCol.innerHTML = "";
       eventsCol.innerHTML = "";
-
-      for (let hour = START_HOUR; hour < END_HOUR; hour++) {
-        for (let half = 0; half < 2; half++) {
-          const slotMinutes = (hour * 60) + (half * SLOT_MINUTES);
-          const slotTime = minutesToTime(slotMinutes);
-
-          const timeSlot = document.createElement("div");
-          timeSlot.className = `time-slot ${half === 1 ? "half" : ""}`;
-          timeSlot.textContent = half === 0 ? formatHour(hour) : "";
-          timeSlot.dataset.time = slotTime;
-          timeSlot.style.cursor = "pointer";
-          timeSlot.addEventListener("click", () => openAddModalAtTime(slotTime));
-          timeCol.appendChild(timeSlot);
-
-          const eventSlot = document.createElement("div");
-          eventSlot.className = "event-slot";
-          eventSlot.dataset.time = slotTime;
-          eventSlot.addEventListener("click", () => openAddModalAtTime(slotTime));
-          eventsCol.appendChild(eventSlot);
-        }
-      }
     }
 
     function formatHour(hour24) {
@@ -924,6 +960,17 @@
     }
 
     function formatEventTimeRange(event) {
+      if (isAllDayEvent(event)) {
+        const startDate = event.start.date;
+        const endDate = getAllDayInputEndDate(event);
+
+        if (startDate === endDate) {
+          return "All day";
+        }
+
+        return `All day • ${formatDateOnlyLabel(startDate)} - ${formatDateOnlyLabel(endDate)}`;
+      }
+
       const start = new Date(event.start.dateTime);
       const end = new Date(event.end.dateTime);
       const startsOn = formatDateKey(start);
@@ -942,45 +989,28 @@
 
     function renderEvents() {
       const eventsCol = document.getElementById("eventsCol");
-      const existingBlocks = eventsCol.querySelectorAll(".event-block, .empty-note");
-      existingBlocks.forEach(block => block.remove());
+      eventsCol.innerHTML = "";
 
-      const timedEvents = dayEvents.filter(event => !!event.start?.dateTime && !!event.end?.dateTime);
+      const scheduledEvents = dayEvents.filter(event => !!event.start?.dateTime || !!event.start?.date);
 
-      if (timedEvents.length === 0) {
+      if (scheduledEvents.length === 0) {
         const empty = document.createElement("div");
         empty.className = "empty-note";
-        empty.textContent = "No timed events for this day.";
+        empty.textContent = "No events scheduled for this day.";
         eventsCol.appendChild(empty);
         return;
       }
 
-      timedEvents.forEach(event => {
-        const startDate = new Date(event.start.dateTime);
-        const endDate = new Date(event.end.dateTime);
-        const visibleStart = buildDateTime(selectedDate, minutesToTime(START_HOUR * 60));
-        const visibleEnd = buildDateTime(selectedDate, minutesToTime(END_HOUR * 60));
-        const displayStart = startDate < visibleStart ? visibleStart : startDate;
-        const displayEnd = endDate > visibleEnd ? visibleEnd : endDate;
-
-        if (displayEnd <= displayStart) return;
-
-        const startMinutes = (displayStart.getHours() * 60) + displayStart.getMinutes();
-        const endMinutes = (displayEnd.getHours() * 60) + displayEnd.getMinutes();
-        const baseMinutes = START_HOUR * 60;
-
-        const top = ((startMinutes - baseMinutes) / SLOT_MINUTES) * SLOT_HEIGHT;
-        const height = Math.max(((endMinutes - startMinutes) / SLOT_MINUTES) * SLOT_HEIGHT, SLOT_HEIGHT);
-
+      scheduledEvents.forEach(event => {
+        const calendar = calendarsById.get(event.calendarId);
         const block = document.createElement("div");
-        block.className = "event-block";
-        block.style.top = `${top}px`;
-        block.style.height = `${height - 4}px`;
+        block.className = `event-block ${isAllDayEvent(event) ? "all-day" : ""}`;
         block.style.background = getCalendarColor(event.calendarId);
 
         block.innerHTML = `
           <div class="event-time">${formatEventTimeRange(event)}</div>
-          <div class="event-title">${event.summary || "(Untitled event)"}</div>
+          <div class="event-title">${escapeHtml(event.summary || "(Untitled event)")}</div>
+          ${calendar?.summary ? `<div class="event-calendar">${escapeHtml(calendar.summary)}</div>` : ""}
         `;
 
         block.addEventListener("click", () => openEditModal(event));
@@ -1000,7 +1030,8 @@
         getCalendarOptions();
 
         const dayStart = new Date(`${selectedDate}T00:00:00`);
-        const dayEnd = new Date(`${selectedDate}T23:59:59`);
+        const dayEnd = new Date(dayStart);
+        dayEnd.setDate(dayEnd.getDate() + 1);
 
         const responses = await Promise.all(
           visibleCalendars.map(cal =>
@@ -1161,6 +1192,7 @@
       document.getElementById("eventStart").value = "";
       document.getElementById("eventEnd").value = "";
       setDurationButtonsActive(30);
+      setAllDayMode(false);
 
       document.getElementById("eventModal").classList.add("open");
     }
@@ -1175,16 +1207,27 @@
       document.getElementById("eventCalendar").value = event.calendarId || "";
       document.getElementById("eventName").value = event.summary || "";
 
-      if (event.start?.dateTime) {
+      if (isAllDayEvent(event)) {
+        document.getElementById("eventDate").value = event.start.date || selectedDate;
+        document.getElementById("eventEndDate").value = getAllDayInputEndDate(event);
+        document.getElementById("eventStart").value = "";
+        document.getElementById("eventEnd").value = "";
+        setAllDayMode(true);
+        setDurationButtonsActive(60);
+      } else if (event.start?.dateTime) {
         const start = new Date(event.start.dateTime);
         document.getElementById("eventDate").value = formatDateKey(start);
         document.getElementById("eventStart").value = `${String(start.getHours()).padStart(2, "0")}:${String(start.getMinutes()).padStart(2, "0")}`;
+        setAllDayMode(false);
       } else {
         document.getElementById("eventDate").value = selectedDate;
         document.getElementById("eventStart").value = "";
+        setAllDayMode(false);
       }
 
-      if (event.end?.dateTime) {
+      if (isAllDayEvent(event)) {
+        // Dates are already set above; Google stores all-day end dates as exclusive.
+      } else if (event.end?.dateTime) {
         const end = new Date(event.end.dateTime);
         document.getElementById("eventEndDate").value = formatDateKey(end);
         document.getElementById("eventEnd").value = `${String(end.getHours()).padStart(2, "0")}:${String(end.getMinutes()).padStart(2, "0")}`;
@@ -1217,12 +1260,14 @@
       const endDate = document.getElementById("eventEndDate").value;
       const start = document.getElementById("eventStart").value;
       const end = document.getElementById("eventEnd").value;
+      const allDay = document.getElementById("eventAllDay").checked;
 
       if (!calendarId) return "Choose a calendar.";
       if (!title) return "Enter an event name.";
       if (!date) return "Choose a start date.";
       if (!endDate) return "Choose an end date.";
       if (endDate < date) return "End date must be on or after the start date.";
+      if (allDay) return "";
       if (!start) return "Choose a start time.";
       if (!end) return "Choose an end time.";
       if (date === endDate && start >= end) return "End time must be after start time.";
@@ -1251,15 +1296,19 @@
       const endDate = document.getElementById("eventEndDate").value;
       const start = document.getElementById("eventStart").value;
       const end = document.getElementById("eventEnd").value;
+      const allDay = document.getElementById("eventAllDay").checked;
 
-      const startDateTime = buildDateTime(date, start).toISOString();
-      const endDateTime = buildDateTime(endDate, end).toISOString();
-
-      const resource = {
-        summary: title,
-        start: { dateTime: startDateTime },
-        end: { dateTime: endDateTime }
-      };
+      const resource = allDay
+        ? {
+            summary: title,
+            start: { date },
+            end: { date: addDaysToDateKey(endDate, 1) }
+          }
+        : {
+            summary: title,
+            start: { dateTime: buildDateTime(date, start).toISOString() },
+            end: { dateTime: buildDateTime(endDate, end).toISOString() }
+          };
 
       try {
         document.getElementById("saveBtn").disabled = true;
@@ -1372,6 +1421,9 @@
       if (!endValue || endValue <= startValue) {
         suggestEndTime(startValue);
       }
+    });
+    document.getElementById("eventAllDay").addEventListener("change", (event) => {
+      setAllDayMode(event.target.checked);
     });
 
     document.querySelectorAll(".duration-btn").forEach((button) => {
