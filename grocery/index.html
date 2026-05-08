@@ -845,12 +845,12 @@
 
     function setBusy(value) {
       isBusy = value;
-      addBtn.disabled = value || !isConnected;
+      addBtn.disabled = value;
       clearAllBtn.disabled = value || !isConnected;
       connectBtn.disabled = value;
       copyListBtn.disabled = value || !isConnected;
       textListBtn.disabled = value || !isConnected;
-      itemInput.disabled = value || !isConnected;
+      itemInput.disabled = false;
       inputCard.classList.toggle("loading", value);
     }
 
