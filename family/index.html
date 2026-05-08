@@ -104,7 +104,7 @@
       display:flex;
       gap:10px;
       align-items:center;
-      flex-wrap:wrap;
+      flex-wrap:nowrap;
       justify-content:flex-end;
     }
 
@@ -303,6 +303,7 @@
       background:rgba(255,255,255,.08);
       box-shadow:none;
       transition:transform .18s ease, background .18s ease, border-color .18s ease, filter .18s ease;
+      white-space:nowrap;
     }
 
     .top-btn:hover{
@@ -317,6 +318,17 @@
 
     .top-btn.accent:hover{
       filter:brightness(1.06);
+    }
+
+    .top-btn.feedback{
+      min-height:34px;
+      padding:8px 10px;
+      border-radius:12px;
+      font-size:12px;
+    }
+
+    body .ps-feedback-button{
+      display:none !important;
     }
 
     .status-pill{
@@ -1796,6 +1808,10 @@
         flex:1 1 180px;
       }
 
+      .top-right .top-btn{
+        flex:0 0 auto;
+      }
+
       .status-pill{
         flex:1 1 260px;
       }
@@ -1978,6 +1994,10 @@
 
       .top-btn{
         flex:1 1 0;
+      }
+
+      .top-right .top-btn{
+        flex:0 0 auto;
       }
 
       .status-pill{
@@ -2346,9 +2366,6 @@
         max-width:100%;
       }
 
-      body .ps-feedback-button{
-        display:none !important;
-      }
     }
   </style>
 
@@ -2416,6 +2433,7 @@
         <a class="top-btn" id="recipesBtn" href="/family/recipes/">Recipes</a>
         <button class="top-btn" id="topNotesBtn" type="button">Notes</button>
         <button class="top-btn" id="settingsBtn" type="button" onclick="window.location.href='/settings/'">Settings</button>
+        <button class="top-btn feedback" id="topFeedbackBtn" type="button">Feedback</button>
         <div style="display:none;">
           <div class="status-pill">
             <div class="status-label">Google</div>
@@ -4441,6 +4459,12 @@
     document.getElementById("topNotesBtn").addEventListener("click", () => {
       openDashboardOverlay("Notes", "/notes/");
     });
+    document.getElementById("topFeedbackBtn").addEventListener("click", () => {
+      const feedbackButton = document.querySelector(".ps-feedback-button");
+      if (feedbackButton instanceof HTMLButtonElement) {
+        feedbackButton.click();
+      }
+    });
     document.getElementById("mobileHomeDate").textContent = new Date().toLocaleDateString(undefined, {
       weekday: "long",
       month: "long",
@@ -4584,5 +4608,6 @@
       }
     });
   </script>
+  <script src="../feedback-widget.js" data-app-name="Apps Hub - Family" data-feedback-endpoint="https://baseball-betting-app.vercel.app/api/send-feedback" defer></script>
 </body>
 </html>
