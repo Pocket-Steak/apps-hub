@@ -66,6 +66,7 @@
     .preview-card,
     .day-card,
     .overlay-shell,
+    .dinner-modal,
     .nav-btn,
     .status-pill{
       background:
@@ -493,6 +494,10 @@
       min-height:min(72dvh, 760px);
     }
 
+    .dinner-menu-card{
+      cursor:default;
+    }
+
     .today-card{
       padding:var(--card-pad);
       display:flex;
@@ -915,6 +920,226 @@
       font-weight:700;
       padding:8px 2px;
       line-height:1.4;
+    }
+
+    .dinner-week-label{
+      color:var(--muted);
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      white-space:nowrap;
+    }
+
+    .dinner-day-row{
+      width:100%;
+      min-height:54px;
+      border:1px solid rgba(255,255,255,.05);
+      border-left:4px solid rgba(255,122,24,.8);
+      border-radius:14px;
+      padding:9px 10px;
+      display:grid;
+      grid-template-columns:auto minmax(0, 1fr);
+      gap:10px;
+      align-items:center;
+      text-align:left;
+      appearance:none;
+      color:inherit;
+      font:inherit;
+      cursor:pointer;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03)),
+        var(--surface);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+      transition:transform .18s ease, background .18s ease, box-shadow .18s ease;
+    }
+
+    .dinner-day-row:hover{
+      transform:translateY(-1px);
+      box-shadow:0 10px 20px rgba(0,0,0,.16);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.035)),
+        var(--surface);
+    }
+
+    .dinner-day-row:focus-visible{
+      outline:2px solid rgba(255,122,24,.9);
+      outline-offset:2px;
+    }
+
+    .dinner-day-row.is-today{
+      border-left-color:#22c55e;
+    }
+
+    .dinner-day-date{
+      display:grid;
+      gap:2px;
+      min-width:42px;
+    }
+
+    .dinner-day-name{
+      font-size:13px;
+      font-weight:900;
+      line-height:1;
+    }
+
+    .dinner-day-number{
+      color:var(--muted);
+      font-size:11px;
+      font-weight:800;
+      line-height:1;
+    }
+
+    .dinner-meal{
+      min-width:0;
+      font-size:13px;
+      font-weight:850;
+      line-height:1.2;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+
+    .dinner-meal.empty{
+      color:var(--muted);
+      font-weight:800;
+    }
+
+    .dinner-menu-notice{
+      border:1px solid rgba(255,122,24,.16);
+      border-radius:14px;
+      padding:9px 10px;
+      color:var(--muted);
+      background:rgba(255,122,24,.08);
+      font-size:12px;
+      font-weight:800;
+      line-height:1.3;
+    }
+
+    .dinner-modal-backdrop{
+      position:fixed;
+      inset:0;
+      z-index:1100;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+      background:rgba(9,11,16,.74);
+      backdrop-filter:blur(10px);
+    }
+
+    .dinner-modal-backdrop.open{
+      display:flex;
+    }
+
+    .dinner-modal{
+      width:min(520px, 100%);
+      padding:16px;
+      display:grid;
+      gap:14px;
+      border-color:var(--border-strong);
+    }
+
+    .dinner-modal-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+    }
+
+    .dinner-modal-title{
+      font-size:24px;
+      font-weight:900;
+      line-height:1.05;
+      letter-spacing:-.02em;
+    }
+
+    .dinner-form{
+      display:grid;
+      gap:12px;
+    }
+
+    .dinner-field{
+      display:grid;
+      gap:6px;
+    }
+
+    .dinner-field label{
+      color:var(--muted);
+      font-size:12px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .dinner-select,
+    .dinner-input{
+      width:100%;
+      min-height:48px;
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:14px;
+      padding:12px 14px;
+      background:rgba(255,255,255,.075);
+      color:var(--text);
+      font:inherit;
+      font-weight:800;
+      outline:none;
+    }
+
+    .dinner-input{
+      resize:vertical;
+      min-height:96px;
+    }
+
+    .dinner-select:focus,
+    .dinner-input:focus{
+      border-color:rgba(255,122,24,.55);
+      box-shadow:0 0 0 3px rgba(255,122,24,.16);
+    }
+
+    .dinner-modal-actions{
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .dinner-action{
+      border:none;
+      min-height:44px;
+      padding:10px 14px;
+      border-radius:14px;
+      background:rgba(255,255,255,.08);
+      color:var(--text);
+      cursor:pointer;
+      font-size:14px;
+      font-weight:900;
+      transition:transform .18s ease, background .18s ease, filter .18s ease;
+    }
+
+    .dinner-action:hover{
+      background:rgba(255,255,255,.14);
+      transform:translateY(-1px);
+    }
+
+    .dinner-action.accent{
+      background:var(--accent);
+      color:#fff;
+    }
+
+    .dinner-action.accent:hover{
+      filter:brightness(1.06);
+    }
+
+    .dinner-action.danger{
+      background:rgba(217,48,37,.18);
+      color:#ffb4ab;
+    }
+
+    .dinner-action:disabled{
+      opacity:.58;
+      cursor:not-allowed;
+      transform:none;
     }
 
     .overlay-backdrop{
@@ -2026,6 +2251,14 @@
       text-decoration:none;
     }
 
+    button.mobile-menu-card{
+      width:100%;
+      border:1px solid var(--border);
+      text-align:left;
+      font:inherit;
+      cursor:pointer;
+    }
+
     .mobile-menu-card-title{
       display:block;
       font-size:18px;
@@ -2181,6 +2414,7 @@
       <div class="top-right">
         <button class="top-btn" id="backAppsBtn" type="button" style="display:none;">← Back to Apps</button>
         <a class="top-btn" id="recipesBtn" href="/family/recipes/">Recipes</a>
+        <button class="top-btn" id="topNotesBtn" type="button">Notes</button>
         <button class="top-btn" id="settingsBtn" type="button" onclick="window.location.href='/settings/'">Settings</button>
         <div style="display:none;">
           <div class="status-pill">
@@ -2224,6 +2458,13 @@
           </span>
           <span class="mobile-menu-arrow" aria-hidden="true">›</span>
         </a>
+        <button class="mobile-menu-card" id="mobileDinnerBtn" type="button">
+          <span>
+            <span class="mobile-menu-card-title">Dinner Menu</span>
+            <span class="mobile-menu-card-meta">This week at the table.</span>
+          </span>
+          <span class="mobile-menu-arrow" aria-hidden="true">›</span>
+        </button>
         <a class="mobile-menu-card" href="/notes/">
           <span>
             <span class="mobile-menu-card-title">Notes</span>
@@ -2277,42 +2518,69 @@
       <section class="days-grid" id="daysGrid"></section>
 
       <section class="preview-grid">
-      <article class="preview-card" id="groceryPreviewCard">
-        <div class="preview-head">
-          <div class="preview-heading">
-            <div class="preview-title">Grocery List</div>
+        <article class="preview-card" id="groceryPreviewCard">
+          <div class="preview-head">
+            <div class="preview-heading">
+              <div class="preview-title">Grocery List</div>
+            </div>
+            <button class="preview-open" id="groceryPreviewBtn" type="button">Open List</button>
           </div>
-          <button class="preview-open" id="groceryPreviewBtn" type="button">Open List</button>
-        </div>
-        <div class="preview-list" id="groceryPreviewList">
-          <div class="preview-empty">Waiting for Supabase groceries…</div>
-        </div>
+          <div class="preview-list" id="groceryPreviewList">
+            <div class="preview-empty">Waiting for Supabase groceries…</div>
+          </div>
         </article>
 
         <article class="preview-card" id="taskPreviewCard">
-        <div class="preview-head">
-          <div class="preview-heading">
-            <div class="preview-title">Tasks</div>
+          <div class="preview-head">
+            <div class="preview-heading">
+              <div class="preview-title">Tasks</div>
+            </div>
+            <button class="preview-open" id="taskPreviewBtn" type="button">Open Tasks</button>
           </div>
-          <button class="preview-open" id="taskPreviewBtn" type="button">Open Tasks</button>
-        </div>
-        <div class="preview-list" id="taskPreviewList">
-          <div class="preview-empty">Waiting for Supabase tasks…</div>
-        </div>
+          <div class="preview-list" id="taskPreviewList">
+            <div class="preview-empty">Waiting for Supabase tasks…</div>
+          </div>
         </article>
 
-        <article class="preview-card" id="notesPreviewCard">
-        <div class="preview-head">
-          <div class="preview-heading">
-            <div class="preview-title">Notes</div>
+        <article class="preview-card dinner-menu-card" id="dinnerMenuCard">
+          <div class="preview-head">
+            <div class="preview-heading">
+              <div class="preview-title">Dinner Menu</div>
+              <div class="dinner-week-label" id="dinnerWeekLabel">This week</div>
+            </div>
+            <button class="preview-open" id="dinnerMenuAddBtn" type="button">Add Dinner</button>
           </div>
-          <button class="preview-open" id="notesPreviewBtn" type="button">Open Notes</button>
-        </div>
-        <div class="preview-list" id="notesPreviewList">
-          <div class="preview-empty">Waiting for notes…</div>
-        </div>
+          <div class="preview-list" id="dinnerMenuList">
+            <div class="preview-empty">Waiting for Supabase menu…</div>
+          </div>
         </article>
       </section>
+    </section>
+  </div>
+
+  <div class="dinner-modal-backdrop" id="dinnerModal" aria-hidden="true">
+    <section class="dinner-modal" role="dialog" aria-modal="true" aria-labelledby="dinnerModalTitle">
+      <div class="dinner-modal-head">
+        <div>
+          <div class="dinner-week-label">Dinner Menu</div>
+          <div class="dinner-modal-title" id="dinnerModalTitle">Add Dinner</div>
+        </div>
+      </div>
+      <form class="dinner-form" id="dinnerForm">
+        <div class="dinner-field">
+          <label for="dinnerDaySelect">Day</label>
+          <select class="dinner-select" id="dinnerDaySelect"></select>
+        </div>
+        <div class="dinner-field">
+          <label for="dinnerMealInput">Dinner</label>
+          <textarea class="dinner-input" id="dinnerMealInput" placeholder="Tacos, leftovers, pizza night"></textarea>
+        </div>
+        <div class="dinner-modal-actions">
+          <button class="dinner-action danger" id="dinnerClearBtn" type="button">Clear</button>
+          <button class="dinner-action" id="dinnerCancelBtn" type="button">Cancel</button>
+          <button class="dinner-action accent" id="dinnerSaveBtn" type="submit">Save Dinner</button>
+        </div>
+      </form>
     </section>
   </div>
 
@@ -2339,6 +2607,7 @@
     const NOTES_STORAGE_KEY = "pocketsteak_family_notes";
     const NOTES_TABLE = "family_notes";
     const GROCERY_TABLE = "family_grocery_items";
+    const DINNER_MENU_TABLE = "family_dinner_menu";
     const TASKS_TABLE = "family_tasks";
     const TASK_COMPLETIONS_TABLE = "family_task_completions";
     const PEOPLE_TABLE = "family_people";
@@ -2407,17 +2676,20 @@
     let calendarsById = new Map();
     let weekEvents = [];
     let groceryPreviewRows = [];
+    let dinnerMenuRows = [];
     let taskPreviewRows = [];
     let taskPreviewPeople = [];
     let taskPreviewTypeColors = { ...DEFAULT_TASK_TYPE_COLORS };
     let notesPreviewRows = [];
     let groceryPreviewError = "";
+    let dinnerMenuError = "";
     let taskPreviewError = "";
     let notesPreviewError = "";
     let activeOverlayPath = "";
     let taskPreviewClient = null;
     let taskPreviewClientSignature = "";
     let isSubmittingHomeTask = false;
+    let isSavingDinnerMenu = false;
     let isDashboardSyncing = false;
 
     function normalizeSupabaseText(value) {
@@ -2747,6 +3019,28 @@
       const date = getStartOfDay(dateInput);
       date.setDate(date.getDate() + amount);
       return date;
+    }
+
+    function getDinnerWeekDates(dateInput = new Date()) {
+      const weekStart = getWeekStartDateFor(dateInput);
+      return Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
+    }
+
+    function formatDinnerWeekLabel(dates) {
+      const first = dates[0];
+      const last = dates[dates.length - 1];
+      if (!first || !last) return "This week";
+      return `${formatMonthDay(first)} - ${formatMonthDay(last)}`;
+    }
+
+    function getDinnerRowByDate(dateKey) {
+      return dinnerMenuRows.find((row) => row.dateKey === dateKey) || null;
+    }
+
+    function getDefaultDinnerDateKey() {
+      const todayKey = getCurrentDayKey();
+      const weekKeys = new Set(getDinnerWeekDates().map(formatDateKey));
+      return weekKeys.has(todayKey) ? todayKey : formatDateKey(getDinnerWeekDates()[0]);
     }
 
     function addMonthsClamped(dateInput, amount) {
@@ -3231,9 +3525,39 @@
       }
     }
 
+    function renderDinnerMenuCard() {
+      const weekDates = getDinnerWeekDates();
+      const listEl = document.getElementById("dinnerMenuList");
+      document.getElementById("dinnerWeekLabel").textContent = formatDinnerWeekLabel(weekDates);
+
+      const todayKey = getCurrentDayKey();
+      const noticeHtml = dinnerMenuError
+        ? `<div class="dinner-menu-notice">${escapeHtml(dinnerMenuError)}</div>`
+        : "";
+      const dayRowsHtml = weekDates.map((date) => {
+        const dateKey = formatDateKey(date);
+        const row = getDinnerRowByDate(dateKey);
+        const meal = String(row?.meal || "").trim();
+        const dayName = date.toLocaleDateString(undefined, { weekday: "short" });
+        const dayNumber = formatMonthDay(date);
+        return `
+          <button class="dinner-day-row${dateKey === todayKey ? " is-today" : ""}" type="button" data-dinner-date="${dateKey}">
+            <span class="dinner-day-date">
+              <span class="dinner-day-name">${escapeHtml(dayName)}</span>
+              <span class="dinner-day-number">${escapeHtml(dayNumber)}</span>
+            </span>
+            <span class="dinner-meal${meal ? "" : " empty"}">${escapeHtml(meal || "Add dinner")}</span>
+          </button>
+        `;
+      }).join("");
+
+      listEl.innerHTML = noticeHtml + dayRowsHtml;
+    }
+
     function renderAll() {
       renderToday();
       renderNextSixDays();
+      renderDinnerMenuCard();
       renderPreviewCard({
         rows: groceryPreviewRows,
         listId: "groceryPreviewList",
@@ -3242,7 +3566,6 @@
         accentColor: "#ff7a18",
       });
       renderTaskPreviewCard();
-      renderNotesPreviewCard();
     }
 
     function renderPreviewCard({ rows, listId, emptyText, accentColor = "#ff7a18", errorText = "" }) {
@@ -3328,6 +3651,111 @@
       `).join("");
     }
 
+    function populateDinnerDaySelect(selectedDateKey = getDefaultDinnerDateKey()) {
+      const select = document.getElementById("dinnerDaySelect");
+      select.innerHTML = getDinnerWeekDates().map((date) => {
+        const dateKey = formatDateKey(date);
+        const label = date.toLocaleDateString(undefined, {
+          weekday: "long",
+          month: "short",
+          day: "numeric",
+        });
+        return `<option value="${dateKey}">${escapeHtml(label)}</option>`;
+      }).join("");
+      select.value = selectedDateKey;
+    }
+
+    function openDinnerEditor(dateKey = getDefaultDinnerDateKey()) {
+      const safeDateKey = dateKey || getDefaultDinnerDateKey();
+      const row = getDinnerRowByDate(safeDateKey);
+      populateDinnerDaySelect(safeDateKey);
+      document.getElementById("dinnerMealInput").value = row?.meal || "";
+      document.getElementById("dinnerModalTitle").textContent = row?.meal ? "Edit Dinner" : "Add Dinner";
+      document.getElementById("dinnerClearBtn").style.display = row?.meal ? "inline-flex" : "none";
+      document.getElementById("dinnerModal").classList.add("open");
+      document.getElementById("dinnerModal").setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+      window.setTimeout(() => {
+        document.getElementById("dinnerMealInput").focus();
+      }, 80);
+    }
+
+    function closeDinnerEditor() {
+      document.getElementById("dinnerModal").classList.remove("open");
+      document.getElementById("dinnerModal").setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+    }
+
+    function setDinnerFormSaving(isSaving) {
+      isSavingDinnerMenu = isSaving;
+      document.getElementById("dinnerSaveBtn").disabled = isSaving;
+      document.getElementById("dinnerClearBtn").disabled = isSaving;
+      document.getElementById("dinnerCancelBtn").disabled = isSaving;
+      document.getElementById("dinnerSaveBtn").textContent = isSaving ? "Saving…" : "Save Dinner";
+    }
+
+    async function saveDinnerMenuEntry(dateKey, mealValue) {
+      const client = getTaskPreviewClient();
+      if (!client) {
+        throw new Error("Supabase Dinner Menu is not connected yet.");
+      }
+
+      const meal = String(mealValue || "").trim();
+      if (!meal) {
+        const deleteResult = await client
+          .from(DINNER_MENU_TABLE)
+          .delete()
+          .eq("dinner_date", dateKey);
+        if (deleteResult.error) throw deleteResult.error;
+        return;
+      }
+
+      const date = parseScheduleDate(dateKey) || new Date();
+      const upsertResult = await client
+        .from(DINNER_MENU_TABLE)
+        .upsert({
+          dinner_date: dateKey,
+          week_start: formatDateKey(getWeekStartDateFor(date)),
+          meal,
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: "dinner_date",
+        });
+
+      if (upsertResult.error) {
+        throw upsertResult.error;
+      }
+    }
+
+    async function handleDinnerFormSubmit(event) {
+      event.preventDefault();
+      if (isSavingDinnerMenu) return;
+
+      const dateKey = document.getElementById("dinnerDaySelect").value;
+      const meal = document.getElementById("dinnerMealInput").value;
+      setDinnerFormSaving(true);
+
+      try {
+        await saveDinnerMenuEntry(dateKey, meal);
+        dinnerMenuError = "";
+        await loadDashboardLists();
+        closeDinnerEditor();
+      } catch (error) {
+        console.error(error);
+        dinnerMenuError = getReadableDinnerMenuError(error);
+        renderDinnerMenuCard();
+        window.alert(dinnerMenuError);
+      } finally {
+        setDinnerFormSaving(false);
+      }
+    }
+
+    async function clearDinnerMenuEntry() {
+      if (isSavingDinnerMenu) return;
+      document.getElementById("dinnerMealInput").value = "";
+      await handleDinnerFormSubmit(new Event("submit"));
+    }
+
     function shouldShowOverlayOpenPage(path) {
       const overlayPath = String(path || "").split("?")[0].replace(/\/+$/, "") || "/";
       return !["/grocery", "/chores", "/notes"].includes(overlayPath);
@@ -3390,6 +3818,60 @@
           createdAt: String(item.created_at || "").trim(),
         }))
         .filter((row) => row.title);
+    }
+
+    function isMissingDinnerMenuTableError(error) {
+      const text = `${error?.code || ""} ${error?.message || ""} ${error?.details || ""} ${error?.hint || ""}`.toLowerCase();
+      return (
+        text.includes(DINNER_MENU_TABLE) ||
+        text.includes("could not find the table") ||
+        text.includes("schema cache") ||
+        error?.code === "PGRST205" ||
+        error?.code === "42P01"
+      );
+    }
+
+    function getReadableDinnerMenuError(error) {
+      if (isMissingDinnerMenuTableError(error)) {
+        return "Dinner menu needs the Supabase schema update.";
+      }
+      const message = String(error?.message || "").trim();
+      if (!message) return "Could not save dinner menu.";
+      if (/failed to fetch/i.test(message)) {
+        return "Could not reach Supabase right now.";
+      }
+      return message;
+    }
+
+    async function loadDinnerMenuPreview() {
+      const client = getTaskPreviewClient();
+      if (!client) {
+        throw new Error("Supabase Dinner Menu is not connected yet.");
+      }
+
+      const weekDates = getDinnerWeekDates();
+      const startKey = formatDateKey(weekDates[0]);
+      const endKey = formatDateKey(weekDates[weekDates.length - 1]);
+      const result = await client
+        .from(DINNER_MENU_TABLE)
+        .select("id,dinner_date,week_start,meal,created_at,updated_at")
+        .gte("dinner_date", startKey)
+        .lte("dinner_date", endKey)
+        .order("dinner_date", { ascending: true });
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      return (result.data || [])
+        .map((row) => ({
+          id: String(row.id || "").trim(),
+          dateKey: String(row.dinner_date || "").trim(),
+          weekStart: String(row.week_start || "").trim(),
+          meal: String(row.meal || "").trim(),
+          updatedAt: String(row.updated_at || row.created_at || "").trim(),
+        }))
+        .filter((row) => row.id && row.dateKey && row.meal);
     }
 
     async function loadTaskPreview() {
@@ -3616,8 +4098,8 @@
     async function loadDashboardLists() {
       const results = await Promise.allSettled([
         loadGroceryPreview(),
+        loadDinnerMenuPreview(),
         loadTaskPreview(),
-        loadNotesPreview(),
       ]);
 
       if (results[0].status === "fulfilled") {
@@ -3630,21 +4112,21 @@
       }
 
       if (results[1].status === "fulfilled") {
-        taskPreviewRows = results[1].value;
-        taskPreviewError = "";
+        dinnerMenuRows = results[1].value;
+        dinnerMenuError = "";
       } else {
         console.error(results[1].reason);
-        taskPreviewRows = [];
-        taskPreviewError = results[1].reason?.message || "Could not load tasks preview.";
+        dinnerMenuRows = [];
+        dinnerMenuError = getReadableDinnerMenuError(results[1].reason);
       }
 
       if (results[2].status === "fulfilled") {
-        notesPreviewRows = results[2].value;
-        notesPreviewError = "";
+        taskPreviewRows = results[2].value;
+        taskPreviewError = "";
       } else {
         console.error(results[2].reason);
-        notesPreviewRows = [];
-        notesPreviewError = "Open Notes to add a note.";
+        taskPreviewRows = [];
+        taskPreviewError = results[2].reason?.message || "Could not load tasks preview.";
       }
 
       renderAll();
@@ -3885,6 +4367,8 @@
       weekEvents = [];
       groceryPreviewRows = [];
       groceryPreviewError = "";
+      dinnerMenuRows = [];
+      dinnerMenuError = "";
       notesPreviewRows = [];
       notesPreviewError = "";
       document.getElementById("authBtn").textContent = "Connect";
@@ -3954,6 +4438,9 @@
     document.getElementById("backAppsBtn").addEventListener("click", () => {
       window.location.href = "/apps/";
     });
+    document.getElementById("topNotesBtn").addEventListener("click", () => {
+      openDashboardOverlay("Notes", "/notes/");
+    });
     document.getElementById("mobileHomeDate").textContent = new Date().toLocaleDateString(undefined, {
       weekday: "long",
       month: "long",
@@ -3963,6 +4450,9 @@
       const menu = document.getElementById("mobileMenuGrid");
       const collapsed = menu.classList.toggle("collapsed");
       document.getElementById("mobileMenuBtn").setAttribute("aria-expanded", String(!collapsed));
+    });
+    document.getElementById("mobileDinnerBtn").addEventListener("click", () => {
+      openDinnerEditor(getDefaultDinnerDateKey());
     });
 
     document.getElementById("authBtn").addEventListener("click", handleAuthClick);
@@ -3985,14 +4475,39 @@
       const todayKey = formatDateKey(new Date());
       window.location.href = `/day/?date=${todayKey}&add=1`;
     });
+    document.getElementById("dinnerMenuAddBtn").addEventListener("click", (event) => {
+      event.stopPropagation();
+      openDinnerEditor(getDefaultDinnerDateKey());
+    });
+    document.getElementById("dinnerMenuList").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-dinner-date]");
+      if (!button) return;
+      openDinnerEditor(button.getAttribute("data-dinner-date") || getDefaultDinnerDateKey());
+    });
+    document.getElementById("dinnerDaySelect").addEventListener("change", (event) => {
+      const dateKey = event.target.value;
+      const row = getDinnerRowByDate(dateKey);
+      document.getElementById("dinnerMealInput").value = row?.meal || "";
+      document.getElementById("dinnerModalTitle").textContent = row?.meal ? "Edit Dinner" : "Add Dinner";
+      document.getElementById("dinnerClearBtn").style.display = row?.meal ? "inline-flex" : "none";
+    });
+    document.getElementById("dinnerForm").addEventListener("submit", handleDinnerFormSubmit);
+    document.getElementById("dinnerCancelBtn").addEventListener("click", closeDinnerEditor);
+    document.getElementById("dinnerClearBtn").addEventListener("click", () => {
+      clearDinnerMenuEntry().catch((err) => {
+        console.error(err);
+      });
+    });
+    document.getElementById("dinnerModal").addEventListener("click", (event) => {
+      if (event.target === event.currentTarget && !isSavingDinnerMenu) {
+        closeDinnerEditor();
+      }
+    });
     document.getElementById("groceryPreviewCard").addEventListener("click", () => {
       openDashboardOverlay("Grocery List", "/grocery/");
     });
     document.getElementById("taskPreviewCard").addEventListener("click", () => {
       openDashboardOverlay("Tasks", "/chores/");
-    });
-    document.getElementById("notesPreviewCard").addEventListener("click", () => {
-      openDashboardOverlay("Notes", "/notes/");
     });
     document.getElementById("groceryPreviewBtn").addEventListener("click", (event) => {
       event.stopPropagation();
@@ -4001,10 +4516,6 @@
     document.getElementById("taskPreviewBtn").addEventListener("click", (event) => {
       event.stopPropagation();
       openDashboardOverlay("Tasks", "/chores/");
-    });
-    document.getElementById("notesPreviewBtn").addEventListener("click", (event) => {
-      event.stopPropagation();
-      openDashboardOverlay("Notes", "/notes/");
     });
     document.getElementById("taskPreviewList").addEventListener("click", (event) => {
       const button = event.target.closest("[data-task-id]");
@@ -4033,6 +4544,10 @@
       }
     });
     document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && document.getElementById("dinnerModal").classList.contains("open") && !isSavingDinnerMenu) {
+        closeDinnerEditor();
+        return;
+      }
       if (event.key === "Escape" && document.getElementById("dashboardOverlay").classList.contains("open")) {
         closeDashboardOverlay();
       }
@@ -4069,6 +4584,5 @@
       }
     });
   </script>
-  <script src="../feedback-widget.js" data-app-name="Apps Hub - Family" data-feedback-endpoint="https://baseball-betting-app.vercel.app/api/send-feedback" defer></script>
 </body>
 </html>
