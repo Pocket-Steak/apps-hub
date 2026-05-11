@@ -3936,7 +3936,7 @@
             <button class="preview-item" type="button" data-task-id="${escapeHtml(row.id)}" style="border-left-color:${getTaskAccentColor(row)}">
               <div class="preview-item-title">${escapeHtml(row.title)}</div>
               <div class="preview-item-meta">
-                ${escapeHtml([getTaskKindLabel(row), getTaskAssignmentLabel(row), "Ready"].filter(Boolean).join(" • "))}
+                ${escapeHtml([getTaskAssignmentLabel(row)].filter(Boolean).join(" • "))}
               </div>
             </button>
           `).join("")
