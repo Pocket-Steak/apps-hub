@@ -978,6 +978,20 @@
       outline:2px solid rgba(255,122,24,.9);
       outline-offset:2px;
     }
+    .dinner-day-row.dragging{
+      opacity:.3;
+      box-shadow:none;
+      transform:none !important;
+    }
+    .dinner-day-row.drag-over{
+      border-left-color:#ff7a18 !important;
+      border-color:rgba(255,122,24,.35) !important;
+      transform:translateY(-2px);
+      box-shadow:0 12px 24px rgba(0,0,0,.2);
+      background:
+        linear-gradient(180deg,rgba(255,122,24,.12),rgba(255,122,24,.04)),
+        var(--surface) !important;
+    }
 
     .dinner-day-row.is-today{
       border-left-color:#22c55e;
@@ -2917,6 +2931,7 @@
     let weekEvents = [];
     let groceryPreviewRows = [];
     let dinnerMenuRows = [];
+    let dragSourceDateKey = null;
     let taskPreviewRows = [];
     let taskPreviewPeople = [];
     let taskPreviewTypeColors = { ...DEFAULT_TASK_TYPE_COLORS };
@@ -3781,7 +3796,7 @@
         const dayName = date.toLocaleDateString(undefined, { weekday: "short" });
         const dayNumber = formatMonthDay(date);
         return `
-          <button class="dinner-day-row${dateKey === todayKey ? " is-today" : ""}" type="button" data-dinner-date="${dateKey}">
+          <button class="dinner-day-row${dateKey === todayKey ? " is-today" : ""}" type="button" draggable="true" data-dinner-date="${dateKey}">
             <span class="dinner-day-date">
               ${dateKey === todayKey ? '<span class="dinner-day-kicker">Tonight</span>' : ""}
               <span class="dinner-day-name">${escapeHtml(dayName)}</span>
@@ -3793,6 +3808,72 @@
       }).join("");
 
       listEl.innerHTML = noticeHtml + dayRowsHtml;
+      initDinnerDragDrop(listEl);
+    }
+
+    function initDinnerDragDrop(listEl) {
+      listEl.querySelectorAll(".dinner-day-row").forEach(row => {
+        row.addEventListener("dragstart", (e) => {
+          dragSourceDateKey = row.getAttribute("data-dinner-date");
+          row.classList.add("dragging");
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData("text/plain", dragSourceDateKey);
+        });
+        row.addEventListener("dragend", () => {
+          row.classList.remove("dragging");
+          listEl.querySelectorAll(".drag-over").forEach(el => el.classList.remove("drag-over"));
+        });
+        row.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "move";
+          if (row.getAttribute("data-dinner-date") !== dragSourceDateKey) {
+            listEl.querySelectorAll(".drag-over").forEach(el => el.classList.remove("drag-over"));
+            row.classList.add("drag-over");
+          }
+        });
+        row.addEventListener("dragleave", (e) => {
+          if (!row.contains(e.relatedTarget)) {
+            row.classList.remove("drag-over");
+          }
+        });
+        row.addEventListener("drop", (e) => {
+          e.preventDefault();
+          const targetDateKey = row.getAttribute("data-dinner-date");
+          row.classList.remove("drag-over");
+          if (dragSourceDateKey && targetDateKey !== dragSourceDateKey) {
+            handleDinnerMealSwap(dragSourceDateKey, targetDateKey);
+          }
+          dragSourceDateKey = null;
+        });
+      });
+    }
+
+    async function handleDinnerMealSwap(sourceDateKey, targetDateKey) {
+      const sourceRow = dinnerMenuRows.find(r => r.dateKey === sourceDateKey);
+      const targetRow = dinnerMenuRows.find(r => r.dateKey === targetDateKey);
+      const sourceMeal = String(sourceRow?.meal || "").trim();
+      const targetMeal = String(targetRow?.meal || "").trim();
+
+      // Optimistic local update for immediate visual feedback
+      if (sourceRow) sourceRow.meal = targetMeal;
+      else if (targetMeal) dinnerMenuRows.push({ dateKey: sourceDateKey, dinner_date: sourceDateKey, meal: targetMeal });
+      if (targetRow) targetRow.meal = sourceMeal;
+      else if (sourceMeal) dinnerMenuRows.push({ dateKey: targetDateKey, dinner_date: targetDateKey, meal: sourceMeal });
+
+      renderDinnerMenuCard();
+
+      try {
+        await Promise.all([
+          saveDinnerMenuEntry(sourceDateKey, targetMeal),
+          saveDinnerMenuEntry(targetDateKey, sourceMeal),
+        ]);
+        dinnerMenuError = "";
+        await loadDashboardLists();
+      } catch (error) {
+        console.error(error);
+        dinnerMenuError = getReadableDinnerMenuError(error);
+        await loadDashboardLists();
+      }
     }
 
     function renderAll() {
