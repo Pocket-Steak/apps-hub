@@ -1471,7 +1471,7 @@
     }
 
     function getTaskKind(row) {
-      if (!row.isRecurring) return "Ad hoc";
+      if (!row.isRecurring) return "";
       const startLabel = getScheduleStartLabel(row.recurrence, row.schedule);
       return [
         getRecurrenceLabel(row.recurrence),
@@ -2005,9 +2005,8 @@
         tile.innerHTML = `
           <div class="tile-title">${escapeHtml(row.item)}</div>
           <div class="tile-meta">
-            <div class="tile-status">${escapeHtml(getTaskKind(row))}</div>
+            ${getTaskKind(row) ? `<div class="tile-status">${escapeHtml(getTaskKind(row))}</div>` : ""}
             ${assignmentLabel ? `<div class="tile-status person" style="--person-color:${escapeHtml(row.assignedPerson.color)}">${escapeHtml(assignmentLabel)}</div>` : ""}
-            <div class="tile-status">Ready</div>
           </div>
           <div class="tile-actions">
             <button class="tile-action" type="button" data-claim-task-id="${escapeHtml(row.id)}">${row.isRecurring ? (row.assignedPerson ? "Change Claim" : "Claim") : (row.assignedPerson ? "Change Assignment" : "Assign")}</button>
@@ -2027,7 +2026,7 @@
         tile.innerHTML = `
           <div class="tile-title">${escapeHtml(row.item)}</div>
           <div class="tile-meta">
-            <div class="tile-status">${escapeHtml(getTaskKind(row))}</div>
+            ${getTaskKind(row) ? `<div class="tile-status">${escapeHtml(getTaskKind(row))}</div>` : ""}
             ${assignmentLabel ? `<div class="tile-status person" style="--person-color:${escapeHtml(row.assignedPerson.color)}">${escapeHtml(assignmentLabel)}</div>` : ""}
             <div class="tile-status done">${escapeHtml(formatCompletedAt(row.completedAt))}</div>
           </div>
