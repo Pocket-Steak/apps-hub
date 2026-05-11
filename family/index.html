@@ -3908,9 +3908,7 @@
         ? activeRows.map(row => `
             <div class="preview-item${row.done ? " done" : ""}" style="border-left-color:${accentColor}">
               <div class="preview-item-title">${escapeHtml(row.title)}</div>
-              <div class="preview-item-meta">
-                ${row.done ? "Purchased" : "Ready for action"}
-              </div>
+              ${row.done ? `<div class="preview-item-meta">Purchased</div>` : ""}
             </div>
           `).join("")
         : `<div class="preview-empty">Everything here is completed.</div>`;
