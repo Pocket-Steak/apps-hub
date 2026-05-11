@@ -961,6 +961,13 @@
       line-height:1.3;
     }
 
+    .dinner-view-list{
+      display:grid;
+      gap:8px;
+      overflow-y:auto;
+      max-height:60dvh;
+    }
+
     .dinner-modal-backdrop{
       position:fixed;
       inset:0;
@@ -2659,6 +2666,19 @@
     </section>
   </div>
 
+  <div class="dinner-modal-backdrop" id="dinnerViewModal" aria-hidden="true">
+    <section class="dinner-modal" role="dialog" aria-modal="true" aria-labelledby="dinnerViewModalTitle">
+      <div class="dinner-modal-head">
+        <div>
+          <div class="dinner-week-label" id="dinnerViewWeekLabel">This week</div>
+          <div class="dinner-modal-title" id="dinnerViewModalTitle">Dinner Menu</div>
+        </div>
+        <button class="dinner-action" id="dinnerViewCloseBtn" type="button">Close</button>
+      </div>
+      <div class="dinner-view-list" id="dinnerViewList"></div>
+    </section>
+  </div>
+
   <div class="dinner-modal-backdrop" id="dinnerModal" aria-hidden="true">
     <section class="dinner-modal" role="dialog" aria-modal="true" aria-labelledby="dinnerModalTitle">
       <div class="dinner-modal-head">
@@ -3853,6 +3873,54 @@
       document.body.classList.remove("modal-open");
     }
 
+    function openDinnerView() {
+      const weekDates = getDinnerWeekDates();
+      document.getElementById("dinnerViewWeekLabel").textContent = formatDinnerWeekLabel(weekDates);
+      renderDinnerViewModal(weekDates);
+      document.getElementById("dinnerViewModal").classList.add("open");
+      document.getElementById("dinnerViewModal").setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+    }
+
+    function closeDinnerView() {
+      document.getElementById("dinnerViewModal").classList.remove("open");
+      document.getElementById("dinnerViewModal").setAttribute("aria-hidden", "true");
+      document.body.classList.remove("modal-open");
+    }
+
+    function renderDinnerViewModal(weekDates) {
+      const listEl = document.getElementById("dinnerViewList");
+      const todayKey = getCurrentDayKey();
+      const noticeHtml = dinnerMenuError
+        ? `<div class="dinner-menu-notice">${escapeHtml(dinnerMenuError)}</div>`
+        : "";
+      const dayRowsHtml = weekDates.map((date) => {
+        const dateKey = formatDateKey(date);
+        const row = getDinnerRowByDate(dateKey);
+        const meal = String(row?.meal || "").trim();
+        const dayName = date.toLocaleDateString(undefined, { weekday: "short" });
+        const dayNumber = formatMonthDay(date);
+        return `
+          <button class="dinner-day-row${dateKey === todayKey ? " is-today" : ""}" type="button" data-dinner-date="${dateKey}">
+            <span class="dinner-day-date">
+              ${dateKey === todayKey ? '<span class="dinner-day-kicker">Tonight</span>' : ""}
+              <span class="dinner-day-name">${escapeHtml(dayName)}</span>
+              <span class="dinner-day-number">${escapeHtml(dayNumber)}</span>
+            </span>
+            <span class="dinner-meal${meal ? "" : " empty"}">${escapeHtml(meal || "Tap to add")}</span>
+          </button>
+        `;
+      }).join("");
+      listEl.innerHTML = noticeHtml + dayRowsHtml;
+      listEl.querySelectorAll("[data-dinner-date]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const dateKey = btn.getAttribute("data-dinner-date");
+          closeDinnerView();
+          openDinnerEditor(dateKey);
+        });
+      });
+    }
+
     function setDinnerFormSaving(isSaving) {
       isSavingDinnerMenu = isSaving;
       document.getElementById("dinnerSaveBtn").disabled = isSaving;
@@ -4634,7 +4702,11 @@
       document.getElementById("mobileMenuBtn").setAttribute("aria-expanded", String(!collapsed));
     });
     document.getElementById("mobileDinnerBtn").addEventListener("click", () => {
-      openDinnerEditor(getDefaultDinnerDateKey());
+      openDinnerView();
+    });
+    document.getElementById("dinnerViewCloseBtn").addEventListener("click", closeDinnerView);
+    document.getElementById("dinnerViewModal").addEventListener("click", (e) => {
+      if (e.target === document.getElementById("dinnerViewModal")) closeDinnerView();
     });
 
     document.getElementById("authBtn").addEventListener("click", handleAuthClick);
