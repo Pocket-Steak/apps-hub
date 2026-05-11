@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Adventure</title>
+  <style>
+    :root {
+      --bg: #0e0f12;
+      --panel: #1a1c22;
+      --panel-2: #22252d;
+      --surface: rgba(255,255,255,.045);
+      --border: rgba(255,255,255,.08);
+      --text: #f5f7fb;
+      --muted: #b7bfd3;
+      --accent: #ff8a1f;
+      --accent-2: #ffb26f;
+      --radius: 18px;
+      --shadow: 0 16px 40px rgba(0,0,0,.35);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      padding: 28px 24px 40px;
+    }
+
+    .page {
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    /* ── Header ── */
+    .page-head {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .page-eyebrow {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -.03em;
+      color: var(--text);
+    }
+
+    /* ── Countdown hero ── */
+    .countdown-card {
+      background: linear-gradient(135deg, rgba(255,138,31,.12), rgba(255,138,31,.04));
+      border: 1px solid rgba(255,138,31,.22);
+      border-radius: var(--radius);
+      padding: 32px 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .countdown-label {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .countdown-target-date {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -.02em;
+    }
+
+    .countdown-units {
+      display: flex;
+      gap: 16px;
+      align-items: flex-end;
+    }
+
+    .countdown-unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .countdown-value {
+      font-size: 72px;
+      font-weight: 900;
+      letter-spacing: -.06em;
+      line-height: 1;
+      color: var(--text);
+      min-width: 2ch;
+      text-align: center;
+    }
+
+    .countdown-sep {
+      font-size: 56px;
+      font-weight: 900;
+      color: rgba(255,255,255,.18);
+      line-height: 1;
+      padding-bottom: 10px;
+    }
+
+    .countdown-unit-label {
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ── Ride waits ── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .rides-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+    }
+
+    .ride-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .ride-name {
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .ride-wait {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -.04em;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .ride-wait.closed {
+      color: var(--muted);
+      font-size: 20px;
+    }
+
+    .refresh-note {
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+      opacity: .6;
+    }
+
+    @media (max-width: 480px) {
+      .countdown-value { font-size: 52px; }
+      .countdown-sep { font-size: 40px; }
+      body { padding: 20px 16px 32px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="page-head">
+      <div>
+        <div class="page-eyebrow">Family</div>
+        <div class="page-title">Adventure</div>
+      </div>
+    </div>
+
+    <div class="countdown-card">
+      <div class="countdown-label">Countdown to Disney</div>
+      <div class="countdown-target-date">August 15, 2026</div>
+      <div class="countdown-units">
+        <div class="countdown-unit">
+          <div class="countdown-value" id="cdDays">--</div>
+          <div class="countdown-unit-label">Days</div>
+        </div>
+        <div class="countdown-sep">:</div>
+        <div class="countdown-unit">
+          <div class="countdown-value" id="cdHours">--</div>
+          <div class="countdown-unit-label">Hours</div>
+        </div>
+        <div class="countdown-sep">:</div>
+        <div class="countdown-unit">
+          <div class="countdown-value" id="cdMinutes">--</div>
+          <div class="countdown-unit-label">Minutes</div>
+        </div>
+        <div class="countdown-sep">:</div>
+        <div class="countdown-unit">
+          <div class="countdown-value" id="cdSeconds">--</div>
+          <div class="countdown-unit-label">Seconds</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">Walt Disney World Wait Times</div>
+      <div class="rides-grid" id="ridesGrid">
+        <div class="ride-card">
+          <div class="ride-name">Space Mountain</div>
+          <div class="ride-wait">--</div>
+        </div>
+        <div class="ride-card">
+          <div class="ride-name">Spaceship Earth</div>
+          <div class="ride-wait">--</div>
+        </div>
+        <div class="ride-card">
+          <div class="ride-name">Expedition Everest</div>
+          <div class="ride-wait">--</div>
+        </div>
+        <div class="ride-card">
+          <div class="ride-name">Tower of Terror</div>
+          <div class="ride-wait">--</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="refresh-note" id="refreshNote">Loading wait times…</div>
+  </div>
+
+  <script>
+    const TARGET = new Date(2026, 7, 15, 0, 0, 0);
+    const RIDES = [
+      { rideId: 138, label: "Space Mountain" },
+      { rideId: 159, label: "Spaceship Earth" },
+      { rideId: 110, label: "Expedition Everest" },
+      { rideId: 123, label: "Tower of Terror" },
+    ];
+
+    function pad(n) { return String(n).padStart(2, "0"); }
+
+    function updateCountdown() {
+      let diff = TARGET.getTime() - Date.now();
+      if (diff < 0) diff = 0;
+      const totalSec = Math.floor(diff / 1000);
+      const days = Math.floor(totalSec / 86400);
+      const hours = Math.floor((totalSec % 86400) / 3600);
+      const minutes = Math.floor((totalSec % 3600) / 60);
+      const seconds = totalSec % 60;
+      document.getElementById("cdDays").textContent = pad(days);
+      document.getElementById("cdHours").textContent = pad(hours);
+      document.getElementById("cdMinutes").textContent = pad(minutes);
+      document.getElementById("cdSeconds").textContent = pad(seconds);
+    }
+
+    function renderRides(values) {
+      document.getElementById("ridesGrid").innerHTML = values.map(({ label, wait }) => {
+        const isClosed = String(wait).toLowerCase() === "closed" || wait === "--";
+        return `
+          <div class="ride-card">
+            <div class="ride-name">${label}</div>
+            <div class="ride-wait${isClosed ? " closed" : ""}">${typeof wait === "number" ? `${wait} min` : wait}</div>
+          </div>`;
+      }).join("");
+    }
+
+    async function loadWaits() {
+      try {
+        const resp = await fetch("/api/disney-waits");
+        if (!resp.ok) throw new Error("failed");
+        const data = await resp.json();
+        const rides = Array.isArray(data?.rides) ? data.rides : [];
+        const byId = new Map(rides.map((r) => [Number(r.rideId), r.wait]));
+        renderRides(RIDES.map((r) => ({ label: r.label, wait: byId.get(r.rideId) ?? "--" })));
+        const now = new Date();
+        document.getElementById("refreshNote").textContent =
+          `Updated ${now.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} · refreshes every 5 min`;
+      } catch {
+        renderRides(RIDES.map((r) => ({ label: r.label, wait: "--" })));
+        document.getElementById("refreshNote").textContent = "Could not load wait times";
+      }
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+    loadWaits();
+    setInterval(loadWaits, 300000);
+  </script>
+</body>
+</html>
