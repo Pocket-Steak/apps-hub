@@ -255,11 +255,10 @@
       const now = new Date();
       let h = now.getHours();
       const m = String(now.getMinutes()).padStart(2, "0");
-      const s = String(now.getSeconds()).padStart(2, "0");
       const ampm = h >= 12 ? "PM" : "AM";
       h = h % 12 || 12;
       const sep = '<span class="clock-sep">:</span>';
-      document.getElementById("clock").innerHTML = `${h}${sep}${m}${sep}${s} <span style="font-size:0.42em;opacity:0.6;letter-spacing:0.05em">${ampm}</span>`;
+      document.getElementById("clock").innerHTML = `${h}${sep}${m} <span style="font-size:0.42em;opacity:0.6;letter-spacing:0.05em">${ampm}</span>`;
     }
     updateClock();
     setInterval(updateClock, 1000);
