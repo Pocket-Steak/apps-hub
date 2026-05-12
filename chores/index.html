@@ -996,6 +996,7 @@
     const RECURRENCE_OPTIONS = [
       { value: "daily", label: "Daily" },
       { value: "weekly", label: "Weekly" },
+      { value: "twice_weekly", label: "Twice Weekly" },
       { value: "bi_weekly", label: "Bi Weekly" },
       { value: "monthly", label: "Monthly" },
       { value: "every_other_month", label: "Every Other Month" },
@@ -1007,6 +1008,7 @@
       adhoc: "#22c55e",
       daily: "#2563eb",
       weekly: "#0f766e",
+      twice_weekly: "#7c3aed",
       bi_weekly: "#0284c7",
       monthly: "#14b8a6",
       every_other_month: "#65a30d",
@@ -1184,7 +1186,7 @@
     }
 
     function usesWeekdaySchedule(recurrenceValue) {
-      return ["weekly", "bi_weekly", "monthly", "every_other_month"].includes(normalizeRecurrence(recurrenceValue));
+      return ["weekly", "twice_weekly", "bi_weekly", "monthly", "every_other_month"].includes(normalizeRecurrence(recurrenceValue));
     }
 
     function usesDateSchedule(recurrenceValue) {
@@ -1213,22 +1215,42 @@
       return 1;
     }
 
+    function normalizeWeekOfMonth(value) {
+      const n = Number(value);
+      if (n === -1) return -1;
+      if (Number.isFinite(n) && n >= 1 && n <= 5) return n;
+      return 1;
+    }
+
     function getTaskSchedule(task) {
       const month = normalizeMonth(task?.recurrence_month);
       return {
         dayOfWeek: normalizeDayOfWeek(task?.recurrence_day_of_week),
+        dayOfWeek2: normalizeDayOfWeek(task?.recurrence_day_of_week_2 ?? 4),
+        weekOfMonth: normalizeWeekOfMonth(task?.recurrence_week_of_month ?? 1),
         month,
         dayOfMonth: normalizeDayOfMonth(task?.recurrence_day_of_month, month),
         startDate: normalizeStartDate(task?.recurrence_start_date, task?.created_at),
       };
     }
 
+    const WEEK_OF_MONTH_LABELS = ["1st", "2nd", "3rd", "4th", "5th"];
+    function getWeekOfMonthLabel(n) {
+      const w = normalizeWeekOfMonth(n);
+      if (w === -1) return "Last";
+      return WEEK_OF_MONTH_LABELS[w - 1] || "1st";
+    }
+
     function getScheduleLabel(recurrenceValue, schedule = {}) {
       const recurrence = normalizeRecurrence(recurrenceValue);
       if (usesWeekdaySchedule(recurrence)) {
         const weekday = WEEKDAY_LABELS[normalizeDayOfWeek(schedule.dayOfWeek)] || "Monday";
-        if (recurrence === "monthly") return `First ${weekday}`;
-        if (recurrence === "every_other_month") return `First ${weekday} of cycle`;
+        if (recurrence === "twice_weekly") {
+          const weekday2 = WEEKDAY_LABELS[normalizeDayOfWeek(schedule.dayOfWeek2)] || "Thursday";
+          return `${weekday} & ${weekday2}`;
+        }
+        if (recurrence === "monthly") return `${getWeekOfMonthLabel(schedule.weekOfMonth)} ${weekday}`;
+        if (recurrence === "every_other_month") return `${getWeekOfMonthLabel(schedule.weekOfMonth)} ${weekday} of cycle`;
         return weekday;
       }
 
@@ -1338,6 +1360,20 @@
       return getFirstWeekdayOnOrAfter(new Date(year, monthIndex, 1), dayOfWeekValue);
     }
 
+    function getNthWeekdayInMonth(year, monthIndex, dayOfWeekValue, n) {
+      const weekN = normalizeWeekOfMonth(n);
+      const dow = normalizeDayOfWeek(dayOfWeekValue);
+      if (weekN === -1) {
+        const lastDay = new Date(year, monthIndex + 1, 0);
+        const diff = (lastDay.getDay() - dow + 7) % 7;
+        return new Date(year, monthIndex, lastDay.getDate() - diff);
+      }
+      const first = getFirstWeekdayInMonth(year, monthIndex, dow);
+      const result = addDays(first, (weekN - 1) * 7);
+      if (result.getMonth() !== monthIndex) return addDays(first, (weekN - 2) * 7);
+      return result;
+    }
+
     function getScheduleStartDate(schedule = {}) {
       return getStartOfDayFor(parseScheduleDate(schedule.startDate) || new Date());
     }
@@ -1406,25 +1442,41 @@
         return isBeforeStartDate(dueDate, startDate) ? null : dueDate;
       }
 
+      if (interval === "twice_weekly") {
+        const day1 = normalizeDayOfWeek(schedule.dayOfWeek);
+        const day2 = normalizeDayOfWeek(schedule.dayOfWeek2);
+        let candidate = new Date(date);
+        for (let i = 0; i <= 13; i++) {
+          const dow = candidate.getDay();
+          if (dow === day1 || dow === day2) {
+            return isBeforeStartDate(candidate, startDate) ? null : candidate;
+          }
+          candidate = addDays(candidate, -1);
+        }
+        return null;
+      }
+
       if (interval === "monthly") {
-        let dueDate = getFirstWeekdayInMonth(date.getFullYear(), date.getMonth(), schedule.dayOfWeek);
+        const wom = schedule.weekOfMonth || 1;
+        let dueDate = getNthWeekdayInMonth(date.getFullYear(), date.getMonth(), schedule.dayOfWeek, wom);
         if (date.getTime() < dueDate.getTime()) {
           const previousMonth = addMonthsClamped(date, -1);
-          dueDate = getFirstWeekdayInMonth(previousMonth.getFullYear(), previousMonth.getMonth(), schedule.dayOfWeek);
+          dueDate = getNthWeekdayInMonth(previousMonth.getFullYear(), previousMonth.getMonth(), schedule.dayOfWeek, wom);
         }
         return isBeforeStartDate(dueDate, startDate) ? null : dueDate;
       }
 
       if (interval === "every_other_month") {
+        const wom = schedule.weekOfMonth || 1;
         let bucketStart = getEveryOtherMonthBucketStart(date, startDate);
-        let dueDate = getFirstWeekdayInMonth(bucketStart.getFullYear(), bucketStart.getMonth(), schedule.dayOfWeek);
+        let dueDate = getNthWeekdayInMonth(bucketStart.getFullYear(), bucketStart.getMonth(), schedule.dayOfWeek, wom);
         if (isBeforeStartDate(dueDate, startDate)) {
           bucketStart = addMonthsClamped(bucketStart, 2);
-          dueDate = getFirstWeekdayInMonth(bucketStart.getFullYear(), bucketStart.getMonth(), schedule.dayOfWeek);
+          dueDate = getNthWeekdayInMonth(bucketStart.getFullYear(), bucketStart.getMonth(), schedule.dayOfWeek, wom);
         }
         if (date.getTime() < dueDate.getTime()) {
           bucketStart = addMonthsClamped(bucketStart, -2);
-          dueDate = getFirstWeekdayInMonth(bucketStart.getFullYear(), bucketStart.getMonth(), schedule.dayOfWeek);
+          dueDate = getNthWeekdayInMonth(bucketStart.getFullYear(), bucketStart.getMonth(), schedule.dayOfWeek, wom);
         }
         return isBeforeStartDate(dueDate, startDate) ? null : dueDate;
       }
@@ -1527,7 +1579,7 @@
     async function selectTaskRows(client) {
       let result = await client
         .from(TASKS_TABLE)
-        .select("id,title,active,assigned_person_id,sort_order,recurrence_interval,recurrence_day_of_week,recurrence_month,recurrence_day_of_month,recurrence_start_date,created_at")
+        .select("id,title,active,assigned_person_id,sort_order,recurrence_interval,recurrence_day_of_week,recurrence_day_of_week_2,recurrence_week_of_month,recurrence_month,recurrence_day_of_month,recurrence_start_date,created_at")
         .order("created_at", { ascending: false });
 
       if (
@@ -1536,7 +1588,7 @@
       ) {
         result = await client
           .from(TASKS_TABLE)
-          .select("id,title,active,sort_order,recurrence_interval,recurrence_day_of_week,recurrence_month,recurrence_day_of_month,recurrence_start_date,created_at")
+          .select("id,title,active,sort_order,recurrence_interval,recurrence_day_of_week,recurrence_day_of_week_2,recurrence_week_of_month,recurrence_month,recurrence_day_of_month,recurrence_start_date,created_at")
           .order("created_at", { ascending: false });
       }
 
