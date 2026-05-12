@@ -931,11 +931,13 @@
       if (!note) {
         noteInput.value = "";
         editorMeta.textContent = "Ready for a new note.";
+        saveBtn.textContent = "Add Note";
         return;
       }
 
       noteInput.value = note.body;
       editorMeta.textContent = `Updated ${formatDateTime(note.updatedAt)}`;
+      saveBtn.textContent = "Save Note";
     }
 
     function selectNote(noteId) {
@@ -1070,55 +1072,78 @@
       const body = String(noteInput.value || "");
 
       if (!body.trim()) {
-        showMessage("Write something before adding.", "error");
+        showMessage("Write something before saving.", "error");
         noteInput.focus();
         return;
       }
 
       const updatedAt = new Date().toISOString();
-
       setBusy(true);
       showMessage("", "");
 
       try {
-        const note = {
-          id: createNoteId(),
-          body,
-          createdAt: updatedAt,
-          updatedAt,
-        };
+        if (activeNoteId) {
+          // Update existing note
+          const existing = notesRows.find((n) => n.id === activeNoteId);
+          if (!existing) throw new Error("Note not found.");
+          const updated = { ...existing, body, updatedAt };
 
-        const client = getNotesClient();
-        if (client && !notesTableMissing) {
-          const result = await client
-            .from(NOTES_TABLE)
-            .insert({
-              id: note.id,
-              body: note.body,
-              created_at: note.createdAt,
-              updated_at: note.updatedAt,
-            });
-
-          if (result.error) {
-            if (!isMissingNotesTableError(result.error)) {
+          const client = getNotesClient();
+          if (client && !notesTableMissing) {
+            const result = await client
+              .from(NOTES_TABLE)
+              .update({ body, updated_at: updatedAt })
+              .eq("id", activeNoteId);
+            if (result.error && !isMissingNotesTableError(result.error)) {
               throw result.error;
             }
-            notesTableMissing = true;
+            if (result.error) notesTableMissing = true;
+          }
+
+          notesRows = sortNotes(notesRows.map((n) => n.id === activeNoteId ? updated : n));
+          persistNotes(notesRows);
+          await loadNotes();
+          showMessage("Note saved.", "success");
+        } else {
+          // Insert new note
+          const note = {
+            id: createNoteId(),
+            body,
+            createdAt: updatedAt,
+            updatedAt,
+          };
+
+          const client = getNotesClient();
+          if (client && !notesTableMissing) {
+            const result = await client
+              .from(NOTES_TABLE)
+              .insert({
+                id: note.id,
+                body: note.body,
+                created_at: note.createdAt,
+                updated_at: note.updatedAt,
+              });
+
+            if (result.error) {
+              if (!isMissingNotesTableError(result.error)) {
+                throw result.error;
+              }
+              notesTableMissing = true;
+              notesRows = sortNotes([note, ...getLocalNotes()]);
+              persistNotes(notesRows);
+            }
+          } else {
             notesRows = sortNotes([note, ...getLocalNotes()]);
             persistNotes(notesRows);
           }
-        } else {
-          notesRows = sortNotes([note, ...getLocalNotes()]);
-          persistNotes(notesRows);
+
+          activeNoteId = "";
+          await loadNotes();
+          noteInput.value = "";
+          editorMeta.textContent = "Ready for a new note.";
+          showMessage(notesTableMissing ? "Note saved on this device. Run the notes SQL to sync it." : "Note added.", notesTableMissing ? "error" : "success");
+          noteInput.focus();
         }
-
-        activeNoteId = "";
-
-        await loadNotes();
-        noteInput.value = "";
-        editorMeta.textContent = "Ready for a new note.";
-        showMessage(notesTableMissing ? "Note saved on this device. Run the notes SQL to sync it." : "Note added.", notesTableMissing ? "error" : "success");
-        noteInput.focus();
       } catch (error) {
         console.error(error);
         showMessage(getReadableError(error), "error");
