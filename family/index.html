@@ -3451,6 +3451,7 @@
     function getTaskSortBucket(row) {
       if (!row.isRecurring && !row.assignedPerson) return 0;
       if (row.assignedPerson) return 1;
+      if (normalizeRecurrence(row.recurrence) === "daily") return 3;
       return 2;
     }
 
