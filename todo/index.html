@@ -642,9 +642,12 @@
       }
 
       .app {
-        gap: 10px;
+        display: block;
         min-height: calc(100dvh - 20px);
-        align-content: start;
+      }
+
+      .app > * + * {
+        margin-top: 10px;
       }
 
       .card {
@@ -653,9 +656,6 @@
       }
 
       .topbar {
-        position: sticky;
-        top: 8px;
-        z-index: 5;
         padding: 10px 12px;
       }
 
@@ -685,9 +685,12 @@
         font-size: 1.85rem;
       }
 
-      #inputCard {
-        position: sticky;
-        top: 76px;
+      #inputCard.pinned {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        width: auto;
         z-index: 4;
       }
 
@@ -943,15 +946,15 @@
           autocomplete="off"
           autocapitalize="words"
           spellcheck="false"
-          placeholder="Add ad hoc task"
+          placeholder="Add task"
         />
-        <select id="assigneeSelect" class="item-input" aria-label="Assign ad hoc task">
+        <select id="assigneeSelect" class="item-input" aria-label="Assign task">
           <option value="">Unassigned</option>
         </select>
         <button id="addBtn" class="btn btn-accent" type="button">Add Task</button>
       </div>
 
-      <div class="helper">Scheduled tasks reopen on their chosen rhythm. Ad hoc tasks stay here until they are completed and cleared.</div>
+      <div class="helper">Scheduled tasks reopen on their chosen rhythm. One-time tasks stay here until they are completed and cleared.</div>
       <div id="message" class="message"></div>
     </section>
 
@@ -965,7 +968,7 @@
       <h2 class="section-title">Completed Tasks</h2>
       <div id="boughtList" class="tile-grid"></div>
       <div id="boughtEmpty" class="empty">No completed tasks yet.</div>
-      <div class="subtle">Scheduled tasks reopen on their rhythm. Completed ad hoc tasks stay here until you clear them.</div>
+      <div class="subtle">Scheduled tasks reopen on their rhythm. Completed one-time tasks stay here until you clear them.</div>
     </section>
   </main>
 
@@ -2084,6 +2087,42 @@
 
     setStatus("Loading...", false);
     loadTodos();
+
+    // Pin add-task card to top on mobile via scroll listener (CSS sticky unreliable on iOS Safari)
+    (function () {
+      var MQ = "(max-width: 820px), (orientation: portrait) and (max-width: 1180px)";
+      if (!window.matchMedia(MQ).matches) return;
+      var card = document.getElementById("inputCard");
+      if (!card) return;
+      var PAD = 10;
+      var spacer = document.createElement("div");
+      spacer.setAttribute("aria-hidden", "true");
+      spacer.style.height = "0";
+      card.parentNode.insertBefore(spacer, card);
+      var pinned = false;
+      var threshold = -1;
+      function measure() {
+        var wasPinned = pinned;
+        if (wasPinned) { card.classList.remove("pinned"); spacer.style.height = "0"; pinned = false; }
+        threshold = card.getBoundingClientRect().top + window.pageYOffset - PAD;
+        if (wasPinned) pin(true);
+      }
+      function pin(on) {
+        if (on === pinned) return;
+        pinned = on;
+        if (on) {
+          spacer.style.height = card.offsetHeight + "px";
+          card.classList.add("pinned");
+        } else {
+          card.classList.remove("pinned");
+          spacer.style.height = "0";
+        }
+      }
+      function onScroll() { pin(window.pageYOffset >= threshold); }
+      window.addEventListener("load", function () { measure(); onScroll(); });
+      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", function () { measure(); onScroll(); });
+    })();
   </script>
 </body>
 </html>
