@@ -637,13 +637,21 @@
     }
 
     @media (max-width: 820px), (orientation: portrait) and (max-width: 1180px) {
+      html, body {
+        height: 100%;
+        overflow: hidden;
+      }
+
       body {
+        height: 100dvh;
         padding: 10px;
       }
 
       .app {
         display: block;
-        min-height: calc(100dvh - 20px);
+        height: calc(100dvh - 20px);
+        min-height: 0;
+        overflow-y: auto;
       }
 
       .app > * + * {
@@ -685,12 +693,10 @@
         font-size: 1.85rem;
       }
 
-      #inputCard.pinned {
-        position: fixed;
-        top: 10px;
-        left: 10px;
-        right: 10px;
-        width: auto;
+      #inputCard {
+        position: -webkit-sticky;
+        position: sticky;
+        top: 0;
         z-index: 4;
       }
 
@@ -2087,47 +2093,6 @@
 
     setStatus("Loading...", false);
     loadTodos();
-
-    // Pin add-task card to top on mobile
-    (function () {
-      var MQ = "(max-width: 820px), (orientation: portrait) and (max-width: 1180px)";
-      if (!window.matchMedia(MQ).matches) return;
-      var card = document.getElementById("inputCard");
-      if (!card) return;
-      var PAD = 10;
-      var spacer = document.createElement("div");
-      spacer.setAttribute("aria-hidden", "true");
-      spacer.style.cssText = "height:0;display:block;pointer-events:none;";
-      card.parentNode.insertBefore(spacer, card);
-      var pinned = false;
-      var cardDocTop = 0;
-      function sY() {
-        return (window.pageYOffset !== undefined ? window.pageYOffset : document.documentElement.scrollTop) || 0;
-      }
-      function calibrate() {
-        if (pinned) { card.classList.remove("pinned"); spacer.style.height = "0"; pinned = false; }
-        void card.offsetHeight;
-        cardDocTop = card.getBoundingClientRect().top + sY();
-      }
-      function tick() {
-        var should = sY() >= cardDocTop - PAD;
-        if (should === pinned) return;
-        pinned = should;
-        if (should) {
-          spacer.style.height = card.offsetHeight + "px";
-          card.classList.add("pinned");
-        } else {
-          card.classList.remove("pinned");
-          spacer.style.height = "0";
-        }
-      }
-      window.addEventListener("scroll", tick, { passive: true });
-      document.addEventListener("scroll", tick, { passive: true });
-      window.addEventListener("resize", function () { calibrate(); tick(); });
-      requestAnimationFrame(function () {
-        requestAnimationFrame(function () { calibrate(); tick(); });
-      });
-    })();
   </script>
 </body>
 </html>
