@@ -608,6 +608,34 @@
       padding-top:4px;
     }
 
+    .mobile-settings-notice{
+      display:none;
+    }
+
+    @media (max-width: 820px), (orientation: portrait) and (max-width: 1180px){
+      .hero,
+      .panel,
+      .reference-grid,
+      .settings-grid{
+        display:none;
+      }
+
+      .mobile-settings-notice{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        padding:40px 20px;
+        text-align:center;
+        color:var(--muted);
+        font-size:17px;
+        font-weight:700;
+      }
+
+      .mobile-settings-notice p{
+        margin:0;
+      }
+    }
+
     @media (max-width: 1180px){
       .task-list{
         grid-template-columns:repeat(2, minmax(0, 1fr));
@@ -926,6 +954,10 @@
         <a class="top-btn" href="/notes/">Notes</a>
       </div>
       <a class="top-btn top-return" href="/apps/">← Back to PocketSteak Stackd</a>
+    </div>
+
+    <div class="mobile-settings-notice">
+      <p>Settings can be edited on the web.</p>
     </div>
 
     <section class="hero">
