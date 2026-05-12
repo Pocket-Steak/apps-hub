@@ -140,6 +140,38 @@
       color:var(--accent);
     }
 
+    .ambient-launch-btn{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      margin-top:6px;
+      padding:12px 22px;
+      background:linear-gradient(135deg, rgba(255,69,0,.18), rgba(120,40,220,.14));
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:14px;
+      color:#fff;
+      font-size:15px;
+      font-weight:800;
+      letter-spacing:.04em;
+      text-decoration:none;
+      transition:background .2s, border-color .2s, transform .15s;
+      width:fit-content;
+    }
+    .ambient-launch-btn:hover{
+      background:linear-gradient(135deg, rgba(255,69,0,.28), rgba(120,40,220,.22));
+      border-color:rgba(255,255,255,.22);
+      transform:translateY(-1px);
+    }
+    .ambient-launch-icon{
+      font-size:18px;
+      color:var(--accent);
+      animation:spin-slow 8s linear infinite;
+    }
+    @keyframes spin-slow{
+      from{ transform:rotate(0deg); }
+      to  { transform:rotate(360deg); }
+    }
+
     .title{
       font-size:clamp(2rem, 3vw, 2.8rem);
       font-weight:850;
@@ -964,6 +996,10 @@
       <div class="eyebrow">Family</div>
       <div class="title">Settings</div>
       <div class="meta">This is the shared place for your family Google Calendar connection. Home, month view, and day view all use this connection.</div>
+      <a class="ambient-launch-btn" href="/ambient/">
+        <span class="ambient-launch-icon">✦</span>
+        Launch Ambient Mode
+      </a>
     </section>
 
     <section class="panel">

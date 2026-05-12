@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ambient — Pocket Steak</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #05060a;
+      color: #fff;
+      font-family: 'Rajdhani', system-ui, sans-serif;
+    }
+
+    /* ── Animated blob background ─────────────────────── */
+    .bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: 0.55;
+      will-change: transform;
+    }
+
+    .blob-1 {
+      width: 65vw; height: 65vw;
+      background: radial-gradient(circle, rgba(255,69,0,0.7), rgba(200,30,0,0.2));
+      top: -20%; left: -15%;
+      animation: drift1 22s ease-in-out infinite;
+    }
+    .blob-2 {
+      width: 55vw; height: 55vw;
+      background: radial-gradient(circle, rgba(30,60,180,0.65), rgba(10,20,100,0.15));
+      bottom: -20%; right: -10%;
+      animation: drift2 28s ease-in-out infinite;
+    }
+    .blob-3 {
+      width: 45vw; height: 45vw;
+      background: radial-gradient(circle, rgba(120,40,220,0.55), rgba(60,10,140,0.1));
+      top: 30%; left: 40%;
+      animation: drift3 18s ease-in-out infinite;
+    }
+    .blob-4 {
+      width: 38vw; height: 38vw;
+      background: radial-gradient(circle, rgba(0,180,160,0.45), rgba(0,80,80,0.1));
+      bottom: 10%; left: 5%;
+      animation: drift4 24s ease-in-out infinite;
+    }
+
+    @keyframes drift1 {
+      0%   { transform: translate(0, 0)    scale(1);    border-radius: 60% 40% 55% 45% / 50% 55% 45% 50%; }
+      25%  { transform: translate(12%, 8%) scale(1.06); border-radius: 45% 55% 65% 35% / 60% 40% 55% 45%; }
+      50%  { transform: translate(5%, 18%) scale(0.95); border-radius: 55% 45% 40% 60% / 45% 60% 40% 55%; }
+      75%  { transform: translate(-8%, 6%) scale(1.04); border-radius: 40% 60% 55% 45% / 55% 45% 60% 40%; }
+      100% { transform: translate(0, 0)    scale(1);    border-radius: 60% 40% 55% 45% / 50% 55% 45% 50%; }
+    }
+    @keyframes drift2 {
+      0%   { transform: translate(0, 0)      scale(1);    border-radius: 50% 50% 40% 60% / 55% 45% 55% 45%; }
+      30%  { transform: translate(-10%, -6%) scale(1.08); border-radius: 60% 40% 55% 45% / 45% 55% 45% 55%; }
+      60%  { transform: translate(-4%, -14%) scale(0.94); border-radius: 45% 55% 60% 40% / 60% 40% 50% 50%; }
+      80%  { transform: translate(6%, -8%)   scale(1.03); border-radius: 55% 45% 45% 55% / 50% 55% 45% 50%; }
+      100% { transform: translate(0, 0)      scale(1);    border-radius: 50% 50% 40% 60% / 55% 45% 55% 45%; }
+    }
+    @keyframes drift3 {
+      0%   { transform: translate(0, 0)     scale(1);    border-radius: 55% 45% 60% 40% / 50% 60% 40% 50%; }
+      35%  { transform: translate(-14%, 8%) scale(1.1);  border-radius: 40% 60% 45% 55% / 60% 40% 55% 45%; }
+      65%  { transform: translate(10%, 14%) scale(0.92); border-radius: 60% 40% 50% 50% / 45% 55% 60% 40%; }
+      100% { transform: translate(0, 0)     scale(1);    border-radius: 55% 45% 60% 40% / 50% 60% 40% 50%; }
+    }
+    @keyframes drift4 {
+      0%   { transform: translate(0, 0)     scale(1);    border-radius: 45% 55% 55% 45% / 55% 45% 50% 50%; }
+      40%  { transform: translate(16%, -10%) scale(1.05); border-radius: 60% 40% 40% 60% / 45% 55% 55% 45%; }
+      70%  { transform: translate(8%, -18%) scale(0.97); border-radius: 50% 50% 60% 40% / 60% 40% 45% 55%; }
+      100% { transform: translate(0, 0)     scale(1);    border-radius: 45% 55% 55% 45% / 55% 45% 50% 50%; }
+    }
+
+    /* Noise texture overlay for depth */
+    .bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    /* ── Layout ───────────────────────────────────────── */
+    .stage {
+      position: relative;
+      z-index: 1;
+      width: 100%; height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      user-select: none;
+    }
+
+    /* ── Clock ────────────────────────────────────────── */
+    .clock {
+      font-family: 'Space Mono', monospace;
+      font-size: clamp(80px, 14vw, 200px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      color: #fff;
+      text-shadow:
+        0 0 60px rgba(255,255,255,0.25),
+        0 0 120px rgba(255,100,20,0.15);
+      animation: pulse 4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { text-shadow: 0 0 60px rgba(255,255,255,0.25), 0 0 120px rgba(255,100,20,0.15); }
+      50%       { text-shadow: 0 0 80px rgba(255,255,255,0.35), 0 0 160px rgba(255,100,20,0.25); }
+    }
+
+    .clock-sep {
+      display: inline-block;
+      animation: blink 1s step-end infinite;
+      opacity: 1;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.2; }
+    }
+
+    /* ── Date ─────────────────────────────────────────── */
+    .date {
+      margin-top: 12px;
+      font-size: clamp(20px, 2.4vw, 34px);
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+    }
+
+    /* ── Divider ──────────────────────────────────────── */
+    .divider {
+      width: 60px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,100,20,0.7), transparent);
+      margin: 28px auto;
+      animation: glow-line 4s ease-in-out infinite;
+    }
+    @keyframes glow-line {
+      0%, 100% { opacity: 0.6; width: 60px; }
+      50%       { opacity: 1;   width: 90px; }
+    }
+
+    /* ── Weather ──────────────────────────────────────── */
+    .weather {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .weather-icon {
+      font-size: clamp(40px, 5.5vw, 72px);
+      line-height: 1;
+      filter: drop-shadow(0 0 18px rgba(255,200,80,0.4));
+    }
+
+    .weather-temp {
+      font-family: 'Space Mono', monospace;
+      font-size: clamp(28px, 4vw, 56px);
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.02em;
+    }
+
+    .weather-condition {
+      font-size: clamp(14px, 1.6vw, 22px);
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .weather-details {
+      font-size: clamp(12px, 1.2vw, 17px);
+      color: rgba(255,255,255,0.35);
+      font-weight: 400;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Turn Off button ──────────────────────────────── */
+    .exit-btn {
+      position: fixed;
+      top: 28px;
+      right: 32px;
+      z-index: 10;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: rgba(255,255,255,0.55);
+      font-family: 'Rajdhani', system-ui, sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 10px 20px;
+      border-radius: 30px;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .exit-btn:hover {
+      background: rgba(255,255,255,0.13);
+      color: #fff;
+      border-color: rgba(255,255,255,0.28);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bg">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <div class="blob blob-4"></div>
+  </div>
+
+  <button class="exit-btn" onclick="window.location.href='/settings/'">Turn Off</button>
+
+  <main class="stage">
+    <div class="clock" id="clock">12<span class="clock-sep">:</span>00<span class="clock-sep">:</span>00</div>
+    <div class="date" id="date">Monday, January 1</div>
+    <div class="divider"></div>
+    <div class="weather" id="weather">
+      <div class="weather-icon">🌤️</div>
+      <div class="weather-temp">--°</div>
+      <div class="weather-condition">Loading weather</div>
+      <div class="weather-details">Chardon, Ohio</div>
+    </div>
+  </main>
+
+  <script>
+    // ── Clock ────────────────────────────────────────────
+    function updateClock() {
+      const now = new Date();
+      let h = now.getHours();
+      const m = String(now.getMinutes()).padStart(2, "0");
+      const s = String(now.getSeconds()).padStart(2, "0");
+      const ampm = h >= 12 ? "PM" : "AM";
+      h = h % 12 || 12;
+      const sep = '<span class="clock-sep">:</span>';
+      document.getElementById("clock").innerHTML = `${h}${sep}${m}${sep}${s} <span style="font-size:0.42em;opacity:0.6;letter-spacing:0.05em">${ampm}</span>`;
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // ── Date ─────────────────────────────────────────────
+    function updateDate() {
+      const now = new Date();
+      document.getElementById("date").textContent = now.toLocaleDateString(undefined, {
+        weekday: "long", month: "long", day: "numeric"
+      });
+    }
+    updateDate();
+
+    // ── Weather ──────────────────────────────────────────
+    const WEATHER_URL = "https://api.open-meteo.com/v1/forecast?latitude=41.582011&longitude=-81.203217&current=temperature_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,weather_code&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FNew_York&forecast_days=1";
+
+    function getWeatherMeta(code) {
+      const map = {
+        0:  { icon: "☀️",  text: "Clear" },
+        1:  { icon: "🌤️", text: "Mostly clear" },
+        2:  { icon: "⛅",  text: "Partly cloudy" },
+        3:  { icon: "☁️",  text: "Cloudy" },
+        45: { icon: "🌫️", text: "Fog" },
+        48: { icon: "🌫️", text: "Rime fog" },
+        51: { icon: "🌦️", text: "Light drizzle" },
+        53: { icon: "🌦️", text: "Drizzle" },
+        55: { icon: "🌧️", text: "Heavy drizzle" },
+        61: { icon: "🌦️", text: "Light rain" },
+        63: { icon: "🌧️", text: "Rain" },
+        65: { icon: "🌧️", text: "Heavy rain" },
+        71: { icon: "🌨️", text: "Light snow" },
+        73: { icon: "❄️",  text: "Snow" },
+        75: { icon: "❄️",  text: "Heavy snow" },
+        80: { icon: "🌦️", text: "Showers" },
+        81: { icon: "🌧️", text: "Heavy showers" },
+        82: { icon: "⛈️",  text: "Violent showers" },
+        95: { icon: "⛈️",  text: "Thunderstorm" },
+        96: { icon: "⛈️",  text: "Storm with hail" },
+        99: { icon: "⛈️",  text: "Heavy storm with hail" },
+      };
+      return map[code] || { icon: "🌤️", text: "Weather" };
+    }
+
+    async function loadWeather() {
+      try {
+        const resp = await fetch(WEATHER_URL);
+        if (!resp.ok) throw new Error("failed");
+        const data = await resp.json();
+        const meta = getWeatherMeta(data.current.weather_code);
+        const temp = Math.round(data.current.temperature_2m);
+        const high = Math.round(data.daily.temperature_2m_max[0]);
+        const low  = Math.round(data.daily.temperature_2m_min[0]);
+        const wind = Math.round(data.current.wind_speed_10m);
+        document.getElementById("weather").innerHTML = `
+          <div class="weather-icon">${meta.icon}</div>
+          <div class="weather-temp">${temp}°</div>
+          <div class="weather-condition">${meta.text}</div>
+          <div class="weather-details">H ${high}° &nbsp;·&nbsp; L ${low}° &nbsp;·&nbsp; Wind ${wind} mph &nbsp;·&nbsp; Chardon, Ohio</div>
+        `;
+      } catch (e) {
+        document.getElementById("weather").innerHTML = `
+          <div class="weather-icon">🌤️</div>
+          <div class="weather-condition" style="color:rgba(255,255,255,0.35)">Weather unavailable</div>
+          <div class="weather-details">Chardon, Ohio</div>
+        `;
+      }
+    }
+    loadWeather();
+    // Refresh weather every 10 minutes
+    setInterval(loadWeather, 10 * 60 * 1000);
+  </script>
+</body>
+</html>
