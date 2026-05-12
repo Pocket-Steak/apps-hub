@@ -685,9 +685,12 @@
         font-size: 1.85rem;
       }
 
-      #inputCard {
-        position: sticky;
-        top: 8px;
+      #inputCard.pinned {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        width: auto;
         z-index: 4;
       }
 
@@ -2084,6 +2087,41 @@
 
     setStatus("Loading...", false);
     loadTodos();
+
+    // Pin add-task card to top on mobile via scroll listener (CSS sticky unreliable on iOS Safari)
+    (function () {
+      var MQ = "(max-width: 820px), (orientation: portrait) and (max-width: 1180px)";
+      if (!window.matchMedia(MQ).matches) return;
+      var card = document.getElementById("inputCard");
+      if (!card) return;
+      var PAD = 10;
+      var spacer = document.createElement("div");
+      spacer.setAttribute("aria-hidden", "true");
+      card.parentNode.insertBefore(spacer, card);
+      var pinned = false;
+      var threshold = -1;
+      function measure() {
+        var wasFixed = pinned;
+        if (wasFixed) { card.classList.remove("pinned"); spacer.style.height = "0"; pinned = false; }
+        threshold = card.getBoundingClientRect().top + window.pageYOffset - PAD;
+        if (wasFixed) pin(true);
+      }
+      function pin(on) {
+        if (on === pinned) return;
+        pinned = on;
+        if (on) {
+          spacer.style.height = card.offsetHeight + "px";
+          card.classList.add("pinned");
+        } else {
+          card.classList.remove("pinned");
+          spacer.style.height = "0";
+        }
+      }
+      function onScroll() { pin(window.pageYOffset >= threshold); }
+      window.addEventListener("load", function () { measure(); onScroll(); });
+      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", function () { measure(); onScroll(); });
+    })();
 
   </script>
 </body>
