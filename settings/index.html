@@ -342,6 +342,10 @@
       grid-template-columns:minmax(220px, 1.35fr) minmax(170px, .65fr) auto;
     }
 
+    .task-builder.has-triple-schedule{
+      grid-template-columns:minmax(200px, 1fr) minmax(150px, .55fr) minmax(0, 1.9fr) auto;
+    }
+
     .task-field{
       display:grid;
       gap:6px;
@@ -374,6 +378,10 @@
 
     .task-schedule-controls.single{
       grid-template-columns:1fr;
+    }
+
+    .task-schedule-controls.triple{
+      grid-template-columns:repeat(3, minmax(0, 1fr));
     }
 
     .task-builder .action-btn{
@@ -1778,7 +1786,7 @@
         const opts1 = WEEKDAY_OPTIONS.map((o) => `<option value="${o.value}"${o.value === sel1 ? " selected" : ""}>${o.label}</option>`).join("");
         const opts2 = WEEKDAY_OPTIONS.map((o) => `<option value="${o.value}"${o.value === sel2 ? " selected" : ""}>${o.label}</option>`).join("");
         return `
-          <div class="task-schedule-controls">
+          <div class="task-schedule-controls triple">
             <div class="task-field">
               <label class="task-field-label">Day 1</label>
               <select class="field" aria-label="First weekday" data-schedule-weekday>${opts1}</select>
@@ -1806,7 +1814,7 @@
           ? WEEK_OF_MONTH_OPTIONS.map((o) => `<option value="${o.value}"${o.value === selectedWOM ? " selected" : ""}>${o.label}</option>`).join("")
           : "";
         return `
-          <div class="task-schedule-controls">
+          <div class="task-schedule-controls${usesWeekOfMonth ? " triple" : ""}">
             ${usesWeekOfMonth ? `
             <div class="task-field">
               <label class="task-field-label">Which week</label>
@@ -1856,8 +1864,10 @@
       const recurrence = normalizeRecurrence(document.getElementById("taskRecurrenceSelect").value);
       const scheduleEl = document.getElementById("taskBuilderSchedule");
       scheduleEl.innerHTML = renderScheduleControls(recurrence);
+      const hasTriple = recurrence === "twice_weekly" || recurrence === "monthly" || recurrence === "every_other_month";
       form.classList.toggle("has-schedule", recurrence !== "daily");
       form.classList.toggle("has-date-schedule", usesDateSchedule(recurrence));
+      form.classList.toggle("has-triple-schedule", hasTriple);
     }
 
     function renderRecurringTasks() {
