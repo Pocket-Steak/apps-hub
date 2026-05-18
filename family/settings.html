@@ -408,10 +408,123 @@
     }
 
     .task-list{
-      display:grid;
-      grid-template-columns:repeat(3, minmax(0, 1fr));
-      gap:14px;
-      align-items:start;
+      display:block;
+      width:100%;
+    }
+
+    .task-table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:20px;
+      overflow:hidden;
+    }
+
+    .task-table thead th{
+      text-align:left;
+      font-size:11px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--muted);
+      font-weight:900;
+      padding:14px 16px;
+      background:rgba(255,255,255,.04);
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+
+    .task-table tbody td{
+      padding:12px 16px;
+      border-bottom:1px solid rgba(255,255,255,.05);
+      vertical-align:middle;
+    }
+
+    .task-table tbody tr:last-child td{
+      border-bottom:0;
+    }
+
+    .task-table tbody tr:hover td{
+      background:rgba(255,255,255,.025);
+    }
+
+    .task-table .task-cell .task-title{
+      font-size:14px;
+      font-weight:850;
+      letter-spacing:-.01em;
+      margin:0;
+    }
+
+    .task-table .timing-cell{
+      white-space:nowrap;
+      font-size:13px;
+      font-weight:800;
+      color:var(--muted);
+    }
+
+    .task-table .schedule-cell{
+      width:100%;
+    }
+
+    .task-table .schedule-cell .task-row-schedule{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin:0;
+      padding:0;
+      min-width:0;
+    }
+
+    .task-table .schedule-cell .task-schedule-controls{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .task-table .schedule-cell .task-field{
+      flex:0 0 auto;
+      min-width:0;
+    }
+
+    .task-table .schedule-cell .task-field-label{
+      display:none;
+    }
+
+    .task-table .schedule-cell .field{
+      min-height:34px;
+      padding:0 10px;
+      font-size:12px;
+      border-radius:10px;
+    }
+
+    .task-table .schedule-empty{
+      color:var(--muted);
+      font-size:13px;
+      font-weight:700;
+    }
+
+    .task-table .action-cell{
+      text-align:right;
+      white-space:nowrap;
+      width:1%;
+    }
+
+    .task-table .action-cell .action-btn{
+      min-height:34px;
+      padding:6px 14px;
+      font-size:12px;
+    }
+
+    .task-table-empty{
+      padding:40px 16px;
+      text-align:center;
+      color:var(--muted);
+      font-size:13px;
+      font-weight:800;
+      border:1px dashed rgba(255,255,255,.1);
+      border-radius:16px;
     }
 
     .color-list,
@@ -1794,34 +1907,48 @@
       listEl.innerHTML = "";
       emptyEl.style.display = "none";
 
-      RECURRENCE_OPTIONS.forEach((option) => {
-        const groupTasks = recurringTasks.filter((task) => task.recurrence === option.value);
-        const group = document.createElement("section");
-        group.className = "task-group";
-        group.innerHTML = `
-          <div class="task-group-head">
-            <div class="task-group-title">${option.label}</div>
-            <div class="task-group-count">${groupTasks.length} task${groupTasks.length === 1 ? "" : "s"}</div>
-            <div class="task-group-rule">${escapeHtml(option.timing)}</div>
-          </div>
-          <div class="task-group-list">
-            ${groupTasks.length
-              ? groupTasks.map((task) => `
-                  <div class="task-list-item">
-                    <div class="task-title">${escapeHtml(task.title)}</div>
-                    ${task.recurrence !== "daily" ? `
-                      <div class="task-row-schedule" data-task-schedule-id="${task.id}" data-task-recurrence="${task.recurrence}">
-                        ${renderScheduleControls(task.recurrence, task.schedule)}
-                      </div>
-                    ` : ""}
-                    <button class="action-btn" type="button" data-task-id="${task.id}">Archive</button>
-                  </div>
-                `).join("")
-              : `<div class="task-group-empty">No ${option.label.toLowerCase()} tasks yet.</div>`}
-            </div>
+      const orderedTasks = RECURRENCE_OPTIONS.flatMap((option) =>
+        recurringTasks
+          .filter((task) => task.recurrence === option.value)
+          .slice()
+          .sort((a, b) => a.title.localeCompare(b.title))
+      );
+
+      if (!orderedTasks.length) {
+        listEl.innerHTML = `<div class="task-table-empty">No recurring tasks yet.</div>`;
+        return;
+      }
+
+      const rows = orderedTasks.map((task) => {
+        const timingLabel = RECURRENCE_OPTIONS.find((o) => o.value === task.recurrence)?.label || task.recurrence;
+        const scheduleCell = task.recurrence === "daily"
+          ? `<span class="schedule-empty">—</span>`
+          : `<div class="task-row-schedule" data-task-schedule-id="${task.id}" data-task-recurrence="${task.recurrence}">
+              ${renderScheduleControls(task.recurrence, task.schedule)}
+            </div>`;
+        return `
+          <tr>
+            <td class="task-cell"><div class="task-title">${escapeHtml(task.title)}</div></td>
+            <td class="timing-cell">${escapeHtml(timingLabel)}</td>
+            <td class="schedule-cell">${scheduleCell}</td>
+            <td class="action-cell"><button class="action-btn" type="button" data-task-id="${task.id}">Archive</button></td>
+          </tr>
         `;
-        listEl.appendChild(group);
-      });
+      }).join("");
+
+      listEl.innerHTML = `
+        <table class="task-table">
+          <thead>
+            <tr>
+              <th>Task</th>
+              <th>Timing</th>
+              <th>Schedule</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
     }
 
     function renderTaskColors() {
