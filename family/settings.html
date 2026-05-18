@@ -416,36 +416,65 @@
       width:100%;
       border-collapse:separate;
       border-spacing:0;
-      background:rgba(255,255,255,.03);
+      background:rgba(255,255,255,.025);
       border:1px solid rgba(255,255,255,.08);
-      border-radius:20px;
+      border-radius:18px;
       overflow:hidden;
     }
 
     .task-table thead th{
       text-align:left;
       font-size:11px;
-      letter-spacing:.08em;
+      letter-spacing:.12em;
       text-transform:uppercase;
-      color:var(--muted);
-      font-weight:900;
-      padding:14px 16px;
-      background:rgba(255,255,255,.04);
+      color:rgba(255,255,255,.45);
+      font-weight:800;
+      padding:14px 18px;
+      background:rgba(255,255,255,.035);
       border-bottom:1px solid rgba(255,255,255,.08);
     }
 
     .task-table tbody td{
-      padding:12px 16px;
-      border-bottom:1px solid rgba(255,255,255,.05);
+      padding:14px 18px;
+      border-bottom:1px solid rgba(255,255,255,.04);
       vertical-align:middle;
+    }
+
+    .task-table tbody tr:nth-child(even) td{
+      background:rgba(255,255,255,.012);
+    }
+
+    .task-table tbody tr:hover td,
+    .task-table tbody tr:nth-child(even):hover td{
+      background:rgba(255,255,255,.028);
     }
 
     .task-table tbody tr:last-child td{
       border-bottom:0;
     }
 
-    .task-table tbody tr:hover td{
-      background:rgba(255,255,255,.025);
+    .task-table th.col-task,
+    .task-table td.task-cell{
+      width:24%;
+      min-width:200px;
+    }
+
+    .task-table th.col-timing,
+    .task-table td.timing-cell{
+      width:160px;
+      white-space:nowrap;
+    }
+
+    .task-table th.col-schedule,
+    .task-table td.schedule-cell{
+      width:auto;
+    }
+
+    .task-table th.col-action,
+    .task-table td.action-cell{
+      width:1px;
+      text-align:right;
+      white-space:nowrap;
     }
 
     .task-table .task-cell .task-title{
@@ -453,17 +482,19 @@
       font-weight:850;
       letter-spacing:-.01em;
       margin:0;
+      word-break:normal;
+      overflow-wrap:break-word;
+      white-space:normal;
+      flex:none;
+      min-width:0;
     }
 
     .task-table .timing-cell{
-      white-space:nowrap;
-      font-size:13px;
+      font-size:11px;
       font-weight:800;
-      color:var(--muted);
-    }
-
-    .task-table .schedule-cell{
-      width:100%;
+      color:rgba(255,255,255,.55);
+      text-transform:uppercase;
+      letter-spacing:.08em;
     }
 
     .task-table .schedule-cell .task-row-schedule{
@@ -493,28 +524,29 @@
     }
 
     .task-table .schedule-cell .field{
-      min-height:34px;
+      min-height:32px;
       padding:0 10px;
       font-size:12px;
-      border-radius:10px;
-    }
-
-    .task-table .schedule-empty{
-      color:var(--muted);
-      font-size:13px;
+      border-radius:8px;
       font-weight:700;
     }
 
-    .task-table .action-cell{
-      text-align:right;
-      white-space:nowrap;
-      width:1%;
+    .task-table .schedule-cell .field[type="date"]{
+      min-width:128px;
+    }
+
+    .task-table .schedule-empty{
+      color:rgba(255,255,255,.22);
+      font-size:16px;
+      font-weight:600;
     }
 
     .task-table .action-cell .action-btn{
-      min-height:34px;
+      min-height:32px;
       padding:6px 14px;
       font-size:12px;
+      font-weight:800;
+      border-radius:10px;
     }
 
     .task-table-empty{
@@ -1940,10 +1972,10 @@
         <table class="task-table">
           <thead>
             <tr>
-              <th>Task</th>
-              <th>Timing</th>
-              <th>Schedule</th>
-              <th></th>
+              <th class="col-task">Task</th>
+              <th class="col-timing">Timing</th>
+              <th class="col-schedule">Schedule</th>
+              <th class="col-action"></th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
