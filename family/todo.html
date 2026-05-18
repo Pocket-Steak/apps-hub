@@ -1183,11 +1183,11 @@
     }
 
     function usesWeekdaySchedule(recurrenceValue) {
-      return ["weekly", "twice_weekly", "bi_weekly", "monthly", "every_other_month"].includes(normalizeRecurrence(recurrenceValue));
+      return ["weekly", "twice_weekly", "bi_weekly", "monthly", "every_other_month", "twice_a_year", "yearly"].includes(normalizeRecurrence(recurrenceValue));
     }
 
     function usesDateSchedule(recurrenceValue) {
-      return ["twice_a_year", "yearly"].includes(normalizeRecurrence(recurrenceValue));
+      return false;
     }
 
     function normalizeDayOfWeek(value) {
@@ -1228,11 +1228,13 @@
 
     function getTaskSchedule(task) {
       const month = normalizeMonth(task?.recurrence_month);
+      const fallbackMonth2 = ((month + 5) % 12) + 1;
       return {
         dayOfWeek: normalizeDayOfWeek(task?.recurrence_day_of_week),
         dayOfWeek2: normalizeDayOfWeek(task?.recurrence_day_of_week_2 ?? 4),
         weekOfMonth: normalizeWeekOfMonth(task?.recurrence_week_of_month ?? 1),
         month,
+        month2: normalizeMonth(task?.recurrence_month_2 ?? fallbackMonth2),
         dayOfMonth: normalizeDayOfMonth(task?.recurrence_day_of_month, month),
         startDate: normalizeStartDate(task?.recurrence_start_date, task?.created_at),
       };
@@ -1248,18 +1250,17 @@
         }
         if (recurrence === "monthly") return `${getWeekOfMonthLabel(schedule.weekOfMonth)} ${weekday}`;
         if (recurrence === "every_other_month") return `${getWeekOfMonthLabel(schedule.weekOfMonth)} ${weekday} of cycle`;
-        return weekday;
-      }
-
-      if (usesDateSchedule(recurrence)) {
-        const month = normalizeMonth(schedule.month);
-        const day = normalizeDayOfMonth(schedule.dayOfMonth, month);
-        const firstDate = `${MONTH_LABELS[month - 1]} ${day}`;
-        if (recurrence === "twice_a_year") {
-          const secondMonth = ((month + 5) % 12) + 1;
-          return `${firstDate} and ${MONTH_LABELS[secondMonth - 1]} ${day}`;
+        if (recurrence === "yearly") {
+          const month = normalizeMonth(schedule.month);
+          return `${getWeekOfMonthLabel(schedule.weekOfMonth)} ${weekday} of ${MONTH_LABELS[month - 1]}`;
         }
-        return firstDate;
+        if (recurrence === "twice_a_year") {
+          const month = normalizeMonth(schedule.month);
+          const fallbackMonth2 = ((month + 5) % 12) + 1;
+          const month2 = normalizeMonth(schedule.month2 ?? fallbackMonth2);
+          return `${getWeekOfMonthLabel(schedule.weekOfMonth)} ${weekday} of ${MONTH_LABELS[month - 1]} & ${MONTH_LABELS[month2 - 1]}`;
+        }
+        return weekday;
       }
 
       return "Every day";
@@ -1397,12 +1398,15 @@
 
     function getLatestTwiceYearlyDate(dateInput, schedule = {}) {
       const date = getStartOfDayFor(dateInput);
-      const monthIndex = normalizeMonth(schedule.month) - 1;
-      const day = normalizeDayOfMonth(schedule.dayOfMonth, monthIndex + 1);
+      const month1Index = normalizeMonth(schedule.month) - 1;
+      const fallbackMonth2 = ((month1Index + 6) % 12) + 1;
+      const month2Index = normalizeMonth(schedule.month2 ?? fallbackMonth2) - 1;
+      const wom = normalizeWeekOfMonth(schedule.weekOfMonth ?? 1);
+      const dow = normalizeDayOfWeek(schedule.dayOfWeek);
       const candidates = [];
-      for (let year = date.getFullYear() - 1; year <= date.getFullYear(); year += 1) {
-        candidates.push(getClampedMonthDate(year, monthIndex, day));
-        candidates.push(getClampedMonthDate(year, (monthIndex + 6) % 12, day));
+      for (let year = date.getFullYear() - 1; year <= date.getFullYear() + 1; year += 1) {
+        candidates.push(getNthWeekdayInMonth(year, month1Index, dow, wom));
+        candidates.push(getNthWeekdayInMonth(year, month2Index, dow, wom));
       }
       return candidates
         .filter((candidate) => candidate.getTime() <= date.getTime())
@@ -1485,10 +1489,10 @@
 
       if (interval === "yearly") {
         const monthIndex = normalizeMonth(schedule.month) - 1;
-        const day = normalizeDayOfMonth(schedule.dayOfMonth, monthIndex + 1);
-        let dueDate = getClampedMonthDate(date.getFullYear(), monthIndex, day);
+        const wom = normalizeWeekOfMonth(schedule.weekOfMonth ?? 1);
+        let dueDate = getNthWeekdayInMonth(date.getFullYear(), monthIndex, schedule.dayOfWeek, wom);
         if (date.getTime() < dueDate.getTime()) {
-          dueDate = getClampedMonthDate(date.getFullYear() - 1, monthIndex, day);
+          dueDate = getNthWeekdayInMonth(date.getFullYear() - 1, monthIndex, schedule.dayOfWeek, wom);
         }
         return isBeforeStartDate(dueDate, startDate) ? null : dueDate;
       }
@@ -1576,7 +1580,7 @@
     async function selectTaskRows(client) {
       let result = await client
         .from(TASKS_TABLE)
-        .select("id,title,active,assigned_person_id,sort_order,recurrence_interval,recurrence_day_of_week,recurrence_day_of_week_2,recurrence_week_of_month,recurrence_month,recurrence_day_of_month,recurrence_start_date,created_at")
+        .select("id,title,active,assigned_person_id,sort_order,recurrence_interval,recurrence_day_of_week,recurrence_day_of_week_2,recurrence_week_of_month,recurrence_month,recurrence_month_2,recurrence_day_of_month,recurrence_start_date,created_at")
         .order("created_at", { ascending: false });
 
       if (
@@ -1585,7 +1589,7 @@
       ) {
         result = await client
           .from(TASKS_TABLE)
-          .select("id,title,active,sort_order,recurrence_interval,recurrence_day_of_week,recurrence_day_of_week_2,recurrence_week_of_month,recurrence_month,recurrence_day_of_month,recurrence_start_date,created_at")
+          .select("id,title,active,sort_order,recurrence_interval,recurrence_day_of_week,recurrence_day_of_week_2,recurrence_week_of_month,recurrence_month,recurrence_month_2,recurrence_day_of_month,recurrence_start_date,created_at")
           .order("created_at", { ascending: false });
       }
 
@@ -1597,6 +1601,7 @@
           isMissingColumnError(result.error, "recurrence_day_of_week_2") ||
           isMissingColumnError(result.error, "recurrence_week_of_month") ||
           isMissingColumnError(result.error, "recurrence_month") ||
+          isMissingColumnError(result.error, "recurrence_month_2") ||
           isMissingColumnError(result.error, "recurrence_day_of_month") ||
           isMissingColumnError(result.error, "recurrence_start_date")
         )

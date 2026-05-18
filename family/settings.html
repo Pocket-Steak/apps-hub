@@ -535,70 +535,60 @@
     }
 
     .task-list-item{
-      padding:12px;
-      display:grid;
-      grid-template-columns:minmax(0, 1fr) auto;
+      padding:10px 12px;
+      display:flex;
+      flex-wrap:wrap;
       align-items:center;
-      gap:10px;
-      min-height:74px;
-    }
-
-    .task-info{
-      display:grid;
-      gap:6px;
-      min-width:0;
-      flex:1 1 auto;
+      gap:8px 10px;
+      min-height:52px;
     }
 
     .task-list-item .action-btn{
-      min-height:40px;
-      padding:8px 12px;
+      min-height:36px;
+      padding:6px 12px;
       font-size:13px;
       flex:0 0 auto;
+      margin-left:auto;
     }
 
-    .task-edit-row{
-      grid-column:1 / -1;
-      display:grid;
-      gap:8px;
+    .task-row-schedule{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      flex:1 1 auto;
+      min-width:0;
     }
 
-    .task-edit-row .task-schedule-controls{
-      grid-column:auto;
+    .task-row-schedule .task-schedule-controls{
+      display:flex;
+      gap:6px;
+      flex:1 1 auto;
+      min-width:0;
+    }
+
+    .task-row-schedule .task-field{
+      flex:1 1 0;
+      min-width:0;
+    }
+
+    .task-row-schedule .task-field-label{
+      display:none;
+    }
+
+    .task-row-schedule .field{
+      min-height:36px;
+      padding:0 10px;
+      font-size:13px;
+      border-radius:12px;
     }
 
     .task-title{
-      font-size:16px;
+      font-size:15px;
       font-weight:850;
       letter-spacing:-.01em;
       word-break:break-word;
-    }
-
-    .task-meta-row{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-
-    .task-pill{
-      min-height:30px;
-      padding:0 12px;
-      border-radius:999px;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      font-size:12px;
-      font-weight:900;
-      letter-spacing:.02em;
-      color:var(--text);
-      background:rgba(255,255,255,.08);
-      white-space:nowrap;
-    }
-
-    .task-pill.owner{
-      color:#fff;
-      background:var(--accent);
+      flex:1 1 140px;
+      min-width:0;
     }
 
     .task-empty{
@@ -1092,8 +1082,8 @@
       { value: "bi_weekly", label: "Bi Weekly", timing: "Choose the weekday and cycle start date." },
       { value: "monthly", label: "Monthly", timing: "Choose the weekday, which week of the month, and start date." },
       { value: "every_other_month", label: "Every Other Month", timing: "Choose the weekday, which week, and cycle start date." },
-      { value: "twice_a_year", label: "Twice A Year", timing: "Choose the first date; the second is six months later." },
-      { value: "yearly", label: "Once A Year", timing: "Choose the yearly date." },
+      { value: "twice_a_year", label: "Twice A Year", timing: "Choose weekday, week of month, and two months." },
+      { value: "yearly", label: "Once A Year", timing: "Choose weekday, week of month, and a month." },
     ];
     const RECURRENCE_VALUES = new Set(RECURRENCE_OPTIONS.map((option) => option.value));
     const TASK_TYPE_OPTIONS = [
@@ -1349,7 +1339,15 @@
     }
 
     function usesWeekdaySchedule(recurrenceValue) {
-      return ["weekly", "twice_weekly", "bi_weekly", "monthly", "every_other_month"].includes(normalizeRecurrence(recurrenceValue));
+      return ["weekly", "twice_weekly", "bi_weekly", "monthly", "every_other_month", "twice_a_year", "yearly"].includes(normalizeRecurrence(recurrenceValue));
+    }
+
+    function usesMonthPicker(recurrenceValue) {
+      return ["twice_a_year", "yearly"].includes(normalizeRecurrence(recurrenceValue));
+    }
+
+    function usesSecondMonth(recurrenceValue) {
+      return normalizeRecurrence(recurrenceValue) === "twice_a_year";
     }
 
     function normalizeWeekOfMonth(value) {
@@ -1373,7 +1371,7 @@
     }
 
     function usesDateSchedule(recurrenceValue) {
-      return ["twice_a_year", "yearly"].includes(normalizeRecurrence(recurrenceValue));
+      return false;
     }
 
     function normalizeDayOfWeek(value) {
@@ -1419,18 +1417,13 @@
         }
         if (recurrence === "monthly") return `${getWeekOfMonthLabel(schedule.weekOfMonth)} ${weekday}`;
         if (recurrence === "every_other_month") return `${getWeekOfMonthLabel(schedule.weekOfMonth)} ${weekday} of cycle`;
-        return weekday;
-      }
-
-      if (usesDateSchedule(recurrence)) {
-        const month = normalizeMonth(schedule.month);
-        const day = normalizeDayOfMonth(schedule.dayOfMonth, month);
-        const firstDate = `${getMonthLabel(month)} ${day}`;
-        if (recurrence === "twice_a_year") {
-          const secondMonth = ((month + 5) % 12) + 1;
-          return `${firstDate} and ${getMonthLabel(secondMonth)} ${day}`;
+        if (recurrence === "yearly") {
+          return `${getWeekOfMonthLabel(schedule.weekOfMonth)} ${weekday} of ${getMonthLabel(schedule.month)}`;
         }
-        return firstDate;
+        if (recurrence === "twice_a_year") {
+          return `${getWeekOfMonthLabel(schedule.weekOfMonth)} ${weekday} of ${getMonthLabel(schedule.month)} & ${getMonthLabel(schedule.month2)}`;
+        }
+        return weekday;
       }
 
       return "Every day";
@@ -1443,11 +1436,13 @@
 
     function getScheduleFromTask(task) {
       const month = normalizeMonth(task?.recurrence_month);
+      const fallbackMonth2 = ((month + 5) % 12) + 1;
       return {
         dayOfWeek: normalizeDayOfWeek(task?.recurrence_day_of_week),
         dayOfWeek2: normalizeDayOfWeek(task?.recurrence_day_of_week_2 ?? 4),
         weekOfMonth: normalizeWeekOfMonth(task?.recurrence_week_of_month ?? 1),
         month,
+        month2: normalizeMonth(task?.recurrence_month_2 ?? fallbackMonth2),
         dayOfMonth: normalizeDayOfMonth(task?.recurrence_day_of_month, month),
         startDate: normalizeStartDate(task?.recurrence_start_date || task?.created_at),
       };
@@ -1466,11 +1461,13 @@
     function getFormSchedule(form, recurrenceValue) {
       const recurrence = normalizeRecurrence(recurrenceValue);
       const month = normalizeMonth(form?.querySelector("[data-schedule-month]")?.value);
+      const fallbackMonth2 = ((month + 5) % 12) + 1;
       return {
         dayOfWeek: normalizeDayOfWeek(form?.querySelector("[data-schedule-weekday]")?.value),
         dayOfWeek2: normalizeDayOfWeek(form?.querySelector("[data-schedule-weekday2]")?.value ?? 4),
         weekOfMonth: normalizeWeekOfMonth(form?.querySelector("[data-schedule-week-of-month]")?.value ?? 1),
         month,
+        month2: normalizeMonth(form?.querySelector("[data-schedule-month2]")?.value ?? fallbackMonth2),
         dayOfMonth: normalizeDayOfMonth(form?.querySelector("[data-schedule-day]")?.value, month),
         startDate: normalizeStartDate(form?.querySelector("[data-schedule-start]")?.value),
       };
@@ -1548,6 +1545,7 @@
         isMissingColumnError(error, "recurrence_day_of_week_2") ||
         isMissingColumnError(error, "recurrence_week_of_month") ||
         isMissingColumnError(error, "recurrence_month") ||
+        isMissingColumnError(error, "recurrence_month_2") ||
         isMissingColumnError(error, "recurrence_day_of_month") ||
         isMissingColumnError(error, "recurrence_start_date") ||
         isMissingColumnError(error, "assigned_person_id") ||
@@ -1616,7 +1614,7 @@
       try {
         const client = ensureSupabaseClient();
         const coreChecks = await Promise.all([
-          client.from(TASKS_TABLE).select("id,recurrence_interval,recurrence_day_of_week,recurrence_day_of_week_2,recurrence_week_of_month,recurrence_month,recurrence_day_of_month,recurrence_start_date", { head: true, count: "exact" }),
+          client.from(TASKS_TABLE).select("id,recurrence_interval,recurrence_day_of_week,recurrence_day_of_week_2,recurrence_week_of_month,recurrence_month,recurrence_month_2,recurrence_day_of_month,recurrence_start_date", { head: true, count: "exact" }),
           client.from(TASK_COMPLETIONS_TABLE).select("id", { head: true, count: "exact" }),
         ]);
         const optionalChecks = await Promise.all([
@@ -1732,10 +1730,21 @@
         const options = WEEKDAY_OPTIONS
           .map((option) => `<option value="${option.value}"${option.value === selectedDay ? " selected" : ""}>${option.label}</option>`)
           .join("");
-        const usesWeekOfMonth = recurrence === "monthly" || recurrence === "every_other_month";
+        const usesWeekOfMonth = ["monthly", "every_other_month", "twice_a_year", "yearly"].includes(recurrence);
         const selectedWOM = normalizeWeekOfMonth(schedule.weekOfMonth ?? 1);
         const womOptions = usesWeekOfMonth
           ? WEEK_OF_MONTH_OPTIONS.map((o) => `<option value="${o.value}"${o.value === selectedWOM ? " selected" : ""}>${o.label}</option>`).join("")
+          : "";
+        const showMonth = usesMonthPicker(recurrence);
+        const showMonth2 = usesSecondMonth(recurrence);
+        const selectedMonth = normalizeMonth(schedule.month);
+        const fallbackMonth2 = ((selectedMonth + 5) % 12) + 1;
+        const selectedMonth2 = normalizeMonth(schedule.month2 ?? fallbackMonth2);
+        const monthOptions = showMonth
+          ? MONTH_OPTIONS.map((o) => `<option value="${o.value}"${o.value === selectedMonth ? " selected" : ""}>${o.label}</option>`).join("")
+          : "";
+        const month2Options = showMonth2
+          ? MONTH_OPTIONS.map((o) => `<option value="${o.value}"${o.value === selectedMonth2 ? " selected" : ""}>${o.label}</option>`).join("")
           : "";
         return `
           <div class="task-schedule-controls">
@@ -1748,33 +1757,19 @@
               <label class="task-field-label">Day</label>
               <select class="field" aria-label="${getRecurrenceLabel(recurrence)} weekday" data-schedule-weekday>${options}</select>
             </div>
+            ${showMonth ? `
+            <div class="task-field">
+              <label class="task-field-label">${showMonth2 ? "Month 1" : "Month"}</label>
+              <select class="field" aria-label="${getRecurrenceLabel(recurrence)} month" data-schedule-month>${monthOptions}</select>
+            </div>` : ""}
+            ${showMonth2 ? `
+            <div class="task-field">
+              <label class="task-field-label">Month 2</label>
+              <select class="field" aria-label="${getRecurrenceLabel(recurrence)} second month" data-schedule-month2>${month2Options}</select>
+            </div>` : ""}
             <div class="task-field">
               <label class="task-field-label">Start Date</label>
               <input class="field" type="date" aria-label="${getRecurrenceLabel(recurrence)} start date" value="${escapeHtml(startDate)}" data-schedule-start />
-            </div>
-          </div>
-        `;
-      }
-
-      if (usesDateSchedule(recurrence)) {
-        const selectedMonth = normalizeMonth(schedule.month);
-        const selectedDay = normalizeDayOfMonth(schedule.dayOfMonth, selectedMonth);
-        const monthOptions = MONTH_OPTIONS
-          .map((option) => `<option value="${option.value}"${option.value === selectedMonth ? " selected" : ""}>${option.label}</option>`)
-          .join("");
-        const dayOptions = Array.from({ length: getDaysInMonth(selectedMonth) }, (_, index) => {
-          const day = index + 1;
-          return `<option value="${day}"${day === selectedDay ? " selected" : ""}>${day}</option>`;
-        }).join("");
-        return `
-          <div class="task-schedule-controls">
-            <div class="task-field">
-              <label class="task-field-label">Month</label>
-              <select class="field" aria-label="${getRecurrenceLabel(recurrence)} month" data-schedule-month>${monthOptions}</select>
-            </div>
-            <div class="task-field">
-              <label class="task-field-label">Date</label>
-              <select class="field" aria-label="${getRecurrenceLabel(recurrence)} day" data-schedule-day>${dayOptions}</select>
             </div>
           </div>
         `;
@@ -1813,21 +1808,13 @@
             ${groupTasks.length
               ? groupTasks.map((task) => `
                   <div class="task-list-item">
-                    <div class="task-info">
-                      <div class="task-title">${escapeHtml(task.title)}</div>
-                      <div class="task-meta-row">
-                        <span class="task-pill">${escapeHtml(getRecurrenceLabel(task.recurrence))}</span>
-                        <span class="task-pill">${escapeHtml(getScheduleLabel(task.recurrence, task.schedule))}</span>
-                        ${task.recurrence !== "daily" ? `<span class="task-pill">${escapeHtml(getScheduleStartLabel(task.recurrence, task.schedule))}</span>` : ""}
-                        <span class="task-pill">Order ${task.sortOrder}</span>
-                      </div>
-                    </div>
-                    <button class="action-btn" type="button" data-task-id="${task.id}">Archive</button>
+                    <div class="task-title">${escapeHtml(task.title)}</div>
                     ${task.recurrence !== "daily" ? `
-                      <div class="task-edit-row" data-task-schedule-id="${task.id}" data-task-recurrence="${task.recurrence}">
+                      <div class="task-row-schedule" data-task-schedule-id="${task.id}" data-task-recurrence="${task.recurrence}">
                         ${renderScheduleControls(task.recurrence, task.schedule)}
                       </div>
                     ` : ""}
+                    <button class="action-btn" type="button" data-task-id="${task.id}">Archive</button>
                   </div>
                 `).join("")
               : `<div class="task-group-empty">No ${option.label.toLowerCase()} tasks yet.</div>`}
@@ -2100,7 +2087,7 @@
         const client = ensureSupabaseClient();
         let taskResult = await client
           .from(TASKS_TABLE)
-          .select("id,title,sort_order,recurrence_interval,recurrence_day_of_week,recurrence_day_of_week_2,recurrence_week_of_month,recurrence_month,recurrence_day_of_month,recurrence_start_date,created_at")
+          .select("id,title,sort_order,recurrence_interval,recurrence_day_of_week,recurrence_day_of_week_2,recurrence_week_of_month,recurrence_month,recurrence_month_2,recurrence_day_of_month,recurrence_start_date,created_at")
           .eq("active", true)
           .not("sort_order", "is", null)
           .gt("sort_order", 0)
@@ -2175,6 +2162,7 @@
             recurrence_day_of_week_2: schedule.dayOfWeek2,
             recurrence_week_of_month: schedule.weekOfMonth,
             recurrence_month: schedule.month,
+            recurrence_month_2: schedule.month2,
             recurrence_day_of_month: schedule.dayOfMonth,
             recurrence_start_date: recurrence === "daily" ? null : schedule.startDate,
             sort_order: nextSortOrder,
@@ -2229,6 +2217,7 @@
             recurrence_day_of_week_2: schedule.dayOfWeek2,
             recurrence_week_of_month: schedule.weekOfMonth,
             recurrence_month: schedule.month,
+            recurrence_month_2: schedule.month2,
             recurrence_day_of_month: schedule.dayOfMonth,
             recurrence_start_date: recurrence === "daily" ? null : schedule.startDate,
           })
