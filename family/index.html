@@ -950,6 +950,30 @@
       -webkit-box-orient:vertical;
     }
 
+    .dinner-day-row.is-from-rations{
+      cursor:default;
+      border-color:rgba(255,69,0,.32);
+      background:linear-gradient(180deg, rgba(255,69,0,.06), rgba(255,69,0,.02));
+    }
+
+    .dinner-day-row.is-from-rations:hover{
+      transform:none;
+    }
+
+    .dinner-source-tag{
+      display:inline-block;
+      margin-left:8px;
+      padding:1px 6px;
+      border-radius:999px;
+      background:rgba(255,69,0,.18);
+      color:#ff4500;
+      font-size:9px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      vertical-align:middle;
+    }
+
     .dinner-menu-notice{
       border:1px solid rgba(255,122,24,.16);
       border-radius:14px;
@@ -2722,6 +2746,7 @@
     const NOTES_TABLE = "family_notes";
     const GROCERY_TABLE = "family_grocery_items";
     const DINNER_MENU_TABLE = "family_dinner_menu";
+    const RATIONS_MEAL_PLANS_TABLE = "rations_meal_plans";
     const TASKS_TABLE = "family_tasks";
     const TASK_COMPLETIONS_TABLE = "family_task_completions";
     const PEOPLE_TABLE = "family_people";
@@ -3710,16 +3735,24 @@
         const dateKey = formatDateKey(date);
         const row = getDinnerRowByDate(dateKey);
         const meal = String(row?.meal || "").trim();
+        const fromRations = row?.fromRations === true;
         const dayName = date.toLocaleDateString(undefined, { weekday: "short" });
         const dayNumber = formatMonthDay(date);
+        const classes = [
+          "dinner-day-row",
+          dateKey === todayKey ? "is-today" : "",
+          fromRations ? "is-from-rations" : "",
+        ].filter(Boolean).join(" ");
+        const draggableAttr = fromRations ? "" : ' draggable="true"';
+        const rationsAttr = fromRations ? ' data-from-rations="1"' : "";
         return `
-          <button class="dinner-day-row${dateKey === todayKey ? " is-today" : ""}" type="button" draggable="true" data-dinner-date="${dateKey}">
+          <button class="${classes}" type="button"${draggableAttr} data-dinner-date="${dateKey}"${rationsAttr}>
             <span class="dinner-day-date">
               ${dateKey === todayKey ? '<span class="dinner-day-kicker">Tonight</span>' : ""}
               <span class="dinner-day-name">${escapeHtml(dayName)}</span>
               <span class="dinner-day-number">${escapeHtml(dayNumber)}</span>
             </span>
-            <span class="dinner-meal${meal ? "" : " empty"}">${escapeHtml(meal || "Add dinner")}</span>
+            <span class="dinner-meal${meal ? "" : " empty"}">${escapeHtml(meal || "Add dinner")}${fromRations ? '<span class="dinner-source-tag">Rations</span>' : ""}</span>
           </button>
         `;
       }).join("");
@@ -3730,6 +3763,7 @@
 
     function initDinnerDragDrop(listEl) {
       listEl.querySelectorAll(".dinner-day-row").forEach(row => {
+        if (row.getAttribute("data-from-rations") === "1") return;
         row.addEventListener("dragstart", (e) => {
           dragSourceDateKey = row.getAttribute("data-dinner-date");
           row.classList.add("dragging");
@@ -3892,14 +3926,22 @@
       const select = document.getElementById("dinnerDaySelect");
       select.innerHTML = getDinnerWeekDates().map((date) => {
         const dateKey = formatDateKey(date);
+        const row = getDinnerRowByDate(dateKey);
+        const fromRations = row?.fromRations === true;
         const label = date.toLocaleDateString(undefined, {
           weekday: "long",
           month: "short",
           day: "numeric",
         });
-        return `<option value="${dateKey}">${escapeHtml(label)}</option>`;
+        const suffix = fromRations ? " — Rations" : "";
+        const disabledAttr = fromRations ? " disabled" : "";
+        return `<option value="${dateKey}"${disabledAttr}>${escapeHtml(label + suffix)}</option>`;
       }).join("");
       select.value = selectedDateKey;
+      if (select.value !== selectedDateKey) {
+        const firstEnabled = Array.from(select.options).find((opt) => !opt.disabled);
+        if (firstEnabled) select.value = firstEnabled.value;
+      }
     }
 
     function openDinnerEditor(dateKey = getDefaultDinnerDateKey()) {
@@ -3948,21 +3990,30 @@
         const dateKey = formatDateKey(date);
         const row = getDinnerRowByDate(dateKey);
         const meal = String(row?.meal || "").trim();
+        const fromRations = row?.fromRations === true;
         const dayName = date.toLocaleDateString(undefined, { weekday: "short" });
         const dayNumber = formatMonthDay(date);
+        const classes = [
+          "dinner-day-row",
+          dateKey === todayKey ? "is-today" : "",
+          fromRations ? "is-from-rations" : "",
+        ].filter(Boolean).join(" ");
+        const rationsAttr = fromRations ? ' data-from-rations="1"' : "";
+        const emptyText = fromRations ? "" : "Tap to add";
         return `
-          <button class="dinner-day-row${dateKey === todayKey ? " is-today" : ""}" type="button" data-dinner-date="${dateKey}">
+          <button class="${classes}" type="button" data-dinner-date="${dateKey}"${rationsAttr}>
             <span class="dinner-day-date">
               ${dateKey === todayKey ? '<span class="dinner-day-kicker">Tonight</span>' : ""}
               <span class="dinner-day-name">${escapeHtml(dayName)}</span>
               <span class="dinner-day-number">${escapeHtml(dayNumber)}</span>
             </span>
-            <span class="dinner-meal${meal ? "" : " empty"}">${escapeHtml(meal || "Tap to add")}</span>
+            <span class="dinner-meal${meal ? "" : " empty"}">${escapeHtml(meal || emptyText)}${fromRations ? '<span class="dinner-source-tag">Rations</span>' : ""}</span>
           </button>
         `;
       }).join("");
       listEl.innerHTML = noticeHtml + dayRowsHtml;
       listEl.querySelectorAll("[data-dinner-date]").forEach(btn => {
+        if (btn.getAttribute("data-from-rations") === "1") return;
         btn.addEventListener("click", () => {
           const dateKey = btn.getAttribute("data-dinner-date");
           closeDinnerView();
@@ -4128,6 +4179,41 @@
       return message;
     }
 
+    async function loadRationsDinnerOverrides(client, weekDates) {
+      const startKey = formatDateKey(weekDates[0]);
+      const endKey = formatDateKey(weekDates[weekDates.length - 1]);
+      const result = await client
+        .from(RATIONS_MEAL_PLANS_TABLE)
+        .select("id,date,recipe_id,note,created_at,rations_recipes(name)")
+        .eq("meal_type", "dinner")
+        .gte("date", startKey)
+        .lte("date", endKey)
+        .order("created_at", { ascending: true });
+
+      if (result.error) {
+        console.warn("Could not load Rations dinners:", result.error.message || result.error);
+        return new Map();
+      }
+
+      const namesByDate = new Map();
+      (result.data || []).forEach((row) => {
+        const dateKey = String(row.date || "").trim();
+        if (!dateKey) return;
+        const recipeName = String(row.rations_recipes?.name || "").trim();
+        const note = String(row.note || "").trim();
+        const label = recipeName || note;
+        if (!label) return;
+        if (!namesByDate.has(dateKey)) namesByDate.set(dateKey, []);
+        namesByDate.get(dateKey).push(label);
+      });
+
+      const merged = new Map();
+      for (const [dateKey, names] of namesByDate.entries()) {
+        merged.set(dateKey, names.join(" + "));
+      }
+      return merged;
+    }
+
     async function loadDinnerMenuPreview() {
       const client = getTaskPreviewClient();
       if (!client) {
@@ -4148,15 +4234,38 @@
         throw result.error;
       }
 
-      return (result.data || [])
+      const familyRows = (result.data || [])
         .map((row) => ({
           id: String(row.id || "").trim(),
           dateKey: String(row.dinner_date || "").trim(),
           weekStart: String(row.week_start || "").trim(),
           meal: String(row.meal || "").trim(),
           updatedAt: String(row.updated_at || row.created_at || "").trim(),
+          fromRations: false,
         }))
         .filter((row) => row.id && row.dateKey && row.meal);
+
+      // Rations dinners win for any date they exist on.
+      const rationsByDate = await loadRationsDinnerOverrides(client, weekDates);
+      const byDateKey = new Map(familyRows.map((r) => [r.dateKey, r]));
+      for (const [dateKey, meal] of rationsByDate.entries()) {
+        const existing = byDateKey.get(dateKey);
+        if (existing) {
+          existing.meal = meal;
+          existing.fromRations = true;
+        } else {
+          const date = parseScheduleDate(dateKey) || new Date();
+          byDateKey.set(dateKey, {
+            id: `rations:${dateKey}`,
+            dateKey,
+            weekStart: formatDateKey(getWeekStartDateFor(date)),
+            meal,
+            updatedAt: "",
+            fromRations: true,
+          });
+        }
+      }
+      return Array.from(byDateKey.values());
     }
 
     async function loadTaskPreview() {
@@ -4787,6 +4896,7 @@
     document.getElementById("dinnerMenuList").addEventListener("click", (event) => {
       const button = event.target.closest("[data-dinner-date]");
       if (!button) return;
+      if (button.getAttribute("data-from-rations") === "1") return;
       openDinnerEditor(button.getAttribute("data-dinner-date") || getDefaultDinnerDateKey());
     });
     document.getElementById("dinnerDaySelect").addEventListener("change", (event) => {
