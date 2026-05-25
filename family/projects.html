@@ -303,6 +303,7 @@
                 <option value="bi_weekly">Bi-Weekly</option>
                 <option value="monthly">Monthly</option>
                 <option value="every_other_month">Every Other Month</option>
+                <option value="quarterly">Quarterly</option>
                 <option value="twice_a_year">Twice A Year</option>
                 <option value="yearly">Once A Year</option>
                 <option value="project">Project</option>
@@ -375,11 +376,12 @@
 
     const RECURRENCE_VALUES = new Set([
       "daily","weekly","twice_weekly","bi_weekly","monthly",
-      "every_other_month","twice_a_year","yearly","project",
+      "every_other_month","quarterly","twice_a_year","yearly","project",
     ]);
     const RECURRENCE_LABELS = {
       daily:"Daily", weekly:"Weekly", twice_weekly:"Twice Weekly", bi_weekly:"Bi-Weekly",
-      monthly:"Monthly", every_other_month:"Every Other Month", twice_a_year:"Twice A Year", yearly:"Yearly",
+      monthly:"Monthly", every_other_month:"Every Other Month",
+      quarterly:"Quarterly", twice_a_year:"Twice A Year", yearly:"Yearly",
       project:"Project",
     };
     const PROJECT_PERIOD_KEY = "once";
@@ -493,6 +495,8 @@
     function getBiWeeklyBucketStart(d,sd){const ws=getWeekStartDateFor(d);const as=getWeekStartDateFor(sd);const weeks=Math.floor((getUtcDayNumber(ws)-getUtcDayNumber(as))/7);return addDays(as,Math.floor(weeks/2)*14);}
     function getEveryOtherMonthBucketStart(d,sd){const x=getStartOfDay(d);const s=getStartOfDay(sd);const months=((x.getFullYear()-s.getFullYear())*12)+x.getMonth()-s.getMonth();return new Date(s.getFullYear(),s.getMonth()+Math.floor(months/2)*2,1);}
     function getLatestTwiceYearlyDate(d,s={}){const x=getStartOfDay(d);const m1=normalizeMonth(s.month)-1;const fallback=((m1+6)%12)+1;const m2=normalizeMonth(s.month2??fallback)-1;const wom=normalizeWeekOfMonth(s.weekOfMonth??1);const dow=normalizeDayOfWeek(s.dayOfWeek);const cands=[];for(let y=x.getFullYear()-1;y<=x.getFullYear()+1;y++){cands.push(getNthWeekdayInMonth(y,m1,dow,wom));cands.push(getNthWeekdayInMonth(y,m2,dow,wom));}return cands.filter(c=>c.getTime()<=x.getTime()).sort((a,b)=>b.getTime()-a.getTime())[0]||cands[0];}
+    function getQuarterlyMonthIndexes(s={}){const anchor=normalizeMonth(s.month)-1;return[0,3,6,9].map(off=>(anchor+off)%12);}
+    function getLatestQuarterlyDate(d,s={}){const x=getStartOfDay(d);const wom=normalizeWeekOfMonth(s.weekOfMonth??1);const dow=normalizeDayOfWeek(s.dayOfWeek);const months=getQuarterlyMonthIndexes(s);const cands=[];for(let y=x.getFullYear()-1;y<=x.getFullYear()+1;y++){for(const mi of months)cands.push(getNthWeekdayInMonth(y,mi,dow,wom));}return cands.filter(c=>c.getTime()<=x.getTime()).sort((a,b)=>b.getTime()-a.getTime())[0]||cands[0];}
 
     function getTaskSchedule(t){
       const month = normalizeMonth(t?.recurrence_month);
@@ -562,6 +566,10 @@
         }
         return isBeforeStartDate(due, startDate) ? null : due;
       }
+      if (interval === "quarterly") {
+        const due = getLatestQuarterlyDate(date, schedule);
+        return isBeforeStartDate(due, startDate) ? null : due;
+      }
       if (interval === "twice_a_year") {
         const due = getLatestTwiceYearlyDate(date, schedule);
         return isBeforeStartDate(due, startDate) ? null : due;
@@ -589,6 +597,10 @@
       }
       if (r === "monthly") return `${getWeekOfMonthLabel(schedule.weekOfMonth)} ${wd} of month`;
       if (r === "every_other_month") return `${getWeekOfMonthLabel(schedule.weekOfMonth)} ${wd} (every 2 months)`;
+      if (r === "quarterly") {
+        const months = getQuarterlyMonthIndexes(schedule).map(i => MONTH_LABELS[i].slice(0,3));
+        return `${getWeekOfMonthLabel(schedule.weekOfMonth)} ${wd} of ${months.join(", ")}`;
+      }
       if (r === "twice_a_year") {
         const m1 = normalizeMonth(schedule.month);
         const fallback = ((m1+5)%12)+1;
@@ -788,10 +800,10 @@
       }
     }
 
-    function usesDayOfWeek(r){return ["weekly","twice_weekly","bi_weekly","monthly","every_other_month","twice_a_year","yearly"].includes(r);}
+    function usesDayOfWeek(r){return ["weekly","twice_weekly","bi_weekly","monthly","every_other_month","quarterly","twice_a_year","yearly"].includes(r);}
     function usesDayOfWeek2(r){return r === "twice_weekly";}
-    function usesWeekOfMonth(r){return ["monthly","every_other_month","twice_a_year","yearly"].includes(r);}
-    function usesMonth(r){return ["twice_a_year","yearly"].includes(r);}
+    function usesWeekOfMonth(r){return ["monthly","every_other_month","quarterly","twice_a_year","yearly"].includes(r);}
+    function usesMonth(r){return ["quarterly","twice_a_year","yearly"].includes(r);}
     function usesMonth2(r){return r === "twice_a_year";}
     function usesStartDate(r){return r !== "daily" && r !== "project";}
 
