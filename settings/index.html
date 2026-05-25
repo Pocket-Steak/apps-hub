@@ -1145,93 +1145,6 @@
       </a>
     </section>
 
-    <section class="panel">
-      <div class="panel-head">
-        <div class="panel-title">Task Recurrence</div>
-        <div class="panel-meta">Add the tasks that should refresh on a schedule. Ad hoc tasks can be added from the Tasks page.</div>
-      </div>
-
-      <div class="status-pill">
-        <div class="status-label">Supabase Tasks</div>
-        <div class="status-text" id="taskStatusText">Loading…</div>
-      </div>
-
-      <form class="task-builder" id="recurringTaskForm">
-        <div class="task-field">
-          <label class="task-field-label" for="taskTitleInput">Task</label>
-          <input
-            id="taskTitleInput"
-            class="field"
-            type="text"
-            placeholder="Task name"
-            autocomplete="off"
-            autocapitalize="words"
-            spellcheck="false"
-          />
-        </div>
-        <div class="task-field">
-          <label class="task-field-label" for="taskRecurrenceSelect">Recurrence</label>
-          <select id="taskRecurrenceSelect" class="field">
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-            <option value="twice_weekly">Twice Weekly</option>
-            <option value="bi_weekly">Bi Weekly</option>
-            <option value="monthly">Monthly</option>
-            <option value="every_other_month">Every Other Month</option>
-            <option value="twice_a_year">Twice A Year</option>
-            <option value="yearly">Once A Year</option>
-          </select>
-        </div>
-        <div class="task-builder-schedule" id="taskBuilderSchedule"></div>
-        <button class="action-btn accent" id="addRecurringTaskBtn" type="submit">Add</button>
-      </form>
-
-      <div class="task-list" id="taskList"></div>
-      <div class="task-empty" id="taskEmpty">No recurring tasks yet.</div>
-      <div class="note" id="taskNote">Scheduled tasks use the built-in Supabase project.</div>
-    </section>
-
-    <section class="panel">
-      <div class="panel-head">
-        <div class="panel-title">Task Colors</div>
-        <div class="panel-meta">Set the color for each task type. People colors are managed separately below.</div>
-      </div>
-
-      <div class="color-list" id="taskColorList"></div>
-      <div class="note" id="colorNote">Task type colors load from Supabase.</div>
-    </section>
-
-    <section class="panel">
-      <div class="panel-head">
-        <div class="panel-title">People</div>
-        <div class="panel-meta">Add the names that ad hoc tasks can be assigned to and recurring tasks can be claimed by.</div>
-      </div>
-
-      <form class="person-builder" id="personForm">
-        <div class="task-field">
-          <label class="task-field-label" for="personNameInput">Name</label>
-          <input
-            id="personNameInput"
-            class="field"
-            type="text"
-            placeholder="Person name"
-            autocomplete="off"
-            autocapitalize="words"
-            spellcheck="false"
-          />
-        </div>
-        <div class="task-field">
-          <label class="task-field-label" for="personColorInput">Color</label>
-          <input id="personColorInput" class="field color-field" type="color" value="#ec4899" />
-        </div>
-        <button class="action-btn accent" id="addPersonBtn" type="submit">Add Person</button>
-      </form>
-
-      <div class="people-list" id="peopleList"></div>
-      <div class="task-empty" id="peopleEmpty">No people added yet.</div>
-      <div class="note" id="peopleNote">People load from Supabase.</div>
-    </section>
-
     <section class="reference-grid" aria-label="Connection reference">
       <section class="panel reference-panel">
         <div class="panel-head">
@@ -1255,7 +1168,7 @@
       <section class="panel reference-panel">
         <div class="panel-head">
           <div class="panel-title">Supabase Connection</div>
-          <div class="panel-meta">Reference connection for family tasks, people, and colors.</div>
+          <div class="panel-meta">Reference connection for projects, grocery, dinner menu, and notes.</div>
         </div>
 
         <div class="status-pill">
@@ -1274,7 +1187,7 @@
           <button class="action-btn" id="resetSupabaseBtn" type="button">Use Built-In</button>
         </div>
 
-        <div class="note" id="supabaseNote">The family task screens use a Supabase project URL plus a publishable key.</div>
+        <div class="note" id="supabaseNote">The family screens use a Supabase project URL plus a publishable key.</div>
       </section>
     </section>
   </div>
@@ -1828,56 +1741,35 @@
       }
     }
 
-    async function testSupabaseTables({ reloadTasks = false } = {}) {
+    async function testSupabaseTables() {
       setSupabaseStatus("Testing…");
       setSupabaseNote("Checking the project URL, publishable key, and required tables.");
 
       try {
         const client = ensureSupabaseClient();
         const coreChecks = await Promise.all([
-          client.from(TASKS_TABLE).select("id,recurrence_interval,recurrence_day_of_week,recurrence_day_of_week_2,recurrence_week_of_month,recurrence_month,recurrence_month_2,recurrence_day_of_month,recurrence_start_date", { head: true, count: "exact" }),
-          client.from(TASK_COMPLETIONS_TABLE).select("id", { head: true, count: "exact" }),
-        ]);
-        const optionalChecks = await Promise.all([
-          client.from(TASKS_TABLE).select("id,assigned_person_id", { head: true, count: "exact" }),
-          client.from(PEOPLE_TABLE).select("id,name,color,active,sort_order", { head: true, count: "exact" }),
-          client.from(TASK_CLAIMS_TABLE).select("id,task_id,day_key,person_id", { head: true, count: "exact" }),
-          client.from(TASK_COLORS_TABLE).select("task_type,color", { head: true, count: "exact" }),
+          client.from("family_project_tasks").select("id,recurrence_interval,recurrence_day_of_week,recurrence_day_of_week_2,recurrence_week_of_month,recurrence_month,recurrence_month_2,recurrence_day_of_month,recurrence_start_date", { head: true, count: "exact" }),
+          client.from("family_project_task_completions").select("id,task_id,period_key", { head: true, count: "exact" }),
         ]);
 
-        const coreTableNames = [TASKS_TABLE, TASK_COMPLETIONS_TABLE];
+        const coreTableNames = ["family_project_tasks", "family_project_task_completions"];
         const coreFailures = coreChecks
           .map((result, index) => (result.error ? `${coreTableNames[index]}: ${getSupabaseErrorMessage(result.error)}` : ""))
-          .filter(Boolean);
-        const optionalNames = [`${TASKS_TABLE}.assigned_person_id`, PEOPLE_TABLE, TASK_CLAIMS_TABLE, TASK_COLORS_TABLE];
-        const optionalFailures = optionalChecks
-          .map((result, index) => (result.error ? `${optionalNames[index]}: ${getSupabaseErrorMessage(result.error)}` : ""))
           .filter(Boolean);
 
         if (coreFailures.length) {
           setSupabaseStatus("Schema missing");
           setSupabaseNote(`${SUPABASE_SETUP_NOTE} ${coreFailures.join(" | ")}`);
-          if (reloadTasks) {
-            await loadTaskSettingsData();
-          }
           return false;
         }
 
         setSupabaseStatus("Connected");
-        setSupabaseNote(optionalFailures.length
-          ? `${SUPABASE_SETUP_NOTE} Existing tasks still work; assignment features need the private update.`
-          : "Connection works and family task tables are available.");
-        if (reloadTasks) {
-          await loadTaskSettingsData();
-        }
-        return !optionalFailures.length;
+        setSupabaseNote("Connection works and project task tables are available.");
+        return true;
       } catch (error) {
         console.error(error);
         setSupabaseStatus("Connection failed");
         setSupabaseNote(error?.message || "Could not reach Supabase.");
-        if (reloadTasks) {
-          await loadTaskSettingsData();
-        }
         return false;
       }
     }
@@ -1902,7 +1794,7 @@
       helper.saveConfig(url, anonKey);
       resetSupabaseClientCache();
       renderSupabaseConnection();
-      await testSupabaseTables({ reloadTasks: true });
+      await testSupabaseTables();
     }
 
     async function resetSupabaseConnection() {
@@ -1916,7 +1808,7 @@
       helper.clearConfig();
       resetSupabaseClientCache();
       renderSupabaseConnection();
-      await testSupabaseTables({ reloadTasks: true });
+      await testSupabaseTables();
     }
 
     function renderScheduleControls(recurrenceValue, schedule = {}) {
@@ -2639,82 +2531,14 @@
     document.getElementById("signOutBtn").addEventListener("click", handleSignoutClick);
     document.getElementById("saveSupabaseBtn").addEventListener("click", saveSupabaseConnection);
     document.getElementById("testSupabaseBtn").addEventListener("click", () => {
-      testSupabaseTables({ reloadTasks: true });
+      testSupabaseTables();
     });
     document.getElementById("resetSupabaseBtn").addEventListener("click", resetSupabaseConnection);
-    document.getElementById("recurringTaskForm").addEventListener("submit", (event) => {
-      event.preventDefault();
-      addRecurringTask();
-    });
-    document.getElementById("personForm").addEventListener("submit", (event) => {
-      event.preventDefault();
-      addPerson();
-    });
-    document.getElementById("taskRecurrenceSelect").addEventListener("change", renderTaskBuilderSchedule);
-    document.getElementById("recurringTaskForm").addEventListener("change", (event) => {
-      const monthSelect = event.target.closest("[data-schedule-month]");
-      if (!monthSelect) return;
-      const container = monthSelect.closest("#recurringTaskForm");
-      updateDayOptions(container?.querySelector("[data-schedule-day]"), monthSelect.value);
-    });
-    document.getElementById("taskList").addEventListener("click", (event) => {
-      const button = event.target.closest("[data-task-id]");
-      if (!button) return;
-      archiveRecurringTask(button.getAttribute("data-task-id"));
-    });
-    document.getElementById("taskList").addEventListener("change", (event) => {
-      const monthSelect = event.target.closest("[data-schedule-month]");
-      if (monthSelect) {
-        const container = monthSelect.closest("[data-recurrence-form], [data-task-schedule-id]");
-        updateDayOptions(container?.querySelector("[data-schedule-day]"), monthSelect.value);
-      }
-
-      const scheduleContainer = event.target.closest("[data-task-schedule-id]");
-      if (!scheduleContainer) return;
-      updateRecurringTaskSchedule(
-        scheduleContainer.dataset.taskScheduleId,
-        scheduleContainer.dataset.taskRecurrence,
-        scheduleContainer
-      );
-    });
-    document.getElementById("taskColorList").addEventListener("click", (event) => {
-      const button = event.target.closest("[data-task-color-save]");
-      if (!button) return;
-      const row = button.closest("[data-task-color-type]");
-      const taskType = row?.dataset.taskColorType;
-      const color = row?.querySelector("[data-task-color-input]")?.value;
-      if (taskType) {
-        saveTaskTypeColor(taskType, color);
-      }
-    });
-    document.getElementById("taskColorList").addEventListener("input", (event) => {
-      const input = event.target.closest("[data-task-color-input]");
-      if (!input) return;
-      const row = input.closest("[data-task-color-type]");
-      const dot = row?.querySelector(".color-dot");
-      if (dot) dot.style.background = normalizeColor(input.value);
-    });
-    document.getElementById("peopleList").addEventListener("click", (event) => {
-      const row = event.target.closest("[data-person-id]");
-      if (!row) return;
-      const personId = row.dataset.personId;
-      if (event.target.closest("[data-person-save]")) {
-        savePerson(personId);
-      } else if (event.target.closest("[data-person-archive]")) {
-        archivePerson(personId);
-      }
-    });
-
     document.getElementById("authBtn").disabled = true;
 
     window.addEventListener("load", async () => {
-      renderTaskBuilderSchedule();
-      renderRecurringTasks();
-      renderTaskColors();
-      renderPeople();
-      document.getElementById("personColorInput").value = getNextPersonColor();
       renderSupabaseConnection();
-      testSupabaseTables({ reloadTasks: true });
+      testSupabaseTables();
       try {
         await gapiLoaded();
         gisLoaded();
