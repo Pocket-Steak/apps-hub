@@ -41,8 +41,10 @@ begin
         'bi_weekly',
         'monthly',
         'every_other_month',
+        'quarterly',
         'twice_a_year',
-        'yearly'
+        'yearly',
+        'project'
       ));
   end if;
 end $$;
