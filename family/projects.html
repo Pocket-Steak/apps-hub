@@ -151,24 +151,39 @@
       border-radius: 10px; padding: 10px 12px; font-size: 14px; min-height: 44px;
     }
     .field input:focus, .field select:focus { outline: 2px solid var(--accent); }
+    .setup-form { max-width: 880px; }
+    .setup-form .field input,
+    .setup-form .field select { min-height: 40px; padding: 8px 10px; font-size: 13px; }
+    .setup-form .field label { font-size: 11px; }
     .form-grid {
       display: grid; gap: 10px;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(150px, 200px));
       align-items: end;
     }
-    .form-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .form-grid .field-title { grid-column: 1 / -1; max-width: 520px; }
+    .form-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
     .task-row {
-      display: grid; gap: 10px; grid-template-columns: 1fr auto;
-      padding: 14px; border: 1px solid var(--border); border-radius: var(--radius-md);
-      background: rgba(255,255,255,0.02); align-items: start; margin-top: 10px;
+      display: grid; gap: 8px; grid-template-columns: 1fr auto;
+      padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md);
+      background: rgba(255,255,255,0.02); align-items: center; margin-top: 6px;
     }
-    .task-info { display: grid; gap: 4px; }
-    .task-title { font-weight: 700; font-size: 16px; }
-    .task-meta { color: var(--muted); font-size: 13px; display: flex; flex-direction: column; gap: 2px; }
-    .task-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: start; }
-    .badge { display: inline-block; padding: 1px 8px; border-radius: 999px; background: rgba(255,138,31,0.15); color: var(--accent); font-size: 11px; font-weight: 600; margin-right: 4px; }
+    .task-info { display: grid; gap: 2px; min-width: 0; }
+    .task-title { font-weight: 700; font-size: 15px; }
+    .task-meta { color: var(--muted); font-size: 12px; display: flex; flex-wrap: wrap; gap: 4px 10px; }
+    .task-meta span:not(:last-child)::after { content: "·"; margin-left: 10px; opacity: 0.5; }
+    .task-actions { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+    .task-actions .btn { padding: 6px 10px; min-height: 34px; font-size: 12px; }
+    .badge { display: inline-block; padding: 1px 6px; border-radius: 999px; background: rgba(255,138,31,0.15); color: var(--accent); font-size: 10px; font-weight: 600; margin-right: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
     .badge.inactive { background: rgba(255,255,255,0.06); color: var(--muted); }
-    .group-title { margin-top: 18px; font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .group-title {
+      margin: 0 0 6px; font-size: 12px; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700;
+    }
+    .group-block + .group-block { margin-top: 22px; }
+    .empty-mini {
+      padding: 10px 14px; color: var(--muted); font-size: 13px;
+      border: 1px dashed var(--border-strong); border-radius: var(--radius-md);
+    }
 
     @media (max-width: 600px) {
       .tile-grid { grid-template-columns: 1fr; }
@@ -251,73 +266,75 @@
       <section class="card">
         <h2 id="formTitle">Add a New Task</h2>
         <div class="helper">Daily tasks show on the Daily Chores tile. Anything else shows on the Date-Specific tile when its scheduled day arrives.</div>
-        <div class="form-grid" style="margin-top: 12px">
-          <div class="field" style="grid-column: 1 / -1">
-            <label for="titleInput">Title</label>
-            <input id="titleInput" type="text" placeholder="e.g. Sweep garage" />
+        <div class="setup-form" style="margin-top: 12px">
+          <div class="form-grid">
+            <div class="field field-title">
+              <label for="titleInput">Title</label>
+              <input id="titleInput" type="text" placeholder="e.g. Sweep garage" />
+            </div>
+            <div class="field">
+              <label for="recurrenceSelect">Recurrence</label>
+              <select id="recurrenceSelect">
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="twice_weekly">Twice Weekly</option>
+                <option value="bi_weekly">Bi-Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="every_other_month">Every Other Month</option>
+                <option value="twice_a_year">Twice A Year</option>
+                <option value="yearly">Once A Year</option>
+              </select>
+            </div>
+            <div class="field" id="dowField" style="display:none">
+              <label for="dowSelect">Day of Week</label>
+              <select id="dowSelect"></select>
+            </div>
+            <div class="field" id="dow2Field" style="display:none">
+              <label for="dow2Select">Second Day</label>
+              <select id="dow2Select"></select>
+            </div>
+            <div class="field" id="womField" style="display:none">
+              <label for="womSelect">Week of Month</label>
+              <select id="womSelect">
+                <option value="1">1st</option>
+                <option value="2">2nd</option>
+                <option value="3">3rd</option>
+                <option value="4">4th</option>
+                <option value="5">5th</option>
+                <option value="-1">Last</option>
+              </select>
+            </div>
+            <div class="field" id="monthField" style="display:none">
+              <label for="monthSelect">Month</label>
+              <select id="monthSelect"></select>
+            </div>
+            <div class="field" id="month2Field" style="display:none">
+              <label for="month2Select">Second Month</label>
+              <select id="month2Select"></select>
+            </div>
+            <div class="field" id="startField" style="display:none">
+              <label for="startDateInput">Start Date</label>
+              <input id="startDateInput" type="date" />
+            </div>
           </div>
-          <div class="field">
-            <label for="recurrenceSelect">Recurrence</label>
-            <select id="recurrenceSelect">
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="twice_weekly">Twice Weekly</option>
-              <option value="bi_weekly">Bi-Weekly (every 2 weeks)</option>
-              <option value="monthly">Monthly</option>
-              <option value="every_other_month">Every Other Month</option>
-              <option value="twice_a_year">Twice A Year</option>
-              <option value="yearly">Once A Year</option>
-            </select>
+          <div class="form-actions">
+            <button class="btn btn-accent" id="saveBtn" type="button">Add Task</button>
+            <button class="btn" id="cancelEditBtn" type="button" style="display:none">Cancel Edit</button>
           </div>
-          <div class="field" id="dowField" style="display:none">
-            <label for="dowSelect">Day of Week</label>
-            <select id="dowSelect"></select>
-          </div>
-          <div class="field" id="dow2Field" style="display:none">
-            <label for="dow2Select">Second Day of Week</label>
-            <select id="dow2Select"></select>
-          </div>
-          <div class="field" id="womField" style="display:none">
-            <label for="womSelect">Week of Month</label>
-            <select id="womSelect">
-              <option value="1">1st</option>
-              <option value="2">2nd</option>
-              <option value="3">3rd</option>
-              <option value="4">4th</option>
-              <option value="5">5th</option>
-              <option value="-1">Last</option>
-            </select>
-          </div>
-          <div class="field" id="monthField" style="display:none">
-            <label for="monthSelect">Month</label>
-            <select id="monthSelect"></select>
-          </div>
-          <div class="field" id="month2Field" style="display:none">
-            <label for="month2Select">Second Month</label>
-            <select id="month2Select"></select>
-          </div>
-          <div class="field" id="startField" style="display:none">
-            <label for="startDateInput">Start Date</label>
-            <input id="startDateInput" type="date" />
-          </div>
-        </div>
-        <div class="form-actions" style="margin-top: 12px">
-          <button class="btn btn-accent" id="saveBtn" type="button">Add Task</button>
-          <button class="btn" id="cancelEditBtn" type="button" style="display:none">Cancel Edit</button>
         </div>
       </section>
 
       <section class="card">
         <h2>All Tasks</h2>
-        <div id="setupDailyGroup">
+        <div class="group-block">
           <div class="group-title">Daily Chores</div>
           <div id="setupDailyList"></div>
-          <div id="setupDailyEmpty" class="empty" style="display:none">No daily chores yet.</div>
+          <div id="setupDailyEmpty" class="empty-mini" style="display:none">No daily chores yet.</div>
         </div>
-        <div id="setupDateGroup">
+        <div class="group-block">
           <div class="group-title">Date-Specific Tasks</div>
           <div id="setupDateList"></div>
-          <div id="setupDateEmpty" class="empty" style="display:none">No date-specific tasks yet.</div>
+          <div id="setupDateEmpty" class="empty-mini" style="display:none">No date-specific tasks yet.</div>
         </div>
       </section>
     </div>
