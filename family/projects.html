@@ -102,9 +102,14 @@
     }
     .section-title .count { font-size: 12px; color: var(--muted); font-weight: 500; }
 
+    .view-grid {
+      display: grid; gap: 16px;
+      grid-template-columns: 1fr 1fr;
+      align-items: start;
+    }
     .tile-grid {
       display: grid; gap: 10px;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     }
     .tile {
       background: var(--panel-2); border: 1px solid var(--border);
@@ -185,6 +190,9 @@
       border: 1px dashed var(--border-strong); border-radius: var(--radius-md);
     }
 
+    @media (max-width: 900px) {
+      .view-grid { grid-template-columns: 1fr; }
+    }
     @media (max-width: 600px) {
       .tile-grid { grid-template-columns: 1fr; }
       .task-row { grid-template-columns: 1fr; }
@@ -242,23 +250,25 @@
 
     <!-- VIEW TAB -->
     <div id="viewPanel" class="tab-panel active" role="tabpanel">
-      <section class="card">
-        <h2 class="section-title">
-          <span>Daily Chores</span>
-          <span class="count" id="dailyCount"></span>
-        </h2>
-        <div id="dailyList" class="tile-grid"></div>
-        <div id="dailyEmpty" class="empty" style="display:none">All daily chores are done for today.</div>
-      </section>
+      <div class="view-grid">
+        <section class="card">
+          <h2 class="section-title">
+            <span>Daily Chores</span>
+            <span class="count" id="dailyCount"></span>
+          </h2>
+          <div id="dailyList" class="tile-grid"></div>
+          <div id="dailyEmpty" class="empty" style="display:none">All daily chores are done for today.</div>
+        </section>
 
-      <section class="card">
-        <h2 class="section-title">
-          <span>Date-Specific Tasks</span>
-          <span class="count" id="dateCount"></span>
-        </h2>
-        <div id="dateList" class="tile-grid"></div>
-        <div id="dateEmpty" class="empty" style="display:none">Nothing pending right now.</div>
-      </section>
+        <section class="card">
+          <h2 class="section-title">
+            <span>Date-Specific Tasks</span>
+            <span class="count" id="dateCount"></span>
+          </h2>
+          <div id="dateList" class="tile-grid"></div>
+          <div id="dateEmpty" class="empty" style="display:none">Nothing pending right now.</div>
+        </section>
+      </div>
     </div>
 
     <!-- SETUP TAB -->
