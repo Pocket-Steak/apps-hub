@@ -113,24 +113,23 @@
     }
     .tile {
       background: var(--panel-2); border: 1px solid var(--border);
-      border-left: 6px solid var(--green); border-radius: var(--radius-md);
-      padding: 12px; display: flex; flex-direction: column; gap: 8px; min-height: 100px;
-      transition: border-color 0.2s, background 0.2s;
+      border-radius: var(--radius-md);
+      padding: 14px; display: flex; flex-direction: column; gap: 10px; min-height: 100px;
+      transition: background 0.2s, color 0.2s;
     }
-    .tile.status-green { border-left-color: var(--green); }
-    .tile.status-yellow { border-left-color: var(--yellow); }
-    .tile.status-red { border-left-color: var(--red); }
-    .tile-title { font-weight: 700; font-size: 16px; line-height: 1.25; }
-    .tile-meta { font-size: 12px; color: var(--muted); display: flex; flex-direction: column; gap: 2px; }
+    .tile.status-green  { background: #22c55e; color: #0a1f0d; border-color: transparent; }
+    .tile.status-yellow { background: #eab308; color: #1f1700; border-color: transparent; }
+    .tile.status-red    { background: #dc2626; color: #fff;     border-color: transparent; }
+    .tile-title { font-weight: 800; font-size: 18px; line-height: 1.25; }
     .tile-actions { margin-top: auto; display: flex; gap: 6px; }
     .tile-action {
       flex: 1; padding: 10px; border-radius: 10px;
-      border: 1px solid var(--border-strong); background: var(--panel);
-      color: var(--text); font-weight: 600; cursor: pointer; min-height: 44px; font-size: 13px;
+      border: 1px solid rgba(0,0,0,0.25); background: rgba(0,0,0,0.78);
+      color: #fff; font-weight: 700; cursor: pointer; min-height: 44px; font-size: 14px;
     }
-    .tile-action.primary { background: var(--accent); color: #1a1a1a; border-color: transparent; }
-    .tile-action.primary:hover { background: var(--accent-hover); }
-    .tile-action:hover { background: #2a2d36; }
+    .tile-action.primary { background: #0a0a0a; color: #fff; border-color: transparent; }
+    .tile-action.primary:hover { background: #1a1a1a; }
+    .tile-action:hover { background: rgba(0,0,0,0.9); }
     .empty {
       padding: 18px; text-align: center; color: var(--muted);
       border: 1px dashed var(--border-strong); border-radius: var(--radius-md);
@@ -701,54 +700,22 @@
       dateEmpty.style.display = dateTasks.length ? "none" : "block";
       projectEmpty.style.display = projectTasks.length ? "none" : "block";
 
-      for (const row of dailyTasks) {
-        const tile = document.createElement("article");
-        tile.className = "tile status-green";
-        tile.innerHTML = `
-          <div class="tile-title">${escapeHtml(row.task.title)}</div>
-          <div class="tile-meta"><span>Daily</span></div>
-          <div class="tile-actions">
-            <button class="tile-action primary" type="button">Done</button>
-          </div>
-        `;
-        tile.querySelector(".tile-action").addEventListener("click", () => markDone(row.task.id, row.periodKey));
-        dailyList.appendChild(tile);
-      }
-
-      for (const row of dateTasks) {
-        const status = getAgeStatus(row.daysSince);
+      const renderTile = (container, row, status) => {
         const tile = document.createElement("article");
         tile.className = `tile status-${status}`;
-        const dueText = row.periodStart.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
-        const dayNum = row.daysSince + 1;
         tile.innerHTML = `
           <div class="tile-title">${escapeHtml(row.task.title)}</div>
-          <div class="tile-meta">
-            <span>${escapeHtml(RECURRENCE_LABELS[row.recurrence] || "")}</span>
-            <span>${escapeHtml(getScheduleLabel(row.recurrence, row.schedule))}</span>
-            <span>Started ${escapeHtml(dueText)} · <span class="age-chip status-${status}">Day ${dayNum}</span></span>
-          </div>
           <div class="tile-actions">
             <button class="tile-action primary" type="button">Done</button>
           </div>
         `;
         tile.querySelector(".tile-action").addEventListener("click", () => markDone(row.task.id, row.periodKey));
-        dateList.appendChild(tile);
-      }
+        container.appendChild(tile);
+      };
 
-      for (const row of projectTasks) {
-        const tile = document.createElement("article");
-        tile.className = "tile status-green";
-        tile.innerHTML = `
-          <div class="tile-title">${escapeHtml(row.task.title)}</div>
-          <div class="tile-meta"><span>Project</span></div>
-          <div class="tile-actions">
-            <button class="tile-action primary" type="button">Done</button>
-          </div>
-        `;
-        tile.querySelector(".tile-action").addEventListener("click", () => markDone(row.task.id, row.periodKey));
-        projectList.appendChild(tile);
-      }
+      for (const row of dailyTasks)   renderTile(dailyList,   row, "green");
+      for (const row of dateTasks)    renderTile(dateList,    row, getAgeStatus(row.daysSince));
+      for (const row of projectTasks) renderTile(projectList, row, "green");
     }
 
     function renderSetup() {
