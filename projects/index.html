@@ -104,7 +104,7 @@
 
     .view-grid {
       display: grid; gap: 16px;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       align-items: start;
     }
     .tile-grid {
@@ -190,6 +190,9 @@
       border: 1px dashed var(--border-strong); border-radius: var(--radius-md);
     }
 
+    @media (max-width: 1200px) {
+      .view-grid { grid-template-columns: 1fr 1fr; }
+    }
     @media (max-width: 900px) {
       .view-grid { grid-template-columns: 1fr; }
     }
@@ -262,11 +265,20 @@
 
         <section class="card">
           <h2 class="section-title">
-            <span>Date-Specific Tasks</span>
+            <span>Tasks</span>
             <span class="count" id="dateCount"></span>
           </h2>
           <div id="dateList" class="tile-grid"></div>
           <div id="dateEmpty" class="empty" style="display:none">Nothing pending right now.</div>
+        </section>
+
+        <section class="card">
+          <h2 class="section-title">
+            <span>Projects</span>
+            <span class="count" id="projectCount"></span>
+          </h2>
+          <div id="projectList" class="tile-grid"></div>
+          <div id="projectEmpty" class="empty" style="display:none">No active projects.</div>
         </section>
       </div>
     </div>
@@ -275,7 +287,7 @@
     <div id="setupPanel" class="tab-panel" role="tabpanel">
       <section class="card">
         <h2 id="formTitle">Add a New Task</h2>
-        <div class="helper">Daily tasks show on the Daily Chores tile. Anything else shows on the Date-Specific tile when its scheduled day arrives.</div>
+        <div class="helper">Daily tasks show on the Daily Chores tile. Scheduled tasks show on the Tasks tile when their day arrives. Projects show on the Projects tile until marked done.</div>
         <div class="setup-form" style="margin-top: 12px">
           <div class="form-grid">
             <div class="field field-title">
@@ -293,6 +305,7 @@
                 <option value="every_other_month">Every Other Month</option>
                 <option value="twice_a_year">Twice A Year</option>
                 <option value="yearly">Once A Year</option>
+                <option value="project">Project</option>
               </select>
             </div>
             <div class="field" id="dowField" style="display:none">
@@ -342,9 +355,14 @@
           <div id="setupDailyEmpty" class="empty-mini" style="display:none">No daily chores yet.</div>
         </div>
         <div class="group-block">
-          <div class="group-title">Date-Specific Tasks</div>
+          <div class="group-title">Tasks</div>
           <div id="setupDateList"></div>
-          <div id="setupDateEmpty" class="empty-mini" style="display:none">No date-specific tasks yet.</div>
+          <div id="setupDateEmpty" class="empty-mini" style="display:none">No scheduled tasks yet.</div>
+        </div>
+        <div class="group-block">
+          <div class="group-title">Projects</div>
+          <div id="setupProjectList"></div>
+          <div id="setupProjectEmpty" class="empty-mini" style="display:none">No projects yet.</div>
         </div>
       </section>
     </div>
@@ -357,12 +375,14 @@
 
     const RECURRENCE_VALUES = new Set([
       "daily","weekly","twice_weekly","bi_weekly","monthly",
-      "every_other_month","twice_a_year","yearly",
+      "every_other_month","twice_a_year","yearly","project",
     ]);
     const RECURRENCE_LABELS = {
       daily:"Daily", weekly:"Weekly", twice_weekly:"Twice Weekly", bi_weekly:"Bi-Weekly",
       monthly:"Monthly", every_other_month:"Every Other Month", twice_a_year:"Twice A Year", yearly:"Yearly",
+      project:"Project",
     };
+    const PROJECT_PERIOD_KEY = "once";
     const WEEKDAY_LABELS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
     const MONTH_LABELS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
     const WEEK_OF_MONTH_LABELS = ["1st","2nd","3rd","4th","5th"];
@@ -387,6 +407,9 @@
     const dateList = document.getElementById("dateList");
     const dateEmpty = document.getElementById("dateEmpty");
     const dateCount = document.getElementById("dateCount");
+    const projectList = document.getElementById("projectList");
+    const projectEmpty = document.getElementById("projectEmpty");
+    const projectCount = document.getElementById("projectCount");
 
     // Setup elements
     const titleInput = document.getElementById("titleInput");
@@ -410,6 +433,8 @@
     const setupDailyEmpty = document.getElementById("setupDailyEmpty");
     const setupDateList = document.getElementById("setupDateList");
     const setupDateEmpty = document.getElementById("setupDateEmpty");
+    const setupProjectList = document.getElementById("setupProjectList");
+    const setupProjectEmpty = document.getElementById("setupProjectEmpty");
 
     // Tabs
     const tabViewBtn = document.getElementById("tabViewBtn");
@@ -554,6 +579,7 @@
     function getScheduleLabel(recurrence, schedule = {}) {
       const r = normalizeRecurrence(recurrence);
       if (r === "daily") return "Every day";
+      if (r === "project") return "Until done";
       const wd = WEEKDAY_LABELS[normalizeDayOfWeek(schedule.dayOfWeek)] || "Monday";
       if (r === "weekly") return wd;
       if (r === "bi_weekly") return `${wd} (every 2 weeks)`;
@@ -625,9 +651,11 @@
 
       dailyList.innerHTML = "";
       dateList.innerHTML = "";
+      projectList.innerHTML = "";
 
       const dailyTasks = [];
       const dateTasks = [];
+      const projectTasks = [];
       const activeTasks = tasks.filter(t => t.active !== false);
 
       for (const t of activeTasks) {
@@ -636,6 +664,9 @@
         if (recurrence === "daily") {
           if (completionFor(t.id, todayKey)) continue;
           dailyTasks.push({ task: t, recurrence, schedule, periodKey: todayKey, periodStart: today, daysSince: 0 });
+        } else if (recurrence === "project") {
+          if (completionFor(t.id, PROJECT_PERIOD_KEY)) continue;
+          projectTasks.push({ task: t, recurrence, schedule, periodKey: PROJECT_PERIOD_KEY });
         } else {
           const periodStart = getRecurrencePeriodStart(recurrence, schedule, today);
           if (!periodStart) continue;
@@ -649,11 +680,14 @@
 
       dailyTasks.sort((a,b) => (a.task.sort_order ?? 9999) - (b.task.sort_order ?? 9999) || a.task.title.localeCompare(b.task.title));
       dateTasks.sort((a,b) => b.daysSince - a.daysSince || a.task.title.localeCompare(b.task.title));
+      projectTasks.sort((a,b) => (a.task.sort_order ?? 9999) - (b.task.sort_order ?? 9999) || a.task.title.localeCompare(b.task.title));
 
       dailyCount.textContent = dailyTasks.length ? `${dailyTasks.length} pending` : "";
       dateCount.textContent = dateTasks.length ? `${dateTasks.length} pending` : "";
+      projectCount.textContent = projectTasks.length ? `${projectTasks.length} active` : "";
       dailyEmpty.style.display = dailyTasks.length ? "none" : "block";
       dateEmpty.style.display = dateTasks.length ? "none" : "block";
+      projectEmpty.style.display = projectTasks.length ? "none" : "block";
 
       for (const row of dailyTasks) {
         const tile = document.createElement("article");
@@ -689,13 +723,35 @@
         tile.querySelector(".tile-action").addEventListener("click", () => markDone(row.task.id, row.periodKey));
         dateList.appendChild(tile);
       }
+
+      for (const row of projectTasks) {
+        const tile = document.createElement("article");
+        tile.className = "tile status-green";
+        tile.innerHTML = `
+          <div class="tile-title">${escapeHtml(row.task.title)}</div>
+          <div class="tile-meta"><span>Project</span></div>
+          <div class="tile-actions">
+            <button class="tile-action primary" type="button">Done</button>
+          </div>
+        `;
+        tile.querySelector(".tile-action").addEventListener("click", () => markDone(row.task.id, row.periodKey));
+        projectList.appendChild(tile);
+      }
     }
 
     function renderSetup() {
-      const daily = tasks.filter(t => normalizeRecurrence(t.recurrence_interval) === "daily");
-      const date = tasks.filter(t => normalizeRecurrence(t.recurrence_interval) !== "daily");
+      const daily = [];
+      const date = [];
+      const project = [];
+      for (const t of tasks) {
+        const r = normalizeRecurrence(t.recurrence_interval);
+        if (r === "daily") daily.push(t);
+        else if (r === "project") project.push(t);
+        else date.push(t);
+      }
       renderSetupList(daily, setupDailyList, setupDailyEmpty);
       renderSetupList(date, setupDateList, setupDateEmpty);
+      renderSetupList(project, setupProjectList, setupProjectEmpty);
     }
 
     function renderSetupList(rows, container, emptyEl) {
@@ -704,7 +760,7 @@
       for (const t of rows) {
         const r = normalizeRecurrence(t.recurrence_interval);
         const schedule = getTaskSchedule(t);
-        const startLine = (r !== "daily" && schedule.startDate)
+        const startLine = (r !== "daily" && r !== "project" && schedule.startDate)
           ? `Starts ${new Date(schedule.startDate).toLocaleDateString(undefined, { month:"short", day:"numeric", year:"numeric" })}`
           : "";
         const activeBadge = t.active ? `<span class="badge">Active</span>` : `<span class="badge inactive">Inactive</span>`;
@@ -737,7 +793,7 @@
     function usesWeekOfMonth(r){return ["monthly","every_other_month","twice_a_year","yearly"].includes(r);}
     function usesMonth(r){return ["twice_a_year","yearly"].includes(r);}
     function usesMonth2(r){return r === "twice_a_year";}
-    function usesStartDate(r){return r !== "daily";}
+    function usesStartDate(r){return r !== "daily" && r !== "project";}
 
     function refreshFormFields() {
       const r = normalizeRecurrence(recurrenceSelect.value);
