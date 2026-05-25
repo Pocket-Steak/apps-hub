@@ -61,6 +61,16 @@
       "permanent": false
     },
     {
+      "source": "/family/projects.html",
+      "destination": "/projects/",
+      "permanent": false
+    },
+    {
+      "source": "/family/projects-setup.html",
+      "destination": "/projects/setup.html",
+      "permanent": false
+    },
+    {
       "source": "/adventure",
       "destination": "/adventure/",
       "permanent": false
@@ -103,6 +113,11 @@
     {
       "source": "/todo",
       "destination": "/todo/",
+      "permanent": false
+    },
+    {
+      "source": "/projects",
+      "destination": "/projects/",
       "permanent": false
     },
     {
