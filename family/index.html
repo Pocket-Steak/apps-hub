@@ -2570,13 +2570,6 @@
       </div>
 
       <nav class="mobile-menu-grid" id="mobileMenuGrid" aria-label="Core family tools">
-        <a class="mobile-menu-card" href="/todo/">
-          <span>
-            <span class="mobile-menu-card-title">Tasks</span>
-            <span class="mobile-menu-card-meta">Active chores, claims, and assignments.</span>
-          </span>
-          <span class="mobile-menu-arrow" aria-hidden="true">›</span>
-        </a>
         <a class="mobile-menu-card" href="/projects/">
           <span>
             <span class="mobile-menu-card-title">Projects</span>
@@ -2660,18 +2653,6 @@
           </div>
           <div class="preview-list" id="groceryPreviewList">
             <div class="preview-empty">Waiting for Supabase groceries…</div>
-          </div>
-        </article>
-
-        <article class="preview-card" id="taskPreviewCard">
-          <div class="preview-head">
-            <div class="preview-heading">
-              <div class="preview-title">Tasks</div>
-            </div>
-            <button class="preview-open" id="taskPreviewBtn" type="button">Open Tasks</button>
-          </div>
-          <div class="preview-list" id="taskPreviewList">
-            <div class="preview-empty">Waiting for Supabase tasks…</div>
           </div>
         </article>
 
@@ -3846,7 +3827,6 @@
         emptyText: "No grocery items right now.",
         accentColor: "#ff7a18",
       });
-      renderTaskPreviewCard();
     }
 
     function renderPreviewCard({ rows, listId, emptyText, accentColor = "#ff7a18", errorText = "" }) {
@@ -4502,7 +4482,6 @@
       const results = await Promise.allSettled([
         loadGroceryPreview(),
         loadDinnerMenuPreview(),
-        loadTaskPreview(),
       ]);
 
       if (results[0].status === "fulfilled") {
@@ -4521,15 +4500,6 @@
         console.error(results[1].reason);
         dinnerMenuRows = [];
         dinnerMenuError = getReadableDinnerMenuError(results[1].reason);
-      }
-
-      if (results[2].status === "fulfilled") {
-        taskPreviewRows = results[2].value;
-        taskPreviewError = "";
-      } else {
-        console.error(results[2].reason);
-        taskPreviewRows = [];
-        taskPreviewError = results[2].reason?.message || "Could not load tasks preview.";
       }
 
       renderAll();
@@ -4929,25 +4899,9 @@
     document.getElementById("groceryPreviewCard").addEventListener("click", () => {
       openDashboardOverlay("Grocery List", "/grocery/");
     });
-    document.getElementById("taskPreviewCard").addEventListener("click", () => {
-      openDashboardOverlay("Tasks", "/chores/");
-    });
     document.getElementById("groceryPreviewBtn").addEventListener("click", (event) => {
       event.stopPropagation();
       openDashboardOverlay("Grocery List", "/grocery/");
-    });
-    document.getElementById("taskPreviewBtn").addEventListener("click", (event) => {
-      event.stopPropagation();
-      openDashboardOverlay("Tasks", "/chores/");
-    });
-    document.getElementById("taskPreviewList").addEventListener("click", (event) => {
-      const button = event.target.closest("[data-task-id]");
-      if (!button) {
-        return;
-      }
-
-      event.stopPropagation();
-      completeTaskFromPreview(button.getAttribute("data-task-id") || "");
     });
     document.getElementById("overlayCloseBtn").addEventListener("click", closeDashboardOverlay);
     document.getElementById("overlayFrame").addEventListener("load", removeOverlayFrameBackButton);
