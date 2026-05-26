@@ -201,6 +201,9 @@
       <div class="tool-group" id="sizePalette"></div>
       <div class="tool-group">
         <button class="tool-btn" id="eraserBtn" type="button">Eraser</button>
+        <button class="tool-btn" id="bgBtn" type="button" title="Cycle background color">
+          <span id="bgSwatch" style="display:inline-block;width:14px;height:14px;border-radius:4px;border:1px solid rgba(255,255,255,.3);margin-right:6px;vertical-align:middle;background:#fff;"></span>BG
+        </button>
       </div>
       <div class="tool-group">
         <button class="tool-btn" id="undoBtn" type="button">Undo</button>
@@ -220,6 +223,7 @@
     const TABLE = "family_doodles";
     const CANVAS_SIZE = 1024;
     const COLORS = ["#0a0a0a","#dc2626","#f59e0b","#22c55e","#2563eb","#a855f7","#ec4899","#ffffff"];
+    const BG_COLORS = ["#ffffff","#fef3c7","#dbeafe","#fce7f3","#dcfce7","#fef9c3","#f3f4f6","#0a0a0a"];
     const SIZES  = [4, 10, 22];
     const SYNC_INTERVAL_MS = 20000;
 
@@ -240,6 +244,8 @@
     const colorPalette = document.getElementById("colorPalette");
     const sizePalette = document.getElementById("sizePalette");
     const eraserBtn = document.getElementById("eraserBtn");
+    const bgBtn = document.getElementById("bgBtn");
+    const bgSwatch = document.getElementById("bgSwatch");
     const undoBtn = document.getElementById("undoBtn");
     const redoBtn = document.getElementById("redoBtn");
     const clearBtn = document.getElementById("clearBtn");
@@ -247,7 +253,11 @@
     let currentColor = COLORS[0];
     let currentSize = SIZES[1];
     let eraserMode = false;
-    let strokes = [];      // array of {color, size, points:[{x,y}]}
+    let bgColor = BG_COLORS[0];
+    // Strokes shape: {color, size, points, eraser?: true}
+    // Eraser strokes render using current bgColor, so changing bg after
+    // erasing won't leave white smears.
+    let strokes = [];
     let redoStack = [];
     let activeStroke = null;
 
@@ -371,11 +381,12 @@
         el.classList.toggle("active", Number(el.dataset.size) === currentSize);
       });
       eraserBtn.classList.toggle("active", eraserMode);
+      bgSwatch.style.background = bgColor;
       undoBtn.disabled = strokes.length === 0;
       redoBtn.disabled = redoStack.length === 0;
     }
     function clearCanvas() {
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = bgColor;
       ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
     }
     function redrawAll() {
@@ -384,7 +395,7 @@
     }
     function drawStroke(stroke) {
       if (!stroke.points.length) return;
-      ctx.strokeStyle = stroke.color;
+      ctx.strokeStyle = stroke.eraser ? bgColor : stroke.color;
       ctx.lineWidth = stroke.size;
       ctx.lineCap = "round"; ctx.lineJoin = "round";
       ctx.beginPath();
@@ -392,7 +403,7 @@
       for (let i = 1; i < stroke.points.length; i++) ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
       // Single-point dot
       if (stroke.points.length === 1) {
-        ctx.fillStyle = stroke.color;
+        ctx.fillStyle = stroke.eraser ? bgColor : stroke.color;
         ctx.beginPath();
         ctx.arc(stroke.points[0].x, stroke.points[0].y, stroke.size / 2, 0, Math.PI * 2);
         ctx.fill();
@@ -411,8 +422,9 @@
       canvas.setPointerCapture(evt.pointerId);
       const p = canvasPoint(evt);
       activeStroke = {
-        color: eraserMode ? "#ffffff" : currentColor,
+        color: currentColor,
         size: eraserMode ? Math.max(currentSize * 2, 16) : currentSize,
+        eraser: eraserMode,
         points: [p],
       };
       strokes.push(activeStroke);
@@ -428,7 +440,7 @@
       const dx = p.x - last.x, dy = p.y - last.y;
       if (dx*dx + dy*dy < 2) return; // skip tiny
       activeStroke.points.push(p);
-      ctx.strokeStyle = activeStroke.color;
+      ctx.strokeStyle = activeStroke.eraser ? bgColor : activeStroke.color;
       ctx.lineWidth = activeStroke.size;
       ctx.lineCap = "round"; ctx.lineJoin = "round";
       ctx.beginPath();
@@ -448,6 +460,11 @@
     canvas.addEventListener("pointerleave", pointerUp);
 
     eraserBtn.addEventListener("click", () => { eraserMode = !eraserMode; updateActiveTools(); });
+    bgBtn.addEventListener("click", () => {
+      const idx = BG_COLORS.indexOf(bgColor);
+      bgColor = BG_COLORS[(idx + 1) % BG_COLORS.length];
+      redrawAll(); updateActiveTools();
+    });
     undoBtn.addEventListener("click", () => {
       if (!strokes.length) return;
       redoStack.push(strokes.pop());
@@ -467,6 +484,7 @@
     function openDraw() {
       strokes = []; redoStack = []; activeStroke = null;
       eraserMode = false; currentColor = COLORS[0]; currentSize = SIZES[1];
+      bgColor = BG_COLORS[0];
       buildPalette(); updateActiveTools(); clearCanvas();
       drawBackdrop.classList.add("open");
       document.body.style.overflow = "hidden";
