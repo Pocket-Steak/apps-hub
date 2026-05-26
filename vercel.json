@@ -76,6 +76,16 @@
       "permanent": false
     },
     {
+      "source": "/family/planner.html",
+      "destination": "/planner/",
+      "permanent": false
+    },
+    {
+      "source": "/planner",
+      "destination": "/planner/",
+      "permanent": false
+    },
+    {
       "source": "/adventure",
       "destination": "/adventure/",
       "permanent": false

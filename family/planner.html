@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>PocketSteak Family - Meal Planner</title>
+  <style>
+    :root {
+      --bg: #0e0f12;
+      --panel: #1a1c22;
+      --panel-2: #22252d;
+      --border-strong: rgba(255,255,255,0.14);
+      --text: #f5f7fb;
+      --muted: #b7bfd3;
+      --accent: #ff8a1f;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0; padding: 0; height: 100%;
+      background: #0a0b0e; color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      overflow: hidden;
+    }
+    .shell {
+      display: flex; flex-direction: column;
+      height: 100dvh; width: 100%;
+    }
+    .topbar {
+      flex: 0 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px;
+      padding: 8px 14px;
+      padding-top: calc(env(safe-area-inset-top, 0px) + 8px);
+      background: linear-gradient(180deg, var(--panel), var(--panel-2));
+      border-bottom: 1px solid var(--border-strong);
+      min-height: 48px;
+    }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 12px; border-radius: 8px;
+      background: var(--panel-2); border: 1px solid var(--border-strong);
+      color: var(--text); text-decoration: none;
+      font-weight: 600; font-size: 13px; cursor: pointer;
+      transition: background 0.15s;
+    }
+    .back-btn:hover { background: #2a2d36; }
+    .back-arrow { font-size: 16px; line-height: 1; }
+    .center {
+      display: flex; flex-direction: column; align-items: center;
+      line-height: 1.1; min-width: 0;
+    }
+    .crumb {
+      font-size: 9px; letter-spacing: 0.14em; font-weight: 700;
+      color: var(--accent); text-transform: uppercase;
+    }
+    .center-title {
+      font-size: 14px; font-weight: 700;
+      color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .clock {
+      font-variant-numeric: tabular-nums;
+      font-weight: 700; font-size: 13px;
+      color: var(--text);
+      padding: 7px 10px; border-radius: 8px;
+      background: var(--panel-2); border: 1px solid var(--border-strong);
+      min-width: 78px; text-align: center;
+    }
+    iframe {
+      flex: 1 1 auto;
+      width: 100%; height: 100%;
+      border: 0; background: #fff;
+      display: block;
+    }
+    @media (max-width: 480px) {
+      .back-btn { padding: 6px 10px; font-size: 12px; }
+      .center-title { font-size: 12px; }
+      .crumb { font-size: 8px; }
+      .clock { font-size: 12px; min-width: 68px; padding: 6px 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="back-btn" href="/family/" aria-label="Back to Command Center">
+        <span class="back-arrow" aria-hidden="true">←</span>
+        Back
+      </a>
+      <div class="center">
+        <span class="crumb">Command Center</span>
+        <span class="center-title">Meal Planner</span>
+      </div>
+      <div class="clock" id="clock">--:--</div>
+    </header>
+    <iframe src="https://rations-beta.vercel.app/planner" title="Rations meal planner" allow="clipboard-read; clipboard-write"></iframe>
+  </div>
+  <script>
+    (function tickClock(){
+      const el = document.getElementById('clock');
+      function render(){
+        const now = new Date();
+        let h = now.getHours();
+        const m = now.getMinutes();
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12; if (h === 0) h = 12;
+        el.textContent = `${h}:${String(m).padStart(2,'0')} ${ampm}`;
+      }
+      render();
+      // Re-render at the top of the next minute, then every minute.
+      const ms = (60 - new Date().getSeconds()) * 1000;
+      setTimeout(() => { render(); setInterval(render, 60000); }, ms);
+    })();
+  </script>
+</body>
+</html>
