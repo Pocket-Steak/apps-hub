@@ -2576,7 +2576,7 @@
       <div class="top-right">
         <button class="top-btn" id="backAppsBtn" type="button" style="display:none;">← Back to Apps</button>
         <button class="top-btn" id="adventureBtn" type="button">Adventure</button>
-        <a class="top-btn" id="recipesBtn" href="/family/recipes/">Recipes</a>
+        <button class="top-btn" id="recipesBtn" type="button">Recipes</button>
         <a class="top-btn" id="projectsBtn" href="/projects/">Bones</a>
         <button class="top-btn" id="topNotesBtn" type="button">Notes</button>
         <button class="top-btn" id="settingsBtn" type="button" onclick="window.location.href='/settings/'">Settings</button>
@@ -4128,7 +4128,9 @@
     }
 
     function shouldShowOverlayOpenPage(path) {
-      const overlayPath = String(path || "").split("?")[0].replace(/\/+$/, "") || "/";
+      const raw = String(path || "");
+      if (/^https?:\/\//i.test(raw)) return false;
+      const overlayPath = raw.split("?")[0].replace(/\/+$/, "") || "/";
       return !["/grocery", "/chores", "/notes"].includes(overlayPath);
     }
 
@@ -4915,6 +4917,9 @@
     });
     document.getElementById("adventureBtn").addEventListener("click", () => {
       openDashboardOverlay("Adventure", "/adventure/");
+    });
+    document.getElementById("recipesBtn").addEventListener("click", () => {
+      openDashboardOverlay("Recipes", "https://rations-beta.vercel.app/planner");
     });
     document.getElementById("topNotesBtn").addEventListener("click", () => {
       openDashboardOverlay("Notes", "/notes/");
