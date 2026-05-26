@@ -95,14 +95,14 @@
       display: none; flex-direction: column; z-index: 1000; padding: 12px; gap: 10px;
     }
     .draw-backdrop.open { display: flex; }
-    .draw-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .draw-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; flex-shrink: 0; }
     .draw-title { font-weight: 800; font-size: 18px; }
     .draw-stage {
-      flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center;
-      background: #111319; border-radius: var(--radius-md); padding: 6px;
+      flex: 1 1 0; min-height: 0; min-width: 0; display: flex; align-items: center; justify-content: center;
+      background: #111319; border-radius: var(--radius-md); padding: 6px; overflow: hidden;
     }
     .draw-canvas-wrap {
-      aspect-ratio: 1 / 1; max-width: min(100%, 92vh); width: 100%;
+      aspect-ratio: 1 / 1; max-width: 100%; max-height: 100%;
       background: #fff; border-radius: 8px; box-shadow: 0 0 0 1px rgba(255,255,255,.1);
       position: relative; touch-action: none;
     }
@@ -111,7 +111,7 @@
     .draw-tools {
       display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center;
       padding: 8px; background: var(--panel); border-radius: var(--radius-md);
-      border: 1px solid var(--border-strong);
+      border: 1px solid var(--border-strong); flex-shrink: 0;
     }
     .tool-group { display: flex; gap: 6px; align-items: center; }
     .tool-group + .tool-group {
@@ -144,7 +144,7 @@
       .draw-tools { padding: 6px; gap: 6px; }
       .color-swatch { width: 28px; height: 28px; }
       .tool-btn { padding: 6px 10px; font-size: 12px; min-height: 32px; }
-      .draw-canvas-wrap { max-width: 100%; max-height: 60vh; }
+      .draw-canvas-wrap { max-width: 100%; max-height: 100%; }
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
