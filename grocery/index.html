@@ -930,6 +930,11 @@
     }
 
     async function addItem() {
+      // Re-entrancy guard: Enter bypasses the disabled Add button and can
+      // fire a second time while the first insert is still awaiting the
+      // network round-trip, causing duplicate rows.
+      if (isBusy) return;
+
       const item = itemInput.value.trim();
 
       if (!item) {
@@ -938,6 +943,8 @@
         return;
       }
 
+      // Clear the input BEFORE awaiting so any stray Enter has nothing to resubmit.
+      itemInput.value = "";
       setBusy(true);
       showMessage("", "");
 
@@ -954,12 +961,12 @@
           throw result.error;
         }
 
-        itemInput.value = "";
         await loadGroceries();
         showMessage("Item added.", "success");
         itemInput.focus();
       } catch (error) {
         console.error(error);
+        itemInput.value = item;
         showMessage(getReadableError(error), "error");
         setBusy(false);
       }
