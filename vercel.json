@@ -66,16 +66,6 @@
       "permanent": false
     },
     {
-      "source": "/family/doodles.html",
-      "destination": "/doodles/",
-      "permanent": false
-    },
-    {
-      "source": "/doodles",
-      "destination": "/doodles/",
-      "permanent": false
-    },
-    {
       "source": "/family/planner.html",
       "destination": "/planner/",
       "permanent": false
