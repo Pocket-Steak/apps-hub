@@ -4169,9 +4169,27 @@
       return message;
     }
 
+    // Rations meal plans don't change often (you set the week's dinners once,
+    // maybe edit a day or two). Cache the result and only hit Supabase every
+    // 5 minutes instead of every dashboard sync (60s). Cache key is the week
+    // range so a week-boundary rollover invalidates automatically.
+    const RATIONS_OVERRIDE_CACHE_MS = 5 * 60 * 1000;
+    let rationsOverrideCache = { startKey: "", endKey: "", data: null, ts: 0 };
+
     async function loadRationsDinnerOverrides(client, weekDates) {
       const startKey = formatDateKey(weekDates[0]);
       const endKey = formatDateKey(weekDates[weekDates.length - 1]);
+      const now = Date.now();
+
+      if (
+        rationsOverrideCache.data &&
+        rationsOverrideCache.startKey === startKey &&
+        rationsOverrideCache.endKey === endKey &&
+        now - rationsOverrideCache.ts < RATIONS_OVERRIDE_CACHE_MS
+      ) {
+        return rationsOverrideCache.data;
+      }
+
       const result = await client
         .from(RATIONS_MEAL_PLANS_TABLE)
         .select("id,date,recipe_id,note,created_at,rations_recipes(name)")
@@ -4182,6 +4200,14 @@
 
       if (result.error) {
         console.warn("Could not load Rations dinners:", result.error.message || result.error);
+        // Fall back to last good cache if we have one for this week, else empty.
+        if (
+          rationsOverrideCache.data &&
+          rationsOverrideCache.startKey === startKey &&
+          rationsOverrideCache.endKey === endKey
+        ) {
+          return rationsOverrideCache.data;
+        }
         return new Map();
       }
 
@@ -4201,6 +4227,8 @@
       for (const [dateKey, names] of namesByDate.entries()) {
         merged.set(dateKey, names.join(" + "));
       }
+
+      rationsOverrideCache = { startKey, endKey, data: merged, ts: now };
       return merged;
     }
 
