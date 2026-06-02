@@ -2661,7 +2661,6 @@
               <div class="preview-title">Dinner Menu</div>
               <div class="dinner-week-label" id="dinnerWeekLabel">This week</div>
             </div>
-            <button class="preview-open" id="dinnerMenuAddBtn" type="button">Add Dinner</button>
           </div>
           <div class="preview-list" id="dinnerMenuList">
             <div class="preview-empty">Waiting for Supabase menu…</div>
@@ -3741,7 +3740,7 @@
               <span class="dinner-day-name">${escapeHtml(dayName)}</span>
               <span class="dinner-day-number">${escapeHtml(dayNumber)}</span>
             </span>
-            <span class="dinner-meal${meal ? "" : " empty"}">${escapeHtml(meal || "Add dinner")}${fromRations ? '<span class="dinner-source-tag">Rations</span>' : ""}</span>
+            <span class="dinner-meal${meal ? "" : " empty"}">${escapeHtml(meal || "No dinner planned")}${fromRations && meal ? '<span class="dinner-source-tag">Rations</span>' : ""}</span>
           </button>
         `;
       }).join("");
@@ -4232,6 +4231,10 @@
       return merged;
     }
 
+    // Rations is now the single source of truth for dinners. The family_dinner_menu
+    // table is no longer queried — dashboard is read-only and pulls only from
+    // rations_meal_plans (via loadRationsDinnerOverrides, which is itself cached
+    // for 5 min). To edit dinners, open the Rations planner.
     async function loadDinnerMenuPreview() {
       const client = getTaskPreviewClient();
       if (!client) {
@@ -4239,51 +4242,21 @@
       }
 
       const weekDates = getDinnerWeekDates();
-      const startKey = formatDateKey(weekDates[0]);
-      const endKey = formatDateKey(weekDates[weekDates.length - 1]);
-      const result = await client
-        .from(DINNER_MENU_TABLE)
-        .select("id,dinner_date,week_start,meal,created_at,updated_at")
-        .gte("dinner_date", startKey)
-        .lte("dinner_date", endKey)
-        .order("dinner_date", { ascending: true });
-
-      if (result.error) {
-        throw result.error;
-      }
-
-      const familyRows = (result.data || [])
-        .map((row) => ({
-          id: String(row.id || "").trim(),
-          dateKey: String(row.dinner_date || "").trim(),
-          weekStart: String(row.week_start || "").trim(),
-          meal: String(row.meal || "").trim(),
-          updatedAt: String(row.updated_at || row.created_at || "").trim(),
-          fromRations: false,
-        }))
-        .filter((row) => row.id && row.dateKey && row.meal);
-
-      // Rations dinners win for any date they exist on.
       const rationsByDate = await loadRationsDinnerOverrides(client, weekDates);
-      const byDateKey = new Map(familyRows.map((r) => [r.dateKey, r]));
+
+      const rows = [];
       for (const [dateKey, meal] of rationsByDate.entries()) {
-        const existing = byDateKey.get(dateKey);
-        if (existing) {
-          existing.meal = meal;
-          existing.fromRations = true;
-        } else {
-          const date = parseScheduleDate(dateKey) || new Date();
-          byDateKey.set(dateKey, {
-            id: `rations:${dateKey}`,
-            dateKey,
-            weekStart: formatDateKey(getWeekStartDateFor(date)),
-            meal,
-            updatedAt: "",
-            fromRations: true,
-          });
-        }
+        const date = parseScheduleDate(dateKey) || new Date();
+        rows.push({
+          id: `rations:${dateKey}`,
+          dateKey,
+          weekStart: formatDateKey(getWeekStartDateFor(date)),
+          meal,
+          updatedAt: "",
+          fromRations: true,
+        });
       }
-      return Array.from(byDateKey.values());
+      return rows;
     }
 
     async function loadTaskPreview() {
@@ -4884,10 +4857,6 @@
       event.stopPropagation();
       const todayKey = formatDateKey(new Date());
       window.location.href = `/day/?date=${todayKey}&add=1`;
-    });
-    document.getElementById("dinnerMenuAddBtn").addEventListener("click", (event) => {
-      event.stopPropagation();
-      openDinnerEditor(getDefaultDinnerDateKey());
     });
     document.getElementById("dinnerMenuList").addEventListener("click", (event) => {
       const button = event.target.closest("[data-dinner-date]");
