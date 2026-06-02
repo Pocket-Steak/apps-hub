@@ -2699,18 +2699,6 @@
           </div>
         </article>
 
-        <article class="preview-card doodles-card" id="doodlesCard">
-          <div class="preview-head">
-            <div class="preview-heading">
-              <div class="preview-title">Doodles</div>
-            </div>
-            <button class="preview-open" id="doodlesNewBtn" type="button">New</button>
-          </div>
-          <div class="doodles-stack" id="doodlesStack">
-            <div class="doodle-slot empty"><span>No doodles yet</span></div>
-            <div class="doodle-slot empty"><span></span></div>
-          </div>
-        </article>
       </section>
     </section>
   </div>
@@ -2778,7 +2766,6 @@
     const NOTES_TABLE = "family_notes";
     const GROCERY_TABLE = "family_grocery_items";
     const DINNER_MENU_TABLE = "family_dinner_menu";
-    const DOODLES_TABLE = "family_doodles";
     const RATIONS_MEAL_PLANS_TABLE = "rations_meal_plans";
     const TASKS_TABLE = "family_tasks";
     const TASK_COMPLETIONS_TABLE = "family_task_completions";
@@ -2856,7 +2843,6 @@
     let taskPreviewPeople = [];
     let taskPreviewTypeColors = { ...DEFAULT_TASK_TYPE_COLORS };
     let notesPreviewRows = [];
-    let doodlesPreviewRows = [];
     let groceryPreviewError = "";
     let dinnerMenuError = "";
     let taskPreviewError = "";
@@ -4191,18 +4177,6 @@
         .filter((row) => row.title);
     }
 
-    async function loadDoodlesPreview() {
-      const client = getTaskPreviewClient();
-      if (!client) throw new Error("Doodles preview not ready.");
-      const result = await client
-        .from(DOODLES_TABLE)
-        .select("id,image_data,created_at")
-        .order("created_at", { ascending: false })
-        .limit(2);
-      if (result.error) throw result.error;
-      return result.data || [];
-    }
-
     function isMissingDinnerMenuTableError(error) {
       const text = `${error?.code || ""} ${error?.message || ""} ${error?.details || ""} ${error?.hint || ""}`.toLowerCase();
       return (
@@ -4541,7 +4515,6 @@
       const results = await Promise.allSettled([
         loadGroceryPreview(),
         loadDinnerMenuPreview(),
-        loadDoodlesPreview(),
       ]);
 
       if (results[0].status === "fulfilled") {
@@ -4562,49 +4535,7 @@
         dinnerMenuError = getReadableDinnerMenuError(results[1].reason);
       }
 
-      if (results[2].status === "fulfilled") {
-        doodlesPreviewRows = results[2].value;
-      } else {
-        console.error(results[2].reason);
-        doodlesPreviewRows = [];
-      }
-
       renderAll();
-      renderDoodlesPreview();
-    }
-
-    function renderDoodlesPreview() {
-      const stack = document.getElementById("doodlesStack");
-      if (!stack) return;
-      const rows = doodlesPreviewRows || [];
-      stack.innerHTML = "";
-      const slots = 2;
-      for (let i = 0; i < slots; i++) {
-        const slot = document.createElement("div");
-        slot.className = "doodle-slot";
-        const d = rows[i];
-        if (!d) {
-          slot.classList.add("empty");
-          slot.innerHTML = `<span>${i === 0 && rows.length === 0 ? "No doodles yet" : ""}</span>`;
-        } else {
-          const t = (() => {
-            const diff = Date.now() - new Date(d.created_at).getTime();
-            const m = Math.floor(diff / 60000);
-            if (m < 1) return "just now";
-            if (m < 60) return `${m}m ago`;
-            const h = Math.floor(m / 60);
-            if (h < 24) return `${h}h ago`;
-            const day = Math.floor(h / 24);
-            if (day < 7) return `${day}d ago`;
-            return new Date(d.created_at).toLocaleDateString(undefined, { month:"short", day:"numeric" });
-          })();
-          slot.innerHTML = `
-            <img src="${d.image_data}" alt="Doodle" />
-            <span class="doodle-slot-time">${t}</span>
-          `;
-        }
-        stack.appendChild(slot);
-      }
     }
 
     async function syncDashboardLists() {
@@ -4992,13 +4923,6 @@
     document.getElementById("groceryPreviewBtn").addEventListener("click", (event) => {
       event.stopPropagation();
       openDashboardOverlay("Grocery List", "/grocery/");
-    });
-    document.getElementById("doodlesCard").addEventListener("click", () => {
-      openDashboardOverlay("Doodles", "/doodles/");
-    });
-    document.getElementById("doodlesNewBtn").addEventListener("click", (event) => {
-      event.stopPropagation();
-      openDashboardOverlay("Doodles", "/doodles/?new=1");
     });
     document.getElementById("overlayCloseBtn").addEventListener("click", closeDashboardOverlay);
     document.getElementById("overlayFrame").addEventListener("load", removeOverlayFrameBackButton);
