@@ -2655,6 +2655,18 @@
           </div>
         </article>
 
+        <article class="preview-card" id="bonesPreviewCard">
+          <div class="preview-head">
+            <div class="preview-heading">
+              <div class="preview-title">Bones</div>
+            </div>
+            <button class="preview-open" id="bonesPreviewBtn" type="button">Open Bones</button>
+          </div>
+          <div class="preview-list" id="bonesPreviewList">
+            <div class="preview-empty">Loading chores &amp; tasks…</div>
+          </div>
+        </article>
+
         <article class="preview-card dinner-menu-card" id="dinnerMenuCard">
           <div class="preview-head">
             <div class="preview-heading">
@@ -2725,6 +2737,309 @@
       <iframe class="overlay-frame" id="overlayFrame" src="" title="Family dashboard overlay"></iframe>
     </section>
   </div>
+
+  <!-- Bones (daily chores + tasks) dashboard preview. Self-contained module:
+       reads the same Supabase tables as the /projects/ "Bones" page
+       (family_project_tasks / family_project_task_completions), which are
+       SEPARATE from the dashboard's own family_tasks system. Wrapped in an IIFE
+       so its ported scheduling helpers/constants can't collide with the
+       dashboard's identically-named globals. Exposes window.BonesPreview. -->
+  <script>
+    (function () {
+      const TASKS_TABLE = "family_project_tasks";
+      const COMPLETIONS_TABLE = "family_project_task_completions";
+      const MS_PER_DAY = 24 * 60 * 60 * 1000;
+      const WEEKDAY_LABELS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+      const MONTH_LABELS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+      const WEEK_OF_MONTH_LABELS = ["1st","2nd","3rd","4th","5th"];
+      const RECURRENCE_VALUES = new Set([
+        "daily","weekly","twice_weekly","bi_weekly","monthly",
+        "every_other_month","quarterly","twice_a_year","yearly","project",
+      ]);
+      const ACCENT = "#ff7a18";
+      const AGE_COLORS = { green: "#16a34a", yellow: "#ca8a04", red: "#dc2626" };
+
+      let rows = { daily: [], tasks: [] };
+      let errorText = "";
+      let loaded = false;
+      let client = null;
+      let clientSig = "";
+
+      function escapeHtml(v){return String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");}
+
+      // ----- date / recurrence helpers (ported verbatim from the Bones page) -----
+      function formatDateKey(d){const ps=window.PocketSteakSupabase;if(ps?.formatDateKey)return ps.formatDateKey(d);const y=d.getFullYear();const m=String(d.getMonth()+1).padStart(2,"0");const day=String(d.getDate()).padStart(2,"0");return `${y}-${m}-${day}`;}
+      function getStartOfDay(d=new Date()){const ps=window.PocketSteakSupabase;if(ps?.getStartOfDay)return ps.getStartOfDay(d);const x=new Date(d);x.setHours(0,0,0,0);return x;}
+      function getWeekStartDateFor(d=new Date()){const ps=window.PocketSteakSupabase;if(ps?.getWeekStartDateFor)return ps.getWeekStartDateFor(d);const x=getStartOfDay(d);const day=x.getDay();const diff=day===0?-6:1-day;x.setDate(x.getDate()+diff);return x;}
+      function normalizeRecurrence(v){const n=String(v||"").trim();return RECURRENCE_VALUES.has(n)?n:"daily";}
+      function normalizeDayOfWeek(v){const n=Number(v);return Number.isInteger(n)&&n>=0&&n<=6?n:1;}
+      function normalizeMonth(v){const n=Number(v);return Number.isInteger(n)&&n>=1&&n<=12?n:1;}
+      function normalizeWeekOfMonth(v){const n=Number(v);if(n===-1)return -1;return Number.isFinite(n)&&n>=1&&n<=5?n:1;}
+      function getWeekOfMonthLabel(n){const w=normalizeWeekOfMonth(n);if(w===-1)return"Last";return WEEK_OF_MONTH_LABELS[w-1]||"1st";}
+      function parseScheduleDate(v){const t=String(v||"").trim();if(!t)return null;const m=t.match(/^(\d{4})-(\d{2})-(\d{2})/);if(m){const d=new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));return Number.isNaN(d.getTime())?null:d;}const d=new Date(t);if(Number.isNaN(d.getTime()))return null;d.setHours(0,0,0,0);return d;}
+      function getUtcDayNumber(d){return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/MS_PER_DAY);}
+      function addDays(d,n){const x=getStartOfDay(d);x.setDate(x.getDate()+n);return x;}
+      function addMonthsClamped(d,n){const x=getStartOfDay(d);return new Date(x.getFullYear(),x.getMonth()+n,1);}
+      function getFirstWeekdayOnOrAfter(d,dow){const x=getStartOfDay(d);const t=normalizeDayOfWeek(dow);const diff=(t-x.getDay()+7)%7;x.setDate(x.getDate()+diff);return x;}
+      function getFirstWeekdayInMonth(y,mi,dow){return getFirstWeekdayOnOrAfter(new Date(y,mi,1),dow);}
+      function getNthWeekdayInMonth(y,mi,dow,n){const w=normalizeWeekOfMonth(n);const d=normalizeDayOfWeek(dow);if(w===-1){const last=new Date(y,mi+1,0);const diff=(last.getDay()-d+7)%7;return new Date(y,mi,last.getDate()-diff);}const first=getFirstWeekdayInMonth(y,mi,d);const res=addDays(first,(w-1)*7);if(res.getMonth()!==mi)return addDays(first,(w-2)*7);return res;}
+      function getScheduleStartDate(s={}){return getStartOfDay(parseScheduleDate(s.startDate)||new Date());}
+      function isBeforeStartDate(d,sd){return getStartOfDay(d).getTime()<getStartOfDay(sd).getTime();}
+      function getBiWeeklyBucketStart(d,sd){const ws=getWeekStartDateFor(d);const as=getWeekStartDateFor(sd);const weeks=Math.floor((getUtcDayNumber(ws)-getUtcDayNumber(as))/7);return addDays(as,Math.floor(weeks/2)*14);}
+      function getEveryOtherMonthBucketStart(d,sd){const x=getStartOfDay(d);const s=getStartOfDay(sd);const months=((x.getFullYear()-s.getFullYear())*12)+x.getMonth()-s.getMonth();return new Date(s.getFullYear(),s.getMonth()+Math.floor(months/2)*2,1);}
+      function getLatestTwiceYearlyDate(d,s={}){const x=getStartOfDay(d);const m1=normalizeMonth(s.month)-1;const fallback=((m1+6)%12)+1;const m2=normalizeMonth(s.month2??fallback)-1;const wom=normalizeWeekOfMonth(s.weekOfMonth??1);const dow=normalizeDayOfWeek(s.dayOfWeek);const cands=[];for(let y=x.getFullYear()-1;y<=x.getFullYear()+1;y++){cands.push(getNthWeekdayInMonth(y,m1,dow,wom));cands.push(getNthWeekdayInMonth(y,m2,dow,wom));}return cands.filter(c=>c.getTime()<=x.getTime()).sort((a,b)=>b.getTime()-a.getTime())[0]||cands[0];}
+      function getQuarterlyMonthIndexes(s={}){const anchor=normalizeMonth(s.month)-1;return[0,3,6,9].map(off=>(anchor+off)%12);}
+      function getLatestQuarterlyDate(d,s={}){const x=getStartOfDay(d);const wom=normalizeWeekOfMonth(s.weekOfMonth??1);const dow=normalizeDayOfWeek(s.dayOfWeek);const months=getQuarterlyMonthIndexes(s);const cands=[];for(let y=x.getFullYear()-1;y<=x.getFullYear()+1;y++){for(const mi of months)cands.push(getNthWeekdayInMonth(y,mi,dow,wom));}return cands.filter(c=>c.getTime()<=x.getTime()).sort((a,b)=>b.getTime()-a.getTime())[0]||cands[0];}
+
+      function getTaskSchedule(t){
+        const month = normalizeMonth(t?.recurrence_month);
+        const fallback2 = ((month+5)%12)+1;
+        return {
+          dayOfWeek: normalizeDayOfWeek(t?.recurrence_day_of_week),
+          dayOfWeek2: normalizeDayOfWeek(t?.recurrence_day_of_week_2 ?? 4),
+          weekOfMonth: normalizeWeekOfMonth(t?.recurrence_week_of_month ?? 1),
+          month,
+          month2: normalizeMonth(t?.recurrence_month_2 ?? fallback2),
+          startDate: t?.recurrence_start_date || (t?.created_at?.slice(0,10)) || formatDateKey(new Date()),
+        };
+      }
+
+      function getRecurrencePeriodStart(recurrence, schedule = {}, dateInput = new Date()) {
+        const interval = normalizeRecurrence(recurrence);
+        const date = getStartOfDay(dateInput);
+        const startDate = getScheduleStartDate(schedule);
+        if (interval !== "daily" && date.getTime() < startDate.getTime()) return null;
+        if (interval === "daily") return date;
+        if (interval === "weekly") {
+          let due = getFirstWeekdayOnOrAfter(getWeekStartDateFor(date), schedule.dayOfWeek);
+          if (date.getTime() < due.getTime()) due = addDays(due, -7);
+          return isBeforeStartDate(due, startDate) ? null : due;
+        }
+        if (interval === "bi_weekly") {
+          let bucket = getBiWeeklyBucketStart(date, startDate);
+          let due = getFirstWeekdayOnOrAfter(bucket, schedule.dayOfWeek);
+          if (isBeforeStartDate(due, startDate)) due = addDays(due, 14);
+          if (date.getTime() < due.getTime()) {
+            bucket = addDays(bucket, -14);
+            due = getFirstWeekdayOnOrAfter(bucket, schedule.dayOfWeek);
+          }
+          return isBeforeStartDate(due, startDate) ? null : due;
+        }
+        if (interval === "twice_weekly") {
+          const d1 = normalizeDayOfWeek(schedule.dayOfWeek);
+          const d2 = normalizeDayOfWeek(schedule.dayOfWeek2);
+          let cand = new Date(date);
+          for (let i = 0; i <= 13; i++) {
+            const dow = cand.getDay();
+            if (dow === d1 || dow === d2) return isBeforeStartDate(cand, startDate) ? null : cand;
+            cand = addDays(cand, -1);
+          }
+          return null;
+        }
+        if (interval === "monthly") {
+          const wom = schedule.weekOfMonth || 1;
+          let due = getNthWeekdayInMonth(date.getFullYear(), date.getMonth(), schedule.dayOfWeek, wom);
+          if (date.getTime() < due.getTime()) {
+            const prev = addMonthsClamped(date, -1);
+            due = getNthWeekdayInMonth(prev.getFullYear(), prev.getMonth(), schedule.dayOfWeek, wom);
+          }
+          return isBeforeStartDate(due, startDate) ? null : due;
+        }
+        if (interval === "every_other_month") {
+          const wom = schedule.weekOfMonth || 1;
+          let bucket = getEveryOtherMonthBucketStart(date, startDate);
+          let due = getNthWeekdayInMonth(bucket.getFullYear(), bucket.getMonth(), schedule.dayOfWeek, wom);
+          if (isBeforeStartDate(due, startDate)) {
+            bucket = addMonthsClamped(bucket, 2);
+            due = getNthWeekdayInMonth(bucket.getFullYear(), bucket.getMonth(), schedule.dayOfWeek, wom);
+          }
+          if (date.getTime() < due.getTime()) {
+            bucket = addMonthsClamped(bucket, -2);
+            due = getNthWeekdayInMonth(bucket.getFullYear(), bucket.getMonth(), schedule.dayOfWeek, wom);
+          }
+          return isBeforeStartDate(due, startDate) ? null : due;
+        }
+        if (interval === "quarterly") {
+          const due = getLatestQuarterlyDate(date, schedule);
+          return isBeforeStartDate(due, startDate) ? null : due;
+        }
+        if (interval === "twice_a_year") {
+          const due = getLatestTwiceYearlyDate(date, schedule);
+          return isBeforeStartDate(due, startDate) ? null : due;
+        }
+        if (interval === "yearly") {
+          const mi = normalizeMonth(schedule.month) - 1;
+          const wom = normalizeWeekOfMonth(schedule.weekOfMonth ?? 1);
+          let due = getNthWeekdayInMonth(date.getFullYear(), mi, schedule.dayOfWeek, wom);
+          if (date.getTime() < due.getTime()) due = getNthWeekdayInMonth(date.getFullYear()-1, mi, schedule.dayOfWeek, wom);
+          return isBeforeStartDate(due, startDate) ? null : due;
+        }
+        return date;
+      }
+
+      function getScheduleLabel(recurrence, schedule = {}) {
+        const r = normalizeRecurrence(recurrence);
+        if (r === "daily") return "Every day";
+        if (r === "project") return "Until done";
+        const wd = WEEKDAY_LABELS[normalizeDayOfWeek(schedule.dayOfWeek)] || "Monday";
+        if (r === "weekly") return wd;
+        if (r === "bi_weekly") return `${wd} (every 2 weeks)`;
+        if (r === "twice_weekly") {
+          const wd2 = WEEKDAY_LABELS[normalizeDayOfWeek(schedule.dayOfWeek2)] || "Thursday";
+          return `${wd} & ${wd2}`;
+        }
+        if (r === "monthly") return `${getWeekOfMonthLabel(schedule.weekOfMonth)} ${wd} of month`;
+        if (r === "every_other_month") return `${getWeekOfMonthLabel(schedule.weekOfMonth)} ${wd} (every 2 months)`;
+        if (r === "quarterly") {
+          const months = getQuarterlyMonthIndexes(schedule).map(i => MONTH_LABELS[i].slice(0,3));
+          return `${getWeekOfMonthLabel(schedule.weekOfMonth)} ${wd} of ${months.join(", ")}`;
+        }
+        if (r === "twice_a_year") {
+          const m1 = normalizeMonth(schedule.month);
+          const fallback = ((m1+5)%12)+1;
+          const m2 = normalizeMonth(schedule.month2 ?? fallback);
+          return `${getWeekOfMonthLabel(schedule.weekOfMonth)} ${wd} of ${MONTH_LABELS[m1-1]} & ${MONTH_LABELS[m2-1]}`;
+        }
+        if (r === "yearly") {
+          const m = normalizeMonth(schedule.month);
+          return `${getWeekOfMonthLabel(schedule.weekOfMonth)} ${wd} of ${MONTH_LABELS[m-1]}`;
+        }
+        return "";
+      }
+
+      function getAgeStatus(daysSinceStart){
+        if (daysSinceStart >= 6) return "red";
+        if (daysSinceStart >= 3) return "yellow";
+        return "green";
+      }
+
+      function ensureClient() {
+        const cfg = window.PocketSteakSupabase?.getConfig?.();
+        if (!cfg?.configured) return null;
+        const sig = `${cfg.url}::${cfg.anonKey}`;
+        if (!client || clientSig !== sig) {
+          client = window.PocketSteakSupabase.createClient();
+          clientSig = sig;
+        }
+        return client;
+      }
+
+      const GROUP_LABEL_STYLE = "font-size:11px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:2px 2px 0;";
+
+      function render() {
+        const listEl = document.getElementById("bonesPreviewList");
+        if (!listEl) return;
+
+        if (errorText) {
+          listEl.innerHTML = `<div class="preview-empty">${escapeHtml(errorText)}</div>`;
+          return;
+        }
+        if (!loaded) {
+          listEl.innerHTML = `<div class="preview-empty">Loading chores &amp; tasks…</div>`;
+          return;
+        }
+        if (!rows.daily.length && !rows.tasks.length) {
+          listEl.innerHTML = `<div class="preview-empty">All daily chores &amp; tasks are done. 🎉</div>`;
+          return;
+        }
+
+        const groupLabel = (text) => `<div style="${GROUP_LABEL_STYLE}">${escapeHtml(text)}</div>`;
+        const item = (title, meta, color) => `
+          <div class="preview-item" style="border-left-color:${color}">
+            <div class="preview-item-title">${escapeHtml(title)}</div>
+            ${meta ? `<div class="preview-item-meta">${escapeHtml(meta)}</div>` : ""}
+          </div>`;
+
+        let html = "";
+        if (rows.daily.length) {
+          html += groupLabel("Daily Chores");
+          html += rows.daily.map((r) => item(r.title, "Every day", ACCENT)).join("");
+        }
+        if (rows.tasks.length) {
+          html += groupLabel("Tasks");
+          html += rows.tasks.map((r) => {
+            const overdue = r.daysSince > 0 ? `${r.daysSince}d overdue` : "Due today";
+            const meta = [r.scheduleLabel, overdue].filter(Boolean).join(" · ");
+            return item(r.title, meta, AGE_COLORS[r.ageStatus] || ACCENT);
+          }).join("");
+        }
+        listEl.innerHTML = html;
+      }
+
+      async function load() {
+        try {
+          const c = ensureClient();
+          if (!c) { errorText = "Bones isn't connected to Supabase yet."; loaded = true; render(); return; }
+
+          const tasksRes = await c
+            .from(TASKS_TABLE)
+            .select("id,title,active,recurrence_interval,recurrence_day_of_week,recurrence_day_of_week_2,recurrence_week_of_month,recurrence_month,recurrence_month_2,recurrence_start_date,sort_order,created_at")
+            .order("sort_order", { ascending: true, nullsLast: true })
+            .order("created_at", { ascending: false });
+          if (tasksRes.error) throw tasksRes.error;
+
+          const compRes = await c
+            .from(COMPLETIONS_TABLE)
+            .select("task_id,period_key");
+          if (compRes.error) throw compRes.error;
+
+          const completions = compRes.data || [];
+          const isDone = (taskId, periodKey) => completions.some((x) => x.task_id === taskId && x.period_key === periodKey);
+
+          const today = getStartOfDay(new Date());
+          const todayKey = formatDateKey(today);
+          const daily = [];
+          const tasks = [];
+
+          for (const t of (tasksRes.data || [])) {
+            if (t.active === false) continue;
+            const recurrence = normalizeRecurrence(t.recurrence_interval);
+            if (recurrence === "project") continue; // dashboard card shows daily chores + tasks only
+            const schedule = getTaskSchedule(t);
+            if (recurrence === "daily") {
+              if (isDone(t.id, todayKey)) continue;
+              daily.push({ title: t.title, sortOrder: t.sort_order ?? 9999 });
+            } else {
+              const periodStart = getRecurrencePeriodStart(recurrence, schedule, today);
+              if (!periodStart) continue;
+              const periodKey = formatDateKey(periodStart);
+              if (isDone(t.id, periodKey)) continue;
+              const daysSince = Math.floor((today.getTime() - periodStart.getTime()) / MS_PER_DAY);
+              if (daysSince < 0) continue;
+              tasks.push({
+                title: t.title,
+                daysSince,
+                ageStatus: getAgeStatus(daysSince),
+                scheduleLabel: getScheduleLabel(recurrence, schedule),
+              });
+            }
+          }
+
+          daily.sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title));
+          tasks.sort((a, b) => b.daysSince - a.daysSince || a.title.localeCompare(b.title));
+
+          rows = { daily, tasks };
+          errorText = "";
+          loaded = true;
+          render();
+        } catch (err) {
+          console.error("Bones preview load failed:", err);
+          errorText = "Couldn't load Bones right now.";
+          loaded = true;
+          render();
+        }
+      }
+
+      function reset() {
+        rows = { daily: [], tasks: [] };
+        errorText = "";
+        loaded = false;
+        render();
+      }
+
+      window.BonesPreview = { load, render, reset };
+    })();
+  </script>
 
   <script>
     const CLIENT_ID = "82204016171-ta1ipuu88gie0tkq69je3di5uifu1kki.apps.googleusercontent.com";
@@ -3826,6 +4141,7 @@
         emptyText: "No grocery items right now.",
         accentColor: "#ff7a18",
       });
+      window.BonesPreview?.render();
     }
 
     function renderPreviewCard({ rows, listId, emptyText, accentColor = "#ff7a18", errorText = "" }) {
@@ -4482,6 +4798,10 @@
     }
 
     async function loadDashboardLists() {
+      // Bones runs in parallel and renders itself (handles its own errors), so
+      // it doesn't block or affect the grocery/dinner load below.
+      window.BonesPreview?.load();
+
       const results = await Promise.allSettled([
         loadGroceryPreview(),
         loadDinnerMenuPreview(),
@@ -4747,6 +5067,7 @@
       dinnerMenuError = "";
       notesPreviewRows = [];
       notesPreviewError = "";
+      window.BonesPreview?.reset();
       document.getElementById("authBtn").textContent = "Connect";
       document.getElementById("signOutBtn").style.display = "none";
       setStatus("Not connected");
@@ -4889,6 +5210,13 @@
     document.getElementById("groceryPreviewBtn").addEventListener("click", (event) => {
       event.stopPropagation();
       openDashboardOverlay("Grocery List", "/grocery/");
+    });
+    document.getElementById("bonesPreviewCard").addEventListener("click", () => {
+      openDashboardOverlay("Bones", "/projects/");
+    });
+    document.getElementById("bonesPreviewBtn").addEventListener("click", (event) => {
+      event.stopPropagation();
+      openDashboardOverlay("Bones", "/projects/");
     });
     document.getElementById("overlayCloseBtn").addEventListener("click", closeDashboardOverlay);
     document.getElementById("overlayFrame").addEventListener("load", removeOverlayFrameBackButton);
