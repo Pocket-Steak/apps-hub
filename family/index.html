@@ -2764,6 +2764,7 @@
       let loaded = false;
       let client = null;
       let clientSig = "";
+      let wired = false;
 
       function escapeHtml(v){return String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");}
 
@@ -2930,6 +2931,19 @@
         const listEl = document.getElementById("bonesPreviewList");
         if (!listEl) return;
 
+        // Tap an item to complete it (delegated, attached once). stopPropagation
+        // keeps the tap from also firing the card's open-overlay handler.
+        if (!wired) {
+          wired = true;
+          listEl.addEventListener("click", (e) => {
+            const btn = e.target.closest("[data-bones-done]");
+            if (!btn || !listEl.contains(btn)) return;
+            e.preventDefault();
+            e.stopPropagation();
+            markDone(btn.getAttribute("data-bones-task"), btn.getAttribute("data-bones-period"));
+          });
+        }
+
         if (errorText) {
           listEl.innerHTML = `<div class="preview-empty">${escapeHtml(errorText)}</div>`;
           return;
@@ -2944,26 +2958,51 @@
         }
 
         const groupLabel = (text) => `<div style="${GROUP_LABEL_STYLE}">${escapeHtml(text)}</div>`;
-        const item = (title, meta, color) => `
-          <div class="preview-item" style="border-left-color:${color}">
-            <div class="preview-item-title">${escapeHtml(title)}</div>
+        const item = (row, meta, color) => `
+          <button class="preview-item" type="button" data-bones-done data-bones-task="${escapeHtml(row.id)}" data-bones-period="${escapeHtml(row.periodKey)}" style="border-left-color:${color}">
+            <div class="preview-item-title">${escapeHtml(row.title)}</div>
             ${meta ? `<div class="preview-item-meta">${escapeHtml(meta)}</div>` : ""}
-          </div>`;
+          </button>`;
 
         let html = "";
         if (rows.daily.length) {
           html += groupLabel("Daily Chores");
-          html += rows.daily.map((r) => item(r.title, "Every day", ACCENT)).join("");
+          html += rows.daily.map((r) => item(r, "Every day", ACCENT)).join("");
         }
         if (rows.tasks.length) {
           html += groupLabel("Tasks");
           html += rows.tasks.map((r) => {
             const overdue = r.daysSince > 0 ? `${r.daysSince}d overdue` : "Due today";
             const meta = [r.scheduleLabel, overdue].filter(Boolean).join(" · ");
-            return item(r.title, meta, AGE_COLORS[r.ageStatus] || ACCENT);
+            return item(r, meta, AGE_COLORS[r.ageStatus] || ACCENT);
           }).join("");
         }
         listEl.innerHTML = html;
+      }
+
+      async function markDone(taskId, periodKey) {
+        if (!taskId || !periodKey) return;
+        // Optimistic: drop it from the card immediately so the tap feels instant.
+        rows = {
+          daily: rows.daily.filter((r) => r.id !== taskId),
+          tasks: rows.tasks.filter((r) => r.id !== taskId),
+        };
+        render();
+        try {
+          const c = ensureClient();
+          if (!c) return;
+          const { error } = await c
+            .from(COMPLETIONS_TABLE)
+            .upsert(
+              { task_id: taskId, period_key: periodKey, completed_at: new Date().toISOString() },
+              { onConflict: "task_id,period_key" }
+            );
+          if (error) throw error;
+        } catch (err) {
+          console.error("Bones markDone failed:", err);
+        } finally {
+          load(); // resync from server (restores the item if the write failed)
+        }
       }
 
       async function load() {
@@ -2998,7 +3037,7 @@
             const schedule = getTaskSchedule(t);
             if (recurrence === "daily") {
               if (isDone(t.id, todayKey)) continue;
-              daily.push({ title: t.title, sortOrder: t.sort_order ?? 9999 });
+              daily.push({ id: t.id, title: t.title, periodKey: todayKey, sortOrder: t.sort_order ?? 9999 });
             } else {
               const periodStart = getRecurrencePeriodStart(recurrence, schedule, today);
               if (!periodStart) continue;
@@ -3007,7 +3046,9 @@
               const daysSince = Math.floor((today.getTime() - periodStart.getTime()) / MS_PER_DAY);
               if (daysSince < 0) continue;
               tasks.push({
+                id: t.id,
                 title: t.title,
+                periodKey,
                 daysSince,
                 ageStatus: getAgeStatus(daysSince),
                 scheduleLabel: getScheduleLabel(recurrence, schedule),

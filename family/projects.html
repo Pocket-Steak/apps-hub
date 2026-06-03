@@ -288,6 +288,15 @@
           <div id="projectEmpty" class="empty" style="display:none">No active projects.</div>
         </section>
       </div>
+
+      <section class="card" id="completedTodayCard">
+        <h2 class="section-title">
+          <span>Completed Today</span>
+          <span class="count" id="completedCount"></span>
+        </h2>
+        <div id="completedList" class="tile-grid"></div>
+        <div id="completedEmpty" class="empty" style="display:none">Nothing completed yet today. Tap an item above to check it off.</div>
+      </section>
     </div>
 
     <!-- SETUP TAB -->
@@ -419,6 +428,9 @@
     const projectList = document.getElementById("projectList");
     const projectEmpty = document.getElementById("projectEmpty");
     const projectCount = document.getElementById("projectCount");
+    const completedList = document.getElementById("completedList");
+    const completedEmpty = document.getElementById("completedEmpty");
+    const completedCount = document.getElementById("completedCount");
 
     // Setup elements
     const titleInput = document.getElementById("titleInput");
@@ -724,6 +736,65 @@
       for (const row of dailyTasks)   renderTile(dailyList,   row, "green");
       for (const row of dateTasks)    renderTile(dateList,    row, getAgeStatus(row.daysSince));
       for (const row of projectTasks) renderTile(projectList, row, "green");
+
+      renderCompletedToday(todayKey);
+    }
+
+    // Everything completed *today* (any type), newest first, with an Undo that
+    // deletes the completion row so the item returns to its pending list. Filters
+    // on completed_at === today, so this list is empty again after midnight — no
+    // records are deleted on rollover (deleting would make weekly/monthly tasks
+    // wrongly reappear as pending the next day).
+    function renderCompletedToday(todayKey) {
+      completedList.innerHTML = "";
+      const isToday = (ts) => {
+        if (!ts) return false;
+        const d = new Date(ts);
+        return !Number.isNaN(d.getTime()) && formatDateKey(d) === todayKey;
+      };
+
+      const completedRows = [];
+      for (const comp of completions) {
+        if (!isToday(comp.completed_at)) continue;
+        const task = tasks.find((t) => t.id === comp.task_id);
+        if (!task) continue;
+        completedRows.push({ task, periodKey: comp.period_key, completedAt: comp.completed_at });
+      }
+      completedRows.sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime());
+
+      completedCount.textContent = completedRows.length ? `${completedRows.length} done` : "";
+      completedEmpty.style.display = completedRows.length ? "none" : "block";
+
+      for (const row of completedRows) {
+        const tile = document.createElement("article");
+        tile.className = "tile";
+        tile.style.opacity = "0.8";
+        tile.innerHTML = `
+          <div class="tile-title">${escapeHtml(row.task.title)}</div>
+          <div class="tile-actions">
+            <button class="tile-action" type="button">Undo</button>
+          </div>
+        `;
+        tile.querySelector(".tile-action").addEventListener("click", () => undoCompletion(row.task.id, row.periodKey));
+        completedList.appendChild(tile);
+      }
+    }
+
+    async function undoCompletion(taskId, periodKey) {
+      try {
+        const client = ensureClient();
+        const { error } = await client
+          .from(COMPLETIONS_TABLE)
+          .delete()
+          .eq("task_id", taskId)
+          .eq("period_key", periodKey);
+        if (error) throw error;
+        await loadAll({ silent: true });
+        showMessage("Moved back to the list.", "success");
+      } catch (error) {
+        console.error(error);
+        showMessage(error?.message || "Failed to undo.", "error");
+      }
     }
 
     function renderSetup() {
