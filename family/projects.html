@@ -197,6 +197,26 @@
       border: 1px dashed var(--border-strong); border-radius: var(--radius-md);
     }
 
+    /* Room of the Month: inline per-room task editor */
+    .room-editor {
+      margin: 4px 0 10px; padding: 10px 12px;
+      border: 1px solid var(--border); border-left: 3px solid var(--accent);
+      border-radius: var(--radius-md); background: rgba(255,255,255,0.015);
+    }
+    .room-editor .group-title { margin-bottom: 8px; }
+    .room-task-line {
+      display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center;
+      padding: 7px 10px; margin-top: 6px; border: 1px solid var(--border);
+      border-radius: var(--radius-md); background: rgba(255,255,255,0.02);
+    }
+    .room-task-line .rt-title { font-weight: 600; font-size: 14px; word-break: break-word; }
+    .room-add-line { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .room-add-line input {
+      flex: 1; min-width: 160px; min-height: 38px; padding: 8px 10px; font-size: 13px;
+      background: var(--surface, rgba(255,255,255,0.04)); color: var(--text);
+      border: 1px solid var(--border); border-radius: var(--radius-md);
+    }
+
     @media (max-width: 1200px) {
       .view-grid { grid-template-columns: 1fr 1fr; }
     }
@@ -381,6 +401,29 @@
           <div id="setupProjectList"></div>
           <div id="setupProjectEmpty" class="empty-mini" style="display:none">No projects yet.</div>
         </div>
+      </section>
+
+      <section class="card">
+        <h2 id="roomFormTitle">Room of the Month</h2>
+        <div class="helper">Assign one room to each month. The family dashboard shows the current month's room and its checklist; the tasks reset fresh at the start of each month.</div>
+        <div class="setup-form" style="margin-top: 12px">
+          <div class="form-grid">
+            <div class="field field-title">
+              <label for="roomNameInput">Room name</label>
+              <input id="roomNameInput" type="text" placeholder="e.g. Master Bathroom" />
+            </div>
+            <div class="field">
+              <label for="roomMonthSelect">Month</label>
+              <select id="roomMonthSelect"></select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-accent" id="roomSaveBtn" type="button">Add Room</button>
+            <button class="btn" id="roomCancelBtn" type="button" style="display:none">Cancel Edit</button>
+          </div>
+        </div>
+        <div id="roomsList" style="margin-top: 14px"></div>
+        <div id="roomsEmpty" class="empty-mini" style="display:none">No rooms yet.</div>
       </section>
     </div>
   </main>
@@ -1022,6 +1065,236 @@
 
     setStatus("Loading…", false);
     loadAll();
+  </script>
+
+  <!-- Room of the Month manager. Self-contained IIFE (isolated from the task
+       system above) reading/writing family_rooms + family_room_tasks. Lets you
+       assign one room per month and edit each room's checklist; the family
+       dashboard renders the current month's room + tap-to-complete tasks. -->
+  <script>
+    (function () {
+      const ROOMS_TABLE = "family_rooms";
+      const ROOM_TASKS_TABLE = "family_room_tasks";
+      const MONTH_LABELS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+      let rclient = null;
+      let rsig = "";
+      let rooms = [];                 // [{id, name, month, sort_order}]
+      let tasksByRoom = {};           // roomId -> [{id, title, sort_order}]
+      let editingRoomId = null;
+      const expanded = new Set();     // roomIds whose task editor is open
+
+      const $ = (id) => document.getElementById(id);
+      function esc(v){return String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");}
+      function toast(text, type){ if (typeof window.showMessage === "function") window.showMessage(text, type); }
+
+      function ensureClient() {
+        const cfg = window.PocketSteakSupabase?.getConfig?.();
+        if (!cfg?.configured) throw new Error("Supabase not configured.");
+        const sig = `${cfg.url}::${cfg.anonKey}`;
+        if (!rclient || rsig !== sig) {
+          rclient = window.PocketSteakSupabase.createClient();
+          rsig = sig;
+        }
+        return rclient;
+      }
+
+      function populateMonthSelect() {
+        const sel = $("roomMonthSelect");
+        if (!sel) return;
+        const current = new Date().getMonth() + 1;
+        sel.innerHTML = MONTH_LABELS.map((label, i) => `<option value="${i+1}">${label}</option>`).join("");
+        sel.value = String(current);
+      }
+
+      function clearForm() {
+        editingRoomId = null;
+        $("roomNameInput").value = "";
+        populateMonthSelect();
+        $("roomSaveBtn").textContent = "Add Room";
+        $("roomCancelBtn").style.display = "none";
+        $("roomFormTitle").textContent = "Room of the Month";
+      }
+
+      function startEdit(id) {
+        const r = rooms.find((x) => x.id === id);
+        if (!r) return;
+        editingRoomId = id;
+        $("roomNameInput").value = r.name || "";
+        $("roomMonthSelect").value = String(r.month);
+        $("roomSaveBtn").textContent = "Save Changes";
+        $("roomCancelBtn").style.display = "";
+        $("roomFormTitle").textContent = "Edit Room";
+        $("roomNameInput").focus();
+      }
+
+      function render() {
+        const list = $("roomsList");
+        const empty = $("roomsEmpty");
+        if (!list) return;
+        empty.style.display = rooms.length ? "none" : "block";
+        const sorted = [...rooms].sort((a, b) => a.month - b.month || (a.sort_order ?? 9999) - (b.sort_order ?? 9999) || a.name.localeCompare(b.name));
+        list.innerHTML = "";
+        for (const r of sorted) {
+          const rTasks = tasksByRoom[r.id] || [];
+          const open = expanded.has(r.id);
+          const wrap = document.createElement("div");
+          wrap.innerHTML = `
+            <div class="task-row">
+              <div class="task-info">
+                <div class="task-title"><span class="badge">${esc(MONTH_LABELS[r.month-1] || "")}</span>${esc(r.name)}</div>
+                <div class="task-meta"><span>${rTasks.length} task${rTasks.length === 1 ? "" : "s"}</span></div>
+              </div>
+              <div class="task-actions">
+                <button class="btn" type="button" data-tasks="${esc(r.id)}">${open ? "Hide Tasks" : "Tasks"}</button>
+                <button class="btn" type="button" data-edit="${esc(r.id)}">Edit</button>
+                <button class="btn btn-danger" type="button" data-del="${esc(r.id)}">Delete</button>
+              </div>
+            </div>
+            ${open ? `
+            <div class="room-editor">
+              <div class="group-title">${esc(r.name)} — checklist</div>
+              <div data-tasklines="${esc(r.id)}">
+                ${rTasks.length ? rTasks.map((t) => `
+                  <div class="room-task-line">
+                    <div class="rt-title">${esc(t.title)}</div>
+                    <button class="btn btn-danger" type="button" data-deltask="${esc(t.id)}">Delete</button>
+                  </div>`).join("") : `<div class="empty-mini">No tasks yet — add the first one below.</div>`}
+              </div>
+              <div class="room-add-line">
+                <input type="text" placeholder="Add a task (e.g. Scrub shower)" data-addinput="${esc(r.id)}" />
+                <button class="btn btn-accent" type="button" data-addtask="${esc(r.id)}">Add Task</button>
+              </div>
+            </div>` : ""}
+          `;
+          // Wire row buttons
+          wrap.querySelector("[data-tasks]").addEventListener("click", () => {
+            if (expanded.has(r.id)) expanded.delete(r.id); else expanded.add(r.id);
+            render();
+          });
+          wrap.querySelector("[data-edit]").addEventListener("click", () => startEdit(r.id));
+          wrap.querySelector("[data-del]").addEventListener("click", () => deleteRoom(r.id));
+          if (open) {
+            const addBtn = wrap.querySelector("[data-addtask]");
+            const addInput = wrap.querySelector("[data-addinput]");
+            addBtn.addEventListener("click", () => addTask(r.id, addInput.value));
+            addInput.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addTask(r.id, addInput.value); } });
+            wrap.querySelectorAll("[data-deltask]").forEach((b) =>
+              b.addEventListener("click", () => deleteTask(b.getAttribute("data-deltask")))
+            );
+          }
+          list.appendChild(wrap);
+        }
+      }
+
+      async function load() {
+        try {
+          const c = ensureClient();
+          const roomsRes = await c
+            .from(ROOMS_TABLE)
+            .select("id,name,month,sort_order,created_at")
+            .order("month", { ascending: true })
+            .order("sort_order", { ascending: true, nullsLast: true });
+          if (roomsRes.error) throw roomsRes.error;
+          rooms = roomsRes.data || [];
+
+          tasksByRoom = {};
+          const ids = rooms.map((r) => r.id);
+          if (ids.length) {
+            const tRes = await c
+              .from(ROOM_TASKS_TABLE)
+              .select("id,room_id,title,sort_order,created_at")
+              .in("room_id", ids)
+              .order("sort_order", { ascending: true, nullsLast: true })
+              .order("created_at", { ascending: true });
+            if (tRes.error) throw tRes.error;
+            for (const t of (tRes.data || [])) {
+              (tasksByRoom[t.room_id] = tasksByRoom[t.room_id] || []).push(t);
+            }
+          }
+          render();
+        } catch (err) {
+          console.error("Rooms load failed:", err);
+          toast(err?.message || "Failed to load rooms.", "error");
+        }
+      }
+
+      async function saveRoom() {
+        const name = $("roomNameInput").value.trim();
+        const month = Number($("roomMonthSelect").value);
+        if (!name) { toast("Enter a room name.", "error"); return; }
+        if (!(month >= 1 && month <= 12)) { toast("Pick a month.", "error"); return; }
+        try {
+          const c = ensureClient();
+          if (editingRoomId) {
+            const { error } = await c.from(ROOMS_TABLE).update({ name, month }).eq("id", editingRoomId);
+            if (error) throw error;
+            toast("Room updated.", "success");
+          } else {
+            const { error } = await c.from(ROOMS_TABLE).insert({ name, month });
+            if (error) throw error;
+            toast("Room added.", "success");
+          }
+          clearForm();
+          await load();
+        } catch (err) {
+          console.error("Save room failed:", err);
+          toast(err?.message || "Failed to save room.", "error");
+        }
+      }
+
+      async function deleteRoom(id) {
+        const r = rooms.find((x) => x.id === id);
+        if (!confirm(`Delete "${r?.name || "this room"}" and all its tasks?`)) return;
+        try {
+          const c = ensureClient();
+          const { error } = await c.from(ROOMS_TABLE).delete().eq("id", id);
+          if (error) throw error;
+          expanded.delete(id);
+          if (editingRoomId === id) clearForm();
+          toast("Room deleted.", "success");
+          await load();
+        } catch (err) {
+          console.error("Delete room failed:", err);
+          toast(err?.message || "Failed to delete room.", "error");
+        }
+      }
+
+      async function addTask(roomId, rawTitle) {
+        const title = String(rawTitle || "").trim();
+        if (!title) { toast("Enter a task.", "error"); return; }
+        try {
+          const c = ensureClient();
+          const { error } = await c.from(ROOM_TASKS_TABLE).insert({ room_id: roomId, title });
+          if (error) throw error;
+          expanded.add(roomId);
+          await load();
+        } catch (err) {
+          console.error("Add room task failed:", err);
+          toast(err?.message || "Failed to add task.", "error");
+        }
+      }
+
+      async function deleteTask(taskId) {
+        try {
+          const c = ensureClient();
+          const { error } = await c.from(ROOM_TASKS_TABLE).delete().eq("id", taskId);
+          if (error) throw error;
+          await load();
+        } catch (err) {
+          console.error("Delete room task failed:", err);
+          toast(err?.message || "Failed to delete task.", "error");
+        }
+      }
+
+      // Init
+      populateMonthSelect();
+      $("roomSaveBtn")?.addEventListener("click", saveRoom);
+      $("roomCancelBtn")?.addEventListener("click", clearForm);
+      $("roomNameInput")?.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); saveRoom(); } });
+      render();  // show the "No rooms yet" empty state immediately, before the first load resolves
+      load();
+    })();
   </script>
 </body>
 </html>

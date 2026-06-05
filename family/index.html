@@ -820,6 +820,120 @@
       line-height:1.4;
     }
 
+    /* Middle dashboard column: compact "Room of the Month" tile stacked above the
+       Bones card. Room tile sizes to its content; Bones fills the rest. */
+    .preview-column{
+      min-height:0;
+      display:grid;
+      grid-template-rows:auto minmax(0, 1fr);
+      gap:12px;
+    }
+
+    .room-card{
+      grid-template-rows:auto auto;
+      cursor:pointer;
+    }
+
+    .room-month-label{
+      color:var(--muted);
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      white-space:nowrap;
+    }
+
+    .room-card-body{
+      display:grid;
+      gap:8px;
+      align-content:start;
+    }
+
+    .room-name{
+      font-size:22px;
+      font-weight:900;
+      line-height:1.05;
+      letter-spacing:-.02em;
+      word-break:break-word;
+    }
+
+    .room-progress{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .room-progress-track{
+      flex:1;
+      height:8px;
+      border-radius:999px;
+      background:rgba(255,255,255,.1);
+      overflow:hidden;
+    }
+
+    .room-progress-fill{
+      height:100%;
+      border-radius:999px;
+      background:#16a34a;
+      transition:width .25s ease;
+    }
+
+    .room-progress-count{
+      font-size:12px;
+      font-weight:900;
+      color:var(--muted);
+      white-space:nowrap;
+    }
+
+    .room-modal .room-progress{ margin-top:-2px; }
+
+    .room-task{
+      width:100%;
+      text-align:left;
+      appearance:none;
+      font:inherit;
+      color:inherit;
+      cursor:pointer;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03)),
+        var(--surface);
+      border:1px solid rgba(255,255,255,.05);
+      border-left:4px solid #16a34a;
+      border-radius:14px;
+      padding:12px 14px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      transition:transform .18s ease, background .18s ease, opacity .18s ease;
+    }
+
+    .room-task:hover{ transform:translateY(-1px); }
+
+    .room-task-check{
+      width:22px;
+      height:22px;
+      flex:0 0 auto;
+      border-radius:7px;
+      border:2px solid rgba(255,255,255,.28);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:14px;
+      font-weight:900;
+      color:#fff;
+    }
+
+    .room-task-title{
+      font-size:15px;
+      font-weight:850;
+      line-height:1.2;
+      word-break:break-word;
+    }
+
+    .room-task.done{ opacity:.55; }
+    .room-task.done .room-task-check{ background:#16a34a; border-color:#16a34a; }
+    .room-task.done .room-task-title{ text-decoration:line-through; }
+
 
     .dinner-week-label{
       color:var(--muted);
@@ -2655,17 +2769,32 @@
           </div>
         </article>
 
-        <article class="preview-card" id="bonesPreviewCard">
-          <div class="preview-head">
-            <div class="preview-heading">
-              <div class="preview-title">Bones</div>
+        <div class="preview-column">
+          <article class="preview-card room-card" id="roomPreviewCard">
+            <div class="preview-head">
+              <div class="preview-heading">
+                <div class="preview-title">Room of the Month</div>
+                <div class="room-month-label" id="roomMonthLabel"></div>
+              </div>
+              <button class="preview-open" id="roomPreviewBtn" type="button">Open Room</button>
             </div>
-            <button class="preview-open" id="bonesPreviewBtn" type="button">Open Bones</button>
-          </div>
-          <div class="preview-list" id="bonesPreviewList">
-            <div class="preview-empty">Loading chores &amp; tasks…</div>
-          </div>
-        </article>
+            <div class="room-card-body" id="roomPreviewBody">
+              <div class="preview-empty">Loading room…</div>
+            </div>
+          </article>
+
+          <article class="preview-card" id="bonesPreviewCard">
+            <div class="preview-head">
+              <div class="preview-heading">
+                <div class="preview-title">Bones</div>
+              </div>
+              <button class="preview-open" id="bonesPreviewBtn" type="button">Open Bones</button>
+            </div>
+            <div class="preview-list" id="bonesPreviewList">
+              <div class="preview-empty">Loading chores &amp; tasks…</div>
+            </div>
+          </article>
+        </div>
 
         <article class="preview-card dinner-menu-card" id="dinnerMenuCard">
           <div class="preview-head">
@@ -2680,6 +2809,20 @@
         </article>
 
       </section>
+    </section>
+  </div>
+
+  <div class="dinner-modal-backdrop" id="roomTaskModal" aria-hidden="true">
+    <section class="dinner-modal room-modal" role="dialog" aria-modal="true" aria-labelledby="roomModalTitle">
+      <div class="dinner-modal-head">
+        <div>
+          <div class="dinner-week-label" id="roomModalMonth">This month</div>
+          <div class="dinner-modal-title" id="roomModalTitle">Room</div>
+        </div>
+        <button class="dinner-action" id="roomModalCloseBtn" type="button">Close</button>
+      </div>
+      <div class="room-progress" id="roomModalProgress"></div>
+      <div class="dinner-view-list" id="roomModalList"></div>
     </section>
   </div>
 
@@ -2967,7 +3110,9 @@
         let html = "";
         if (rows.daily.length) {
           html += groupLabel("Daily Chores");
-          html += rows.daily.map((r) => item(r, "Every day", ACCENT)).join("");
+          // Daily chores are always done same-day, so they're green (not the orange
+          // accent) to match the Bones page, where daily tiles also render green.
+          html += rows.daily.map((r) => item(r, "Every day", AGE_COLORS.green)).join("");
         }
         if (rows.tasks.length) {
           html += groupLabel("Tasks");
@@ -3079,6 +3224,257 @@
       }
 
       window.BonesPreview = { load, render, reset };
+    })();
+  </script>
+
+  <!-- Room of the Month dashboard preview. Self-contained IIFE reading the
+       family_rooms / family_room_tasks / family_room_task_completions tables.
+       One room is assigned per calendar month; the tile shows the current month's
+       room + checklist progress and opens an overlay of tap-to-complete tasks.
+       Completions are keyed by period_key = 'YYYY-MM' so each month starts fresh.
+       Exposes window.RoomPreview. -->
+  <script>
+    (function () {
+      const ROOMS_TABLE = "family_rooms";
+      const ROOM_TASKS_TABLE = "family_room_tasks";
+      const ROOM_COMPLETIONS_TABLE = "family_room_task_completions";
+      const MONTH_LABELS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+      let room = null;            // the room for the current month (or null)
+      let tasks = [];             // [{id, title, done}]
+      let monthLabel = "";
+      let periodKey = "";
+      let errorText = "";
+      let loaded = false;
+      let client = null;
+      let clientSig = "";
+      let overlayWired = false;
+
+      function escapeHtml(v){return String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");}
+
+      function getCurrentPeriod() {
+        const ps = window.PocketSteakSupabase;
+        const d = ps?.getStartOfDay ? ps.getStartOfDay(new Date()) : (() => { const x = new Date(); x.setHours(0,0,0,0); return x; })();
+        const y = d.getFullYear();
+        const mi = d.getMonth();
+        return { key: `${y}-${String(mi+1).padStart(2,"0")}`, monthNum: mi + 1, label: MONTH_LABELS[mi] };
+      }
+
+      function ensureClient() {
+        const cfg = window.PocketSteakSupabase?.getConfig?.();
+        if (!cfg?.configured) return null;
+        const sig = `${cfg.url}::${cfg.anonKey}`;
+        if (!client || clientSig !== sig) {
+          client = window.PocketSteakSupabase.createClient();
+          clientSig = sig;
+        }
+        return client;
+      }
+
+      function doneCount(){ return tasks.filter((t) => t.done).length; }
+
+      function renderCard() {
+        const body = document.getElementById("roomPreviewBody");
+        const labelEl = document.getElementById("roomMonthLabel");
+        const openBtn = document.getElementById("roomPreviewBtn");
+        if (!body) return;
+        if (labelEl) labelEl.textContent = monthLabel || "";
+
+        if (errorText) {
+          body.innerHTML = `<div class="preview-empty">${escapeHtml(errorText)}</div>`;
+          if (openBtn) openBtn.style.display = "none";
+          return;
+        }
+        if (!loaded) {
+          body.innerHTML = `<div class="preview-empty">Loading room…</div>`;
+          if (openBtn) openBtn.style.display = "none";
+          return;
+        }
+        if (!room) {
+          body.innerHTML = `<div class="preview-empty">No room set for ${escapeHtml(monthLabel)}. Add one in Bones settings.</div>`;
+          if (openBtn) openBtn.style.display = "none";
+          return;
+        }
+        if (openBtn) openBtn.style.display = "";
+
+        const total = tasks.length;
+        const done = doneCount();
+        const pct = total ? Math.round((done / total) * 100) : 0;
+        body.innerHTML = `
+          <div class="room-name">${escapeHtml(room.name)}</div>
+          <div class="room-progress">
+            <div class="room-progress-track"><div class="room-progress-fill" style="width:${pct}%"></div></div>
+            <div class="room-progress-count">${done}/${total || 0}</div>
+          </div>`;
+      }
+
+      function renderOverlay() {
+        const listEl = document.getElementById("roomModalList");
+        const titleEl = document.getElementById("roomModalTitle");
+        const monthEl = document.getElementById("roomModalMonth");
+        const progEl = document.getElementById("roomModalProgress");
+        if (!listEl) return;
+        if (titleEl) titleEl.textContent = room ? room.name : "Room";
+        if (monthEl) monthEl.textContent = monthLabel || "This month";
+
+        const total = tasks.length;
+        const done = doneCount();
+        const pct = total ? Math.round((done / total) * 100) : 0;
+        if (progEl) {
+          progEl.innerHTML = total
+            ? `<div class="room-progress-track"><div class="room-progress-fill" style="width:${pct}%"></div></div>
+               <div class="room-progress-count">${done}/${total} done</div>`
+            : "";
+        }
+
+        if (!total) {
+          listEl.innerHTML = `<div class="preview-empty">No tasks for this room yet. Add them in Bones settings.</div>`;
+          return;
+        }
+        listEl.innerHTML = tasks.map((t) => `
+          <button class="room-task${t.done ? " done" : ""}" type="button" data-room-task="${escapeHtml(t.id)}">
+            <span class="room-task-check">${t.done ? "✓" : ""}</span>
+            <span class="room-task-title">${escapeHtml(t.title)}</span>
+          </button>`).join("");
+      }
+
+      function render() { renderCard(); if (isOverlayOpen()) renderOverlay(); }
+
+      function isOverlayOpen() {
+        const m = document.getElementById("roomTaskModal");
+        return m && m.classList.contains("open");
+      }
+
+      function openOverlay() {
+        if (!room) return;
+        const m = document.getElementById("roomTaskModal");
+        if (!m) return;
+        renderOverlay();
+        m.classList.add("open");
+        m.setAttribute("aria-hidden", "false");
+      }
+
+      function closeOverlay() {
+        const m = document.getElementById("roomTaskModal");
+        if (!m) return;
+        m.classList.remove("open");
+        m.setAttribute("aria-hidden", "true");
+      }
+
+      async function toggleTask(taskId) {
+        const t = tasks.find((x) => x.id === taskId);
+        if (!t) return;
+        const next = !t.done;
+        // Optimistic flip.
+        t.done = next;
+        render();
+        try {
+          const c = ensureClient();
+          if (!c) return;
+          if (next) {
+            const { error } = await c
+              .from(ROOM_COMPLETIONS_TABLE)
+              .upsert(
+                { room_task_id: taskId, period_key: periodKey, completed_at: new Date().toISOString() },
+                { onConflict: "room_task_id,period_key" }
+              );
+            if (error) throw error;
+          } else {
+            const { error } = await c
+              .from(ROOM_COMPLETIONS_TABLE)
+              .delete()
+              .eq("room_task_id", taskId)
+              .eq("period_key", periodKey);
+            if (error) throw error;
+          }
+        } catch (err) {
+          console.error("Room task toggle failed:", err);
+          t.done = !next; // revert on failure
+          render();
+        }
+      }
+
+      function wireOverlay() {
+        if (overlayWired) return;
+        overlayWired = true;
+        const m = document.getElementById("roomTaskModal");
+        const closeBtn = document.getElementById("roomModalCloseBtn");
+        const listEl = document.getElementById("roomModalList");
+        if (closeBtn) closeBtn.addEventListener("click", closeOverlay);
+        if (m) m.addEventListener("click", (e) => { if (e.target === m) closeOverlay(); });
+        if (listEl) listEl.addEventListener("click", (e) => {
+          const btn = e.target.closest("[data-room-task]");
+          if (!btn || !listEl.contains(btn)) return;
+          e.preventDefault();
+          toggleTask(btn.getAttribute("data-room-task"));
+        });
+      }
+
+      async function load() {
+        wireOverlay();
+        const period = getCurrentPeriod();
+        periodKey = period.key;
+        monthLabel = period.label;
+        try {
+          const c = ensureClient();
+          if (!c) { errorText = "Bones isn't connected to Supabase yet."; loaded = true; render(); return; }
+
+          const roomsRes = await c
+            .from(ROOMS_TABLE)
+            .select("id,name,month,sort_order,created_at")
+            .eq("month", period.monthNum)
+            .order("sort_order", { ascending: true, nullsLast: true })
+            .order("created_at", { ascending: true });
+          if (roomsRes.error) throw roomsRes.error;
+
+          room = (roomsRes.data || [])[0] || null;
+          tasks = [];
+
+          if (room) {
+            const tasksRes = await c
+              .from(ROOM_TASKS_TABLE)
+              .select("id,title,sort_order,created_at")
+              .eq("room_id", room.id)
+              .order("sort_order", { ascending: true, nullsLast: true })
+              .order("created_at", { ascending: true });
+            if (tasksRes.error) throw tasksRes.error;
+
+            const taskRows = tasksRes.data || [];
+            const ids = taskRows.map((t) => t.id);
+            let completed = new Set();
+            if (ids.length) {
+              const compRes = await c
+                .from(ROOM_COMPLETIONS_TABLE)
+                .select("room_task_id,period_key")
+                .eq("period_key", periodKey)
+                .in("room_task_id", ids);
+              if (compRes.error) throw compRes.error;
+              completed = new Set((compRes.data || []).map((x) => x.room_task_id));
+            }
+            tasks = taskRows.map((t) => ({ id: t.id, title: t.title, done: completed.has(t.id) }));
+          }
+
+          errorText = "";
+          loaded = true;
+          render();
+        } catch (err) {
+          console.error("Room preview load failed:", err);
+          errorText = "Couldn't load the room right now.";
+          loaded = true;
+          render();
+        }
+      }
+
+      function reset() {
+        room = null;
+        tasks = [];
+        errorText = "";
+        loaded = false;
+        closeOverlay();
+        render();
+      }
+
+      window.RoomPreview = { load, render, reset, open: openOverlay };
     })();
   </script>
 
@@ -4183,6 +4579,7 @@
         accentColor: "#ff7a18",
       });
       window.BonesPreview?.render();
+      window.RoomPreview?.render();
     }
 
     function renderPreviewCard({ rows, listId, emptyText, accentColor = "#ff7a18", errorText = "" }) {
@@ -4842,6 +5239,7 @@
       // Bones runs in parallel and renders itself (handles its own errors), so
       // it doesn't block or affect the grocery/dinner load below.
       window.BonesPreview?.load();
+      window.RoomPreview?.load();
 
       const results = await Promise.allSettled([
         loadGroceryPreview(),
@@ -5109,6 +5507,7 @@
       notesPreviewRows = [];
       notesPreviewError = "";
       window.BonesPreview?.reset();
+      window.RoomPreview?.reset();
       document.getElementById("authBtn").textContent = "Connect";
       document.getElementById("signOutBtn").style.display = "none";
       setStatus("Not connected");
@@ -5251,6 +5650,13 @@
     document.getElementById("groceryPreviewBtn").addEventListener("click", (event) => {
       event.stopPropagation();
       openDashboardOverlay("Grocery List", "/grocery/");
+    });
+    document.getElementById("roomPreviewCard").addEventListener("click", () => {
+      window.RoomPreview?.open();
+    });
+    document.getElementById("roomPreviewBtn").addEventListener("click", (event) => {
+      event.stopPropagation();
+      window.RoomPreview?.open();
     });
     document.getElementById("bonesPreviewCard").addEventListener("click", () => {
       openDashboardOverlay("Bones", "/projects/");
