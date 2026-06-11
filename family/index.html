@@ -2707,7 +2707,7 @@
         </a>
         <a class="mobile-menu-card" href="/grocery/">
           <span>
-            <span class="mobile-menu-card-title">Grocery List</span>
+            <span class="mobile-menu-card-title">Shop</span>
             <span class="mobile-menu-card-meta">Fast shelf-by-shelf shopping view.</span>
           </span>
           <span class="mobile-menu-arrow" aria-hidden="true">›</span>
@@ -2775,7 +2775,7 @@
         <article class="preview-card" id="groceryPreviewCard">
           <div class="preview-head">
             <div class="preview-heading">
-              <div class="preview-title">Grocery List</div>
+              <div class="preview-title">Shop</div>
             </div>
             <button class="preview-open" id="groceryPreviewBtn" type="button">Open List</button>
           </div>
@@ -5660,11 +5660,11 @@
       }
     });
     document.getElementById("groceryPreviewCard").addEventListener("click", () => {
-      openDashboardOverlay("Grocery List", "/grocery/");
+      openDashboardOverlay("Shop", "/grocery/");
     });
     document.getElementById("groceryPreviewBtn").addEventListener("click", (event) => {
       event.stopPropagation();
-      openDashboardOverlay("Grocery List", "/grocery/");
+      openDashboardOverlay("Shop", "/grocery/");
     });
     document.getElementById("roomPreviewCard").addEventListener("click", () => {
       window.RoomPreview?.open();
