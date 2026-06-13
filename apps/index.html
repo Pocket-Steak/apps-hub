@@ -295,13 +295,12 @@
 
     const APPS = [
       { name: "Recipe Extractor",      desc: "Pull clean recipes from the web.",                                   icon: "chef",     url: "https://pocketsteak-recipes.vercel.app/" },
-      { name: "Family Command Center", desc: "Weekly calendar, grocery list, to-do list, and family notes.",       icon: "home",     url: "/family/" },
+      { name: "Bones Command Center",  desc: "Family kitchen kiosk — calendar, grocery, chores, notes.",            icon: "home",     url: "https://bones-command-center.vercel.app/" },
       { name: "FAVES",                 desc: "Store your top favorite things in ranked lists.",                   icon: "star",     url: "https://pocket-faves.vercel.app/" },
       { name: "MTG Tracker",           desc: "Track MTG social activity and sign-ins.",                           icon: "layers",   url: "https://mtgsocialtracker.vercel.app/auth/sign-in" },
       { name: "Diamond Edge",          desc: "Baseball betting picks and edges.",                                 icon: "baseball", url: "https://baseball-betting-app.vercel.app/" },
       { name: "Schedule Sync",         desc: "Manage shifts and weekly work schedules.",                          icon: "calendar", url: "https://shiftsync-peach.vercel.app/" },
       { name: "Countdown",             desc: "Live countdown to August 15, 2026.",                                icon: "timer",    url: "/countdown/" },
-      { name: "Command Center TST",    desc: "Test copy of the family command center for trying changes safely.", icon: "flask",    url: "/family-tst/" },
     ];
 
     const grid = document.getElementById('app-grid');
@@ -311,7 +310,7 @@
         <div class="card-title">${a.name}</div>
         <div class="card-desc">${a.desc}</div>
         <span class="card-cta">Launch →</span>
-        <div class="card-num">${String(i + 1).padStart(2, '0')} / 08</div>
+        <div class="card-num">${String(i + 1).padStart(2, '0')} / ${String(APPS.length).padStart(2, '0')}</div>
       </a>
     `).join('');
 
