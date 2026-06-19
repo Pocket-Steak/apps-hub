@@ -191,25 +191,30 @@
     .action-link {
       display: inline-flex;
       align-items: center;
-      min-height: 42px;
-      padding: 0 16px;
+      justify-content: center;
+      min-height: 48px;
+      max-width: 100%;
+      padding: 0 18px;
       border: 1px solid var(--rule-hi);
       color: var(--ink);
       text-decoration: none;
-      font-family: 'JetBrains Mono', ui-monospace, monospace;
-      font-size: 11px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0;
+      line-height: 1.2;
+      text-align: center;
+      overflow-wrap: anywhere;
       transition: border-color 0.15s, color 0.15s, background 0.15s;
     }
     .action-link.primary {
-      border-color: rgba(255,69,0,0.5);
-      color: var(--accent-hi);
+      background: var(--accent-hi);
+      border-color: var(--accent-hi);
+      color: #130d09;
     }
     .action-link:hover, .action-link:focus-visible {
-      background: var(--bg-soft);
+      background: var(--accent);
       border-color: var(--accent);
-      color: var(--accent-hi);
+      color: #130d09;
       outline: none;
     }
 
