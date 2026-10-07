@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "apps-hub",
+      "runtimeExecutable": "vercel",
+      "runtimeArgs": ["dev", "--listen", "3107", "--yes"],
+      "port": 3107
+    }
+  ]
+}

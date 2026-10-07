@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pocket Steak StackD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #100e0c;
+      --bg-soft:   #181513;
+      --ink:       #ece6da;
+      --ink-soft:  #cfc6b8;
+      --ink-dim:   #8a8278;
+      --rule:      #2a2520;
+      --rule-hi:   #3a3328;
+      --accent:    #ff4500;
+      --accent-hi: #ff5d20;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'Inter', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      font-feature-settings: "ss01", "cv11";
+      overflow-x: hidden;
+    }
+    body { min-height: 100vh; }
+    .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+    /* ── Top rail ───────────────────── */
+    .rail {
+      border-bottom: 1px solid var(--rule);
+      padding: 14px 28px;
+      display: flex; align-items: center; justify-content: space-between;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      color: var(--ink-dim);
+      text-transform: uppercase;
+    }
+    .rail-brand { display: flex; align-items: center; gap: 12px; color: var(--ink); }
+    .rail-private {
+      color: var(--ink-dim); text-decoration: none;
+      border: 1px solid var(--rule-hi); padding: 6px 10px; border-radius: 2px;
+      transition: color .2s, border-color .2s;
+    }
+    .rail-private:hover, .rail-private:focus-visible { color: var(--accent); border-color: var(--accent); }
+    .rail-brand img { width: 22px; height: 22px; object-fit: contain; opacity: 0.95; }
+
+    /* ── Hero ───────────────────────── */
+    .hero { position: relative; padding: 88px 28px 64px; border-bottom: 1px solid var(--rule); overflow: hidden; }
+    .hero-inner { max-width: 1320px; margin: 0 auto; position: relative; }
+
+    /* Featured logo. Positioned by JS (placeLogo): centred in the gap between the
+       wordmark's right edge and the screen's right edge, and vertically on the
+       wordmark's centre. translate(-50%,-50%) on the WRAP does the centring; the
+       inner <img> owns the intro animation transform, so the two never fight. */
+    .hero-mark-wrap {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .hero-mark {
+      height: 300px;            /* placeholder; JS sizes to the wordmark */
+      width: auto;
+      display: block;
+      position: relative;
+      opacity: 0.74;
+      filter: brightness(1.35) saturate(1.16);
+      will-change: transform, opacity;
+      transform-origin: center center;
+    }
+    @media (max-width: 960px) { .hero-mark-wrap { display: none; } }
+
+    .hero h1 {
+      font-size: 150px;
+      font-weight: 700;
+      line-height: 0.88;
+      letter-spacing: -0.045em;
+      text-transform: uppercase;
+      font-feature-settings: "ss01";
+    }
+    .hero h1 .line { display: block; overflow: hidden; }
+    .hero h1 .word { display: inline-block; }
+    .hero h1 .char { display: inline-block; will-change: transform, opacity; }
+    .hero h1 .accent { color: var(--accent); font-style: normal; }
+
+    .hero-foot {
+      margin-top: 48px;
+    }
+    .hero-foot p { max-width: 460px; font-size: 15px; line-height: 1.55; color: var(--ink); }
+
+    /* ── Section header ─────────────── */
+    .section {
+      padding: 20px 28px;
+      border-bottom: 1px solid var(--rule);
+      display: block;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--ink-dim);
+    }
+    .section h2 { color: var(--ink); font-weight: 700; font-size: 11px; letter-spacing: 0.16em; }
+
+    /* ── Focus grid ──────────────────── */
+    @media (max-width: 1180px) { .hero h1 { font-size: 120px; } }
+    .focus-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      border-bottom: 1px solid var(--rule);
+    }
+    .focus-card {
+      min-height: 284px;
+      padding: 30px 28px;
+      border-right: 1px solid var(--rule);
+    }
+    .focus-card:last-child { border-right: 0; }
+    .focus-card h3 {
+      font-size: 22px;
+      line-height: 1.12;
+      margin-bottom: 12px;
+    }
+    .focus-card p {
+      color: var(--ink-dim);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    /* ── Company bands ───────────────── */
+    .story {
+      border-bottom: 1px solid var(--rule);
+      padding: 72px 28px;
+    }
+    .story-inner {
+      max-width: 1224px;
+      margin: 0 auto;
+    }
+    .story-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+      gap: 80px;
+      align-items: start;
+    }
+    .story h2 {
+      font-size: 44px;
+      line-height: 1;
+      max-width: 520px;
+      margin-bottom: 24px;
+    }
+    .story p {
+      color: var(--ink-soft);
+      font-size: 18px;
+      line-height: 1.55;
+      max-width: 680px;
+    }
+    .service-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      border-top: 1px solid var(--rule);
+      border-left: 1px solid var(--rule);
+    }
+    .service-list div {
+      min-height: 132px;
+      padding: 22px;
+      border-right: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+    }
+    .service-list b {
+      display: block;
+      font-size: 17px;
+      margin-bottom: 8px;
+    }
+    .service-list span {
+      color: var(--ink-dim);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .contact-strip {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 32px;
+      align-items: center;
+      border-top: 1px solid var(--rule);
+      margin-top: 56px;
+      padding-top: 28px;
+    }
+    .contact-actions {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .action-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      max-width: 100%;
+      padding: 0 18px;
+      border: 1px solid var(--rule-hi);
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0;
+      line-height: 1.2;
+      text-align: center;
+      overflow-wrap: anywhere;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    .action-link.primary {
+      background: var(--accent-hi);
+      border-color: var(--accent-hi);
+      color: #130d09;
+    }
+    .action-link:hover, .action-link:focus-visible {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #130d09;
+      outline: none;
+    }
+
+    footer {
+      padding: 18px 28px;
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-size: 10.5px; color: var(--ink-dim);
+      text-transform: uppercase; letter-spacing: 0.12em;
+      display: flex; justify-content: space-between;
+    }
+    @media (max-width: 860px) {
+      .rail { align-items: flex-start; }
+      .hero { padding: 64px 24px 48px; }
+      .hero h1 { font-size: 68px; letter-spacing: -0.035em; }
+      .anim, .hero h1 .char, .hero-mark { animation: none !important; opacity: 1 !important; transform: none !important; }
+      .hero-foot p { max-width: 100%; overflow-wrap: break-word; }
+      .story { padding: 56px 24px; }
+      .story-grid, .contact-strip { grid-template-columns: 1fr; gap: 32px; }
+      .story h2 { font-size: 34px; }
+      .story p { font-size: 16px; }
+      .service-list { grid-template-columns: 1fr; }
+      .contact-actions { justify-content: flex-start; }
+    }
+    @media (max-width: 1100px) {
+      .focus-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .focus-card:nth-child(2n) { border-right: 0; }
+      .focus-card:nth-child(-n+2) { border-bottom: 1px solid var(--rule); }
+    }
+    @media (max-width: 640px) {
+      .hero h1 { font-size: 54px; }
+      .focus-grid { grid-template-columns: 1fr; }
+      .focus-card { min-height: 232px; border-right: 0; border-bottom: 1px solid var(--rule); }
+      .focus-card:last-child { border-bottom: 0; }
+      footer { flex-direction: column; gap: 8px; }
+    }
+
+    /* ── Motion (mode set on <body class="m-fall|m-slide">) ── */
+    body.m-fall .hero h1 .char {
+      transform: translate3d(0, -140%, 0); opacity: 0;
+      animation: fall 0.85s cubic-bezier(0.18, 0.7, 0.2, 1) forwards;
+    }
+    @keyframes fall {
+      0%   { transform: translate3d(0, -140%, 0); opacity: 0; }
+      55%  { opacity: 1; }
+      100% { transform: translate3d(0, 0, 0);     opacity: 1; }
+    }
+    body.m-slide .hero h1 .char {
+      transform: translate3d(60vw, 0, 0); opacity: 0;
+      animation: slide 0.9s cubic-bezier(0.22, 0.85, 0.2, 1) forwards;
+    }
+    @keyframes slide {
+      0%   { transform: translate3d(60vw, 0, 0); opacity: 0; }
+      35%  { opacity: 1; }
+      100% { transform: translate3d(0, 0, 0);    opacity: 1; }
+    }
+
+    /* Logo motion — matches mode */
+    body.m-fall .hero-mark {
+      opacity: 0; animation: markFall 1.6s cubic-bezier(0.2, 0.75, 0.2, 1) forwards; animation-delay: 0.3s;
+    }
+    @keyframes markFall {
+      0%   { transform: translate3d(0, -120vh, 0) rotate(0deg);   opacity: 0; }
+      8%   { opacity: 1; }
+      100% { transform: translate3d(0, 0, 0)      rotate(720deg); opacity: 1; }
+    }
+    body.m-slide .hero-mark {
+      opacity: 0; animation: markSlide 1.6s cubic-bezier(0.22, 0.85, 0.2, 1) forwards; animation-delay: 0.3s;
+    }
+    @keyframes markSlide {
+      0%   { transform: translate3d(120vw, 0, 0) rotate(0deg);   opacity: 0; }
+      12%  { opacity: 1; }
+      100% { transform: translate3d(0, 0, 0)     rotate(720deg); opacity: 1; }
+    }
+
+    /* Supporting copy fades up after the wordmark */
+    .anim { opacity: 0; }
+    body.m-fall .anim, body.m-slide .anim {
+      animation: fadeUp 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+    }
+    .rail.anim           { animation-delay: 0.05s; }
+    .hero-foot .desc     { animation-delay: 1.45s; }
+    .section.anim        { animation-delay: 1.80s; }
+    @keyframes fadeUp {
+      0%   { opacity: 0; transform: translate3d(0, 12px, 0); }
+      100% { opacity: 1; transform: translate3d(0, 0, 0); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .anim, .hero h1 .char, .hero-mark { animation: none !important; opacity: 1 !important; transform: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="rail anim">
+    <div class="rail-brand">
+      <img src="./pocket_steak_logo_ui.png" alt="" />
+      <span class="mono">Pocket Steak — StackD</span>
+    </div>
+    <a class="rail-private" href="/vault">Private</a>
+  </div>
+
+  <section class="hero">
+    <div class="hero-mark-wrap"><img class="hero-mark" id="logo" src="./pocket_steak_logo_ui.png" alt="Pocket Steak logo" decoding="async" fetchpriority="high" /></div>
+    <div class="hero-inner">
+      <h1>
+        <span class="line"><span class="word l1">Pocket</span></span>
+        <span class="line"><span class="word l2">Steak</span></span>
+        <span class="line"><span class="word l3">Stack<span class="accent">D.</span></span></span>
+      </h1>
+
+      <div class="hero-foot">
+        <p class="desc anim">Pocket Steak StackD builds practical web tools for messy real-life workflows: dashboards, trackers, decision systems, and small apps that make a day run cleaner.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="section anim" id="info">
+    <h2>Pocket Steak StackD</h2>
+  </div>
+
+  <section class="focus-grid">
+    <article class="focus-card">
+      <h3>Custom dashboards</h3>
+      <p>Command centers, admin views, planning boards, and data surfaces built around the way you actually work.</p>
+    </article>
+    <article class="focus-card">
+      <h3>Workflow tools</h3>
+      <p>Small apps for chores, shifts, lists, approvals, tracking, and recurring processes that outgrew notes.</p>
+    </article>
+    <article class="focus-card">
+      <h3>Decision systems</h3>
+      <p>Ranking, voting, comparison, and lightweight research tools for choices that need more structure.</p>
+    </article>
+    <article class="focus-card">
+      <h3>AI-assisted utilities</h3>
+      <p>Focused automations for cleanup, extraction, summarization, and repeat tasks where software can save time.</p>
+    </article>
+  </section>
+
+  <section class="story" id="about">
+    <div class="story-inner story-grid">
+      <div>
+        <h2>Small tools, built with the care usually reserved for big software.</h2>
+      </div>
+      <p>We make focused web apps for households, teams, projects, and niche workflows that are too specific for off-the-shelf software. The pattern is simple: find the recurring friction, design the calm version, then ship something people can actually use every day. Public demos will be added here later when they are ready to represent the work properly.</p>
+    </div>
+  </section>
+
+  <section class="story" id="services">
+    <div class="story-inner story-grid">
+      <div>
+        <h2>App links are private for now. Demo links will come back when they are ready.</h2>
+      </div>
+      <div class="service-list">
+        <div><b>Selected examples</b><span>A small set of demo-ready apps can be shared directly during a conversation.</span></div>
+        <div><b>Private builds</b><span>Internal tools stay private unless they are intentionally cleaned up for public viewing.</span></div>
+        <div><b>Project fit</b><span>The best work usually starts with a real recurring problem, not a generic template.</span></div>
+        <div><b>Next step</b><span>Send a note with what you want to organize, automate, or make easier to use.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="story" id="contact">
+    <div class="story-inner">
+      <div class="contact-strip">
+        <div>
+          <h2>Need a custom app, dashboard, or internal tool?</h2>
+          <p>Bring the recurring chaos. Pocket Steak StackD can help turn it into a usable system.</p>
+        </div>
+        <div class="contact-actions">
+          <a class="action-link primary" href="mailto:sizzle@pocket-steak.com">Email sizzle@pocket-steak.com</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>© 2026 Pocket Steak StackD</span>
+    <a class="rail-private" href="/vault">Private</a>
+  </footer>
+
+  <script>
+    // ── Wordmark: split into per-letter spans, chaos stagger ──
+    function splitWord(word) {
+      const walk = (node) => {
+        if (node.nodeType === 3) {
+          const frag = document.createDocumentFragment();
+          for (const ch of node.textContent) {
+            const s = document.createElement('span');
+            s.className = 'char';
+            s.textContent = ch;
+            frag.appendChild(s);
+          }
+          node.parentNode.replaceChild(frag, node);
+        } else {
+          [...node.childNodes].forEach(walk);
+        }
+      };
+      walk(word);
+    }
+
+    const STAGGER = 0.11; // seconds between each letter starting
+    function shuffleAndAnimate() {
+      const chars = [...document.querySelectorAll('.hero h1 .char')];
+      const order = chars.map((_, i) => i);
+      for (let i = order.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [order[i], order[j]] = [order[j], order[i]];
+      }
+      order.forEach((charIdx, step) => { chars[charIdx].style.animationDelay = (step * STAGGER) + 's'; });
+    }
+
+    document.querySelectorAll('.hero h1 .word').forEach(splitWord);
+    shuffleAndAnimate();
+
+    // ── Place logo: sized to wordmark height, centred vertically on the wordmark
+    // and horizontally in the gap between the text's right edge and the screen edge.
+    const FIT = 0.92;
+    function placeLogo() {
+      const h1   = document.querySelector('.hero h1');
+      const hero = document.querySelector('.hero');
+      const wrap = document.querySelector('.hero-mark-wrap');
+      const mark = document.querySelector('.hero-mark');
+      if (!h1 || !hero || !wrap || !mark) return;
+      const h1r = h1.getBoundingClientRect();
+      const heror = hero.getBoundingClientRect();
+      mark.style.height = (h1r.height * FIT) + 'px';
+      mark.style.width  = 'auto';
+      const words = [...h1.querySelectorAll('.word')];
+      const textRight = words.length ? Math.max(...words.map(w => w.getBoundingClientRect().right)) : h1r.right;
+      const cx = (textRight + window.innerWidth) / 2 - heror.left;
+      const cy = (h1r.top + h1r.bottom) / 2 - heror.top;
+      wrap.style.left = cx + 'px';
+      wrap.style.top  = cy + 'px';
+    }
+    placeLogo();
+    window.addEventListener('resize', placeLogo);
+    window.addEventListener('load', placeLogo);
+
+    // ── Rotate intro mode per visit (alternates fall ↔ slide) ──
+    let last = null;
+    try { last = localStorage.getItem('ps_intro_mode'); } catch {}
+    const next = last === 'm-fall' ? 'm-slide' : 'm-fall';
+    document.body.classList.add(next);
+    try { localStorage.setItem('ps_intro_mode', next); } catch {}
+  </script>
+</body>
+</html>

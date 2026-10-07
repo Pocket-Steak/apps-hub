@@ -1,12 +1,18 @@
 {
+  "framework": null,
+  "buildCommand": "",
+  "installCommand": "",
+  "outputDirectory": "public",
   "redirects": [
     { "source": "/",          "destination": "/apps/",      "permanent": false },
     { "source": "/apps",      "destination": "/apps/",      "permanent": false },
     { "source": "/countdown", "destination": "/countdown/", "permanent": false }
   ],
+  "rewrites": [
+    { "source": "/vault", "destination": "/api/vault" },
+    { "source": "/vault/", "destination": "/api/vault" }
+  ],
   "functions": {
-    "server.mjs": {
-      "includeFiles": "**/*"
-    }
+    "api/vault.js": { "includeFiles": "vault/**" }
   }
 }
