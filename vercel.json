@@ -4,15 +4,46 @@
   "installCommand": "",
   "outputDirectory": "public",
   "redirects": [
-    { "source": "/",          "destination": "/apps/",      "permanent": false },
-    { "source": "/apps",      "destination": "/apps/",      "permanent": false },
-    { "source": "/countdown", "destination": "/countdown/", "permanent": false }
+    {
+      "source": "/",
+      "destination": "/apps/",
+      "permanent": false
+    },
+    {
+      "source": "/apps",
+      "destination": "/apps/",
+      "permanent": false
+    },
+    {
+      "source": "/countdown",
+      "destination": "/countdown/",
+      "permanent": false
+    }
   ],
   "rewrites": [
-    { "source": "/vault", "destination": "/api/vault" },
-    { "source": "/vault/", "destination": "/api/vault" }
+    {
+      "source": "/vault",
+      "destination": "/api/vault"
+    },
+    {
+      "source": "/vault/",
+      "destination": "/api/vault"
+    }
   ],
   "functions": {
-    "api/vault.js": { "includeFiles": "vault/**" }
-  }
+    "api/vault.js": {
+      "includeFiles": "vault/**"
+    }
+  },
+  "headers": [
+    {
+      "source": "/nichol-27b568bc2f/(.*)",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    }
+  ]
 }
